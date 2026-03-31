@@ -74,6 +74,7 @@ let editingTaskId = null;  // null = creating new
 let pickingMapCoord = false;
 let osrsMap = null;
 const markers = {}; // taskId → L.marker
+const openModalIds = [];
 
 // ---------------------------------------------------------------------------
 // API helpers
@@ -403,6 +404,67 @@ function renderStatsPanel(skillLevels) {
 }
 
 // ---------------------------------------------------------------------------
+// Modal helpers (Bootstrap-free)
+// ---------------------------------------------------------------------------
+
+function showModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+
+  if (!openModalIds.includes(modalId)) openModalIds.push(modalId);
+
+  modal.style.display = "block";
+  modal.classList.add("show");
+  modal.setAttribute("aria-modal", "true");
+  modal.removeAttribute("aria-hidden");
+  document.body.classList.add("modal-open");
+
+  if (!document.querySelector(".modal-backdrop")) {
+    const backdrop = document.createElement("div");
+    backdrop.className = "modal-backdrop fade show";
+    document.body.appendChild(backdrop);
+  }
+}
+
+function hideModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+
+  modal.classList.remove("show");
+  modal.style.display = "none";
+  modal.setAttribute("aria-hidden", "true");
+  modal.removeAttribute("aria-modal");
+
+  const idx = openModalIds.indexOf(modalId);
+  if (idx !== -1) openModalIds.splice(idx, 1);
+
+  if (openModalIds.length === 0) {
+    document.body.classList.remove("modal-open");
+    document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+  }
+}
+
+function initModalControls() {
+  document.querySelectorAll('[data-bs-dismiss="modal"], .btn-close').forEach(btn => {
+    btn.addEventListener("click", () => {
+      const modal = btn.closest(".modal");
+      if (modal?.id) hideModal(modal.id);
+    });
+  });
+
+  document.querySelectorAll(".modal").forEach(modal => {
+    modal.addEventListener("click", e => {
+      if (e.target === modal) hideModal(modal.id);
+    });
+  });
+
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape" || openModalIds.length === 0) return;
+    hideModal(openModalIds[openModalIds.length - 1]);
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Tiers rendering
 // ---------------------------------------------------------------------------
 
@@ -470,8 +532,7 @@ function openTaskModal(existingTask = null) {
   updateTaskTypeFields();
   updateXpPreview();
 
-  const modal = new bootstrap.Modal(document.getElementById("taskModal"));
-  modal.show();
+  showModal("taskModal");
 }
 
 function updateTaskTypeFields() {
@@ -534,7 +595,7 @@ async function saveTask() {
     if (result) plan.tasks.push(result);
   }
 
-  bootstrap.Modal.getInstance(document.getElementById("taskModal")).hide();
+  hideModal("taskModal");
   renderTaskList();
   checkMilestones();
 }
@@ -649,7 +710,7 @@ function openStatsModal(atTaskIndex = null) {
     `;
   }
 
-  new bootstrap.Modal(document.getElementById("statsModal")).show();
+  showModal("statsModal");
 }
 
 // ---------------------------------------------------------------------------
@@ -666,6 +727,7 @@ async function loadPlanData() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  initModalControls();
   // Init map first (fast)
   initMap();
 
@@ -712,7 +774,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Manage tiers button
   document.getElementById("btn-manage-tiers").addEventListener("click", () => {
     renderTiersTable();
-    new bootstrap.Modal(document.getElementById("tiersModal")).show();
+    showModal("tiersModal");
   });
 
   // Add tier
@@ -741,7 +803,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Plan title rename
   document.getElementById("plan-title").addEventListener("click", () => {
     document.getElementById("rename-input").value = plan.name;
-    new bootstrap.Modal(document.getElementById("renameModal")).show();
+    showModal("renameModal");
   });
 
   document.getElementById("btn-confirm-rename").addEventListener("click", async () => {
@@ -751,7 +813,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     plan.name = newName;
     document.getElementById("plan-title").textContent = newName;
     document.title = `${newName} – Leagues Planner`;
-    bootstrap.Modal.getInstance(document.getElementById("renameModal")).hide();
+    hideModal("renameModal");
   });
 
   // Drag-and-drop

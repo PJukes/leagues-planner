@@ -72,10 +72,70 @@ let plan = {
 
 let taskLibrary = [];
 let editingTaskId = null;  // null = creating new
-let pickingMapCoord = false;
 let osrsMap = null;
 const markers = {}; // taskId → L.marker
-const openModalIds = [];
+
+function uiStore() {
+  return window.Alpine?.store("plannerUi");
+}
+
+function initUiStore() {
+  if (!window.Alpine) {
+    throw new Error("AlpineJS is required for planner UI controls.");
+  }
+
+  window.Alpine.store("plannerUi", {
+    openModalIds: [],
+    pickingMapCoord: false,
+    showModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (!modal) return;
+      if (!this.openModalIds.includes(modalId)) this.openModalIds.push(modalId);
+      this.syncModalDom();
+    },
+    hideModal(modalId) {
+      this.openModalIds = this.openModalIds.filter(id => id !== modalId);
+      this.syncModalDom();
+    },
+    hideTopModal() {
+      const top = this.openModalIds[this.openModalIds.length - 1];
+      if (top) this.hideModal(top);
+    },
+    syncModalDom() {
+      document.querySelectorAll(".modal").forEach(modal => {
+        const isOpen = this.openModalIds.includes(modal.id);
+        modal.style.display = isOpen ? "block" : "none";
+        modal.classList.toggle("show", isOpen);
+        if (isOpen) {
+          modal.setAttribute("aria-modal", "true");
+          modal.removeAttribute("aria-hidden");
+        } else {
+          modal.setAttribute("aria-hidden", "true");
+          modal.removeAttribute("aria-modal");
+        }
+      });
+
+      if (this.openModalIds.length > 0) {
+        document.body.classList.add("modal-open");
+        if (!document.querySelector(".modal-backdrop")) {
+          const backdrop = document.createElement("div");
+          backdrop.className = "modal-backdrop fade show";
+          document.body.appendChild(backdrop);
+        }
+      } else {
+        document.body.classList.remove("modal-open");
+        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+      }
+    },
+    stopMapPicking() {
+      this.pickingMapCoord = false;
+    },
+    toggleMapPicking() {
+      this.pickingMapCoord = !this.pickingMapCoord;
+      return this.pickingMapCoord;
+    },
+  });
+}
 
 // ---------------------------------------------------------------------------
 // API helpers
@@ -204,11 +264,11 @@ function onMapClick(e) {
   const osrsX = Math.round(e.latlng.lng);
   const osrsY = Math.round(e.latlng.lat);
 
-  if (pickingMapCoord) {
+  if (uiStore()?.pickingMapCoord) {
     // Fill in the task modal coordinate inputs
     document.getElementById("task-map-x").value = osrsX;
     document.getElementById("task-map-y").value = osrsY;
-    pickingMapCoord = false;
+    uiStore().stopMapPicking();
     document.getElementById("btn-pick-map").textContent = "Pick on map";
     osrsMap.getContainer().style.cursor = "";
     return;
@@ -413,40 +473,11 @@ function renderStatsPanel(skillLevels) {
 // ---------------------------------------------------------------------------
 
 function showModal(modalId) {
-  const modal = document.getElementById(modalId);
-  if (!modal) return;
-
-  if (!openModalIds.includes(modalId)) openModalIds.push(modalId);
-
-  modal.style.display = "block";
-  modal.classList.add("show");
-  modal.setAttribute("aria-modal", "true");
-  modal.removeAttribute("aria-hidden");
-  document.body.classList.add("modal-open");
-
-  if (!document.querySelector(".modal-backdrop")) {
-    const backdrop = document.createElement("div");
-    backdrop.className = "modal-backdrop fade show";
-    document.body.appendChild(backdrop);
-  }
+  uiStore()?.showModal(modalId);
 }
 
 function hideModal(modalId) {
-  const modal = document.getElementById(modalId);
-  if (!modal) return;
-
-  modal.classList.remove("show");
-  modal.style.display = "none";
-  modal.setAttribute("aria-hidden", "true");
-  modal.removeAttribute("aria-modal");
-
-  const idx = openModalIds.indexOf(modalId);
-  if (idx !== -1) openModalIds.splice(idx, 1);
-
-  if (openModalIds.length === 0) {
-    document.body.classList.remove("modal-open");
-    document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
-  }
+  uiStore()?.hideModal(modalId);
 }
 
 function initModalControls() {
@@ -464,8 +495,8 @@ function initModalControls() {
   });
 
   document.addEventListener("keydown", e => {
-    if (e.key !== "Escape" || openModalIds.length === 0) return;
-    hideModal(openModalIds[openModalIds.length - 1]);
+    if (e.key !== "Escape") return;
+    uiStore()?.hideTopModal();
   });
 }
 
@@ -537,6 +568,9 @@ function openTaskModal(existingTask = null) {
 
   updateTaskTypeFields();
   updateXpPreview();
+  uiStore()?.stopMapPicking();
+  document.getElementById("btn-pick-map").textContent = "Pick on map";
+  osrsMap.getContainer().style.cursor = "";
 
   showModal("taskModal");
 }
@@ -772,6 +806,7 @@ function applyTaskTemplate(templateKey) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  initUiStore();
   initModalControls();
   // Init map first (fast)
   initMap();
@@ -815,9 +850,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Pick map coord
   document.getElementById("btn-pick-map").addEventListener("click", () => {
-    pickingMapCoord = !pickingMapCoord;
-    document.getElementById("btn-pick-map").textContent = pickingMapCoord ? "Click the map…" : "Pick on map";
-    osrsMap.getContainer().style.cursor = pickingMapCoord ? "crosshair" : "";
+    const isPicking = uiStore().toggleMapPicking();
+    document.getElementById("btn-pick-map").textContent = isPicking ? "Click the map…" : "Pick on map";
+    osrsMap.getContainer().style.cursor = isPicking ? "crosshair" : "";
   });
 
   // Manage tiers button

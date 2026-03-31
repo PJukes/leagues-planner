@@ -2,9 +2,8 @@
 {% load static %}
 {% load webpack_loader static %}
 
-  <!DOCTYPE html>
-{% get_current_language as LANGUAGE_CODE %}
-<html class="h-full bg-gray-100" lang="{{ LANGUAGE_CODE }}">
+<!DOCTYPE html>
+<html class="h-full bg-gray-100">
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
@@ -63,26 +62,26 @@
           </li>
           {% if request.user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'planner:home' %}">{% translate "Planner" %}</a>
+              <a class="nav-link" href="{% url 'planner:home' %}">Planner</a>
             </li>
             <li class="nav-item">
               <a class="nav-link"
-                  href="{% url 'users:detail' request.user.pk %}">{% translate "My Profile" %}</a>
+                  href="{% url 'users:detail' request.user.pk %}">My Profile</a>
             </li>
             <li class="nav-item">
               {# URL provided by django-allauth/account/urls.py #}
-              <a class="nav-link" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+              <a class="nav-link" href="{% url 'account_logout' %}">Sign Out</a>
             </li>
           {% else %}
             {% if ACCOUNT_ALLOW_REGISTRATION %}
               <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
-                <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
+                <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}">Sign Up</a>
               </li>
             {% endif %}
             <li class="nav-item">
               {# URL provided by django-allauth/account/urls.py #}
-              <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
+              <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}">Sign In</a>
             </li>
           {% endif %}
         </ul>

@@ -81,7 +81,8 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.mfa",
     "allauth.socialaccount",
-    "webpack_boilerplate"
+    "webpack_boilerplate",
+    "heroicons"
 ]
 
 LOCAL_APPS = [

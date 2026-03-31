@@ -2,7 +2,7 @@
 """Base settings to build other settings files upon."""
 
 from pathlib import Path
-
+import os
 import environ
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
@@ -77,13 +77,11 @@ DJANGO_APPS = [
     "django.forms",
 ]
 THIRD_PARTY_APPS = [
-    "crispy_forms",
-    "crispy_bootstrap5",
     "allauth",
     "allauth.account",
     "allauth.mfa",
     "allauth.socialaccount",
-    "webpack_loader",
+    "webpack_boilerplate"
 ]
 
 LOCAL_APPS = [
@@ -150,11 +148,11 @@ MIDDLEWARE = [
 # STATIC
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root
-STATIC_ROOT = str(BASE_DIR / "staticfiles")
+STATIC_ROOT = BASE_DIR.joinpath('static')
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = "/static/"
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = [str(APPS_DIR / "static")]
+STATICFILES_DIRS = [BASE_DIR.joinpath("frontend/build"),]
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -290,12 +288,5 @@ SOCIALACCOUNT_FORMS = {"signup": "leaguesplanner.users.forms.UserSocialSignupFor
 # django-webpack-loader
 # ------------------------------------------------------------------------------
 WEBPACK_LOADER = {
-    "DEFAULT": {
-        "CACHE": not DEBUG,
-        "STATS_FILE": BASE_DIR / "webpack-stats.json",
-        "POLL_INTERVAL": 0.1,
-        "IGNORE": [r".+\.hot-update.js", r".+\.map"],
-    },
+    'MANIFEST_FILE': BASE_DIR / "frontend/build/manifest.json",
 }
-# Your stuff...
-# ------------------------------------------------------------------------------

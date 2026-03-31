@@ -1,6 +1,6 @@
 
 {% load static i18n %}
-    {% load render_bundle from webpack_loader %}
+{% load webpack_loader static %}
 
   <!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
@@ -23,9 +23,8 @@
 <!-- Your stuff: Third-party CSS libraries go here -->
 <!-- This file stores project-specific CSS -->
 
-
-{% render_bundle 'project' 'css' %}
-
+{% stylesheet_pack 'app' %}
+{% javascript_pack 'app' attrs='defer' %}
 
 {% endblock css %}
 <!-- Le javascript
@@ -34,14 +33,8 @@
 {% block javascript %}
 
 
-<!-- Vendor dependencies bundled as one file -->
-{% render_bundle 'vendors' 'js' attrs='defer' %}
-
-
 <!-- place project specific Javascript in this file -->
-
-
-{% render_bundle 'project' 'js' attrs='defer' %}
+{% render_bundle 'app' 'js' attrs='defer' %}
 
 
 {% endblock javascript %}

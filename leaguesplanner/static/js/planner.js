@@ -72,6 +72,203 @@ let taskLibrary = [];
 let editingTaskId = null;  // null = creating new
 let osrsMap = null;
 const markers = {}; // taskId → L.marker
+const openModalIds = [];
+
+const GAME_TILES_PER_IMAGE_TILE = 64;
+const IMAGE_TILE_SIZE_PX = 256;
+const MAP_UNITS_PER_GAME_TILE = IMAGE_TILE_SIZE_PX / GAME_TILES_PER_IMAGE_TILE; // 4 px per game tile
+
+function gameToMapLatLng(x, y) {
+  return [y * MAP_UNITS_PER_GAME_TILE, x * MAP_UNITS_PER_GAME_TILE];
+}
+
+function mapLatLngToGame(latlng) {
+  return {
+    x: Math.round(latlng.lng / MAP_UNITS_PER_GAME_TILE),
+    y: Math.round(latlng.lat / MAP_UNITS_PER_GAME_TILE),
+  };
+}
+
+
+// ---------------------------------------------------------------------------
+// API helpers
+// ---------------------------------------------------------------------------
+
+const cfg = window.PLANNER_CONFIG;
+
+async function apiFetch(url, method = "GET", body = null) {
+  const opts = {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": cfg.csrfToken,
+    },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("API error", res.status, text);
+    return null;
+  }
+  if (res.status === 204) return {};
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// Computed state helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Walk through all tasks in order and compute:
+ *  - cumulative league points after each task
+ *  - current XP multiplier at each task
+ *  - skill XP totals at each task
+ *  - which tiers become available (milestone notifications)
+ *
+ * Returns an array of state snapshots, one per task.
+ */
+function computeTaskStates() {
+  let cumPoints = 0;
+  let currentMult = plan.base_xp_multiplier;
+  const skillXp = baseStats();
+  const states = [];
+  const tiersById = Object.fromEntries(plan.tiers.map(t => [t.id, t]));
+
+  for (const task of plan.tasks) {
+    // --- Apply task effects ---
+    if (task.task_type === "league_task") {
+      cumPoints += task.league_points;
+    } else if (task.task_type === "generic_action") {
+      if (task.skill) {
+        const totalXp = task.base_xp_per_action * task.quantity * currentMult;
+        skillXp[task.skill] = (skillXp[task.skill] || 0) + totalXp;
+      }
+    } else if (task.task_type === "tier_unlock") {
+      if (task.tier_id && tiersById[task.tier_id]) {
+        currentMult = tiersById[task.tier_id].xp_multiplier;
+      }
+    }
+
+    // --- Check if this task tips us over a tier threshold ---
+    // (only for league tasks – these are what accumulate points)
+    let unlockedTier = null;
+    if (task.task_type === "league_task") {
+      for (const tier of plan.tiers) {
+        const prevPoints = cumPoints - task.league_points;
+        if (prevPoints < tier.points_required && cumPoints >= tier.points_required) {
+          unlockedTier = tier;
+        }
+      }
+    }
+
+    states.push({
+      taskId: task.id,
+      cumPoints,
+      multiplier: currentMult,
+      skillXp: { ...skillXp },
+      skillLevels: Object.fromEntries(
+        SKILLS.map(sk => [sk, levelForXp(skillXp[sk] || 0)])
+      ),
+      unlockedTier,
+    });
+  }
+
+  return states;
+}
+
+// ---------------------------------------------------------------------------
+// Map initialisation
+// ---------------------------------------------------------------------------
+
+function initMap() {
+  // OSRS uses game tile coordinates: x increases east, y increases north.
+  // Leaflet CRS.Simple treats lat=y (north), lng=x (east) which matches perfectly.
+  osrsMap = L.map("osrs-map", {
+    crs: L.CRS.Simple,
+    minZoom: -5,
+    maxZoom: 2,
+    zoomSnap: 0.5,
+    zoomControl: true,
+  });
+
+  // OSRS map tiles from the Jagex CDN.
+  // The tile URL uses standard XYZ scheme; 'tms: false' keeps y=0 at north.
+  // Each tile covers 64 game tiles at the base resolution.
+  // Note: if tiles don't load the map is still fully interactive.
+  L.tileLayer("https://maps.runescape.com/osrs/tiles/{z}/{x}_{y}.png", {
+    attribution: "&copy; Jagex Ltd",
+    tileSize: 256,
+    noWrap: true,
+    tms: false,
+    errorTileUrl: "", // silently fail missing tiles
+  }).addTo(osrsMap);
+
+  // Configurable default view.
+  osrsMap.setView(gameToMapLatLng(cfg.mapStartX, cfg.mapStartY), cfg.mapStartZoom);
+  osrsMap.setMaxBounds([[-512, -512], [16384 * MAP_UNITS_PER_GAME_TILE, 16384 * MAP_UNITS_PER_GAME_TILE]]);
+  window.addEventListener("resize", () => osrsMap.invalidateSize());
+
+  // Allow clicking the map to place / pick coordinates
+  osrsMap.on("click", onMapClick);
+}
+
+function onMapClick(e) {
+  const { x: osrsX, y: osrsY } = mapLatLngToGame(e.latlng);
+
+  if (pickingMapCoord) {
+    // Fill in the task modal coordinate inputs
+    document.getElementById("task-map-x").value = osrsX;
+    document.getElementById("task-map-y").value = osrsY;
+    pickingMapCoord = false;
+    document.getElementById("btn-pick-map").textContent = "Pick on map";
+    osrsMap.getContainer().style.cursor = "";
+    return;
+  }
+}
+
+function taskMarkerIcon(taskType) {
+  const colors = {
+    league_task: "#e8b84b",
+    generic_action: "#4caf50",
+    tier_unlock: "#9c27b0",
+    note: "#2196f3",
+  };
+  const color = colors[taskType] || "#aaa";
+  return L.divIcon({
+    className: "",
+    html: `<div style="
+      width:12px;height:12px;border-radius:50%;
+      background:${color};border:2px solid #fff;
+      box-shadow:0 1px 4px rgba(0,0,0,.5)
+    "></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  });
+}
+
+function refreshMarkers() {
+  // Remove old markers
+  Object.values(markers).forEach(m => osrsMap.removeLayer(m));
+  Object.keys(markers).forEach(k => delete markers[k]);
+
+  for (const task of plan.tasks) {
+    if (task.map_x != null && task.map_y != null) {
+      const marker = L.marker(gameToMapLatLng(task.map_x, task.map_y), {
+        icon: taskMarkerIcon(task.task_type),
+        title: task.name,
+      });
+      marker.bindPopup(`
+        <div class="task-popup">
+          <strong>${escHtml(task.name)}</strong>
+          <span style="color:#666;font-size:.72rem">${escHtml(task.task_type.replace("_", " "))}</span>
+        </div>
+      `);
+      marker.addTo(osrsMap);
+      markers[task.id] = marker;
+    }
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Rendering
@@ -178,7 +375,7 @@ function renderTaskList() {
     if (gotoBtn) {
       gotoBtn.addEventListener("click", e => {
         e.stopPropagation();
-        osrsMap.setView([task.map_y, task.map_x], 0);
+        osrsMap.setView(gameToMapLatLng(task.map_x, task.map_y), 0);
         if (markers[task.id]) markers[task.id].openPopup();
       });
     }

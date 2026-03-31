@@ -2,8 +2,6 @@
    OSRS Leagues Planner – planner.js
    ========================================================================== */
 
-"use strict";
-
 // ---------------------------------------------------------------------------
 // OSRS XP / level utilities
 // ---------------------------------------------------------------------------
@@ -70,188 +68,10 @@ let plan = {
   tasks: [],
 };
 
+let taskLibrary = [];
 let editingTaskId = null;  // null = creating new
-let pickingMapCoord = false;
 let osrsMap = null;
 const markers = {}; // taskId → L.marker
-const openModalIds = [];
-
-// ---------------------------------------------------------------------------
-// API helpers
-// ---------------------------------------------------------------------------
-
-const cfg = window.PLANNER_CONFIG;
-
-async function apiFetch(url, method = "GET", body = null) {
-  const opts = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": cfg.csrfToken,
-    },
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(url, opts);
-  if (!res.ok) {
-    console.error("API error", res.status, await res.text());
-    return null;
-  }
-  return res.json();
-}
-
-// ---------------------------------------------------------------------------
-// Computed state helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Walk through all tasks in order and compute:
- *  - cumulative league points after each task
- *  - current XP multiplier at each task
- *  - skill XP totals at each task
- *  - which tiers become available (milestone notifications)
- *
- * Returns an array of state snapshots, one per task.
- */
-function computeTaskStates() {
-  let cumPoints = 0;
-  let currentMult = plan.base_xp_multiplier;
-  const skillXp = baseStats();
-  const states = [];
-  const tiersById = Object.fromEntries(plan.tiers.map(t => [t.id, t]));
-
-  for (const task of plan.tasks) {
-    // --- Apply task effects ---
-    if (task.task_type === "league_task") {
-      cumPoints += task.league_points;
-    } else if (task.task_type === "generic_action") {
-      if (task.skill) {
-        const totalXp = task.base_xp_per_action * task.quantity * currentMult;
-        skillXp[task.skill] = (skillXp[task.skill] || 0) + totalXp;
-      }
-    } else if (task.task_type === "tier_unlock") {
-      if (task.tier_id && tiersById[task.tier_id]) {
-        currentMult = tiersById[task.tier_id].xp_multiplier;
-      }
-    }
-
-    // --- Check if this task tips us over a tier threshold ---
-    // (only for league tasks – these are what accumulate points)
-    let unlockedTier = null;
-    if (task.task_type === "league_task") {
-      for (const tier of plan.tiers) {
-        const prevPoints = cumPoints - task.league_points;
-        if (prevPoints < tier.points_required && cumPoints >= tier.points_required) {
-          unlockedTier = tier;
-        }
-      }
-    }
-
-    states.push({
-      taskId: task.id,
-      cumPoints,
-      multiplier: currentMult,
-      skillXp: { ...skillXp },
-      skillLevels: Object.fromEntries(
-        SKILLS.map(sk => [sk, levelForXp(skillXp[sk] || 0)])
-      ),
-      unlockedTier,
-    });
-  }
-
-  return states;
-}
-
-// ---------------------------------------------------------------------------
-// Map initialisation
-// ---------------------------------------------------------------------------
-
-function initMap() {
-  // OSRS uses game tile coordinates: x increases east, y increases north.
-  // Leaflet CRS.Simple treats lat=y (north), lng=x (east) which matches perfectly.
-  osrsMap = L.map("osrs-map", {
-    crs: L.CRS.Simple,
-    minZoom: -5,
-    maxZoom: 2,
-    zoomSnap: 0.5,
-  });
-
-  // OSRS map tiles from the Jagex CDN.
-  // The tile URL uses standard XYZ scheme; 'tms: false' keeps y=0 at north.
-  // Each tile covers 64 game tiles at the base resolution.
-  // Note: if tiles don't load the map is still fully interactive.
-  L.tileLayer("https://maps.runescape.com/osrs/tiles/{z}/{x}_{y}.png", {
-    attribution: "&copy; Jagex Ltd",
-    tileSize: 256,
-    noWrap: true,
-    tms: false,
-    errorTileUrl: "", // silently fail missing tiles
-  }).addTo(osrsMap);
-
-  // Default view – Lumbridge (OSRS coords: x=3222, y=3218)
-  // In CRS.Simple latLng(y, x) = latLng(north, east)
-  osrsMap.setView([3218, 3222], -2);
-
-  // Allow clicking the map to place / pick coordinates
-  osrsMap.on("click", onMapClick);
-}
-
-function onMapClick(e) {
-  const osrsX = Math.round(e.latlng.lng);
-  const osrsY = Math.round(e.latlng.lat);
-
-  if (pickingMapCoord) {
-    // Fill in the task modal coordinate inputs
-    document.getElementById("task-map-x").value = osrsX;
-    document.getElementById("task-map-y").value = osrsY;
-    pickingMapCoord = false;
-    document.getElementById("btn-pick-map").textContent = "Pick on map";
-    osrsMap.getContainer().style.cursor = "";
-    return;
-  }
-}
-
-function taskMarkerIcon(taskType) {
-  const colors = {
-    league_task: "#e8b84b",
-    generic_action: "#4caf50",
-    tier_unlock: "#9c27b0",
-    note: "#2196f3",
-  };
-  const color = colors[taskType] || "#aaa";
-  return L.divIcon({
-    className: "",
-    html: `<div style="
-      width:12px;height:12px;border-radius:50%;
-      background:${color};border:2px solid #fff;
-      box-shadow:0 1px 4px rgba(0,0,0,.5)
-    "></div>`,
-    iconSize: [12, 12],
-    iconAnchor: [6, 6],
-  });
-}
-
-function refreshMarkers() {
-  // Remove old markers
-  Object.values(markers).forEach(m => osrsMap.removeLayer(m));
-  Object.keys(markers).forEach(k => delete markers[k]);
-
-  for (const task of plan.tasks) {
-    if (task.map_x != null && task.map_y != null) {
-      const marker = L.marker([task.map_y, task.map_x], {
-        icon: taskMarkerIcon(task.task_type),
-        title: task.name,
-      });
-      marker.bindPopup(`
-        <div class="task-popup">
-          <strong>${escHtml(task.name)}</strong>
-          <span style="color:#666;font-size:.72rem">${escHtml(task.task_type.replace("_", " "))}</span>
-        </div>
-      `);
-      marker.addTo(osrsMap);
-      markers[task.id] = marker;
-    }
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Rendering
@@ -408,40 +228,11 @@ function renderStatsPanel(skillLevels) {
 // ---------------------------------------------------------------------------
 
 function showModal(modalId) {
-  const modal = document.getElementById(modalId);
-  if (!modal) return;
-
-  if (!openModalIds.includes(modalId)) openModalIds.push(modalId);
-
-  modal.style.display = "block";
-  modal.classList.add("show");
-  modal.setAttribute("aria-modal", "true");
-  modal.removeAttribute("aria-hidden");
-  document.body.classList.add("modal-open");
-
-  if (!document.querySelector(".modal-backdrop")) {
-    const backdrop = document.createElement("div");
-    backdrop.className = "modal-backdrop fade show";
-    document.body.appendChild(backdrop);
-  }
+  uiStore()?.showModal(modalId);
 }
 
 function hideModal(modalId) {
-  const modal = document.getElementById(modalId);
-  if (!modal) return;
-
-  modal.classList.remove("show");
-  modal.style.display = "none";
-  modal.setAttribute("aria-hidden", "true");
-  modal.removeAttribute("aria-modal");
-
-  const idx = openModalIds.indexOf(modalId);
-  if (idx !== -1) openModalIds.splice(idx, 1);
-
-  if (openModalIds.length === 0) {
-    document.body.classList.remove("modal-open");
-    document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
-  }
+  uiStore()?.hideModal(modalId);
 }
 
 function initModalControls() {
@@ -459,8 +250,8 @@ function initModalControls() {
   });
 
   document.addEventListener("keydown", e => {
-    if (e.key !== "Escape" || openModalIds.length === 0) return;
-    hideModal(openModalIds[openModalIds.length - 1]);
+    if (e.key !== "Escape") return;
+    uiStore()?.hideTopModal();
   });
 }
 
@@ -519,6 +310,7 @@ function openTaskModal(existingTask = null) {
     r.checked = r.value === (existingTask ? existingTask.task_type : "league_task");
   });
   document.getElementById("task-name").value = existingTask ? existingTask.name : "";
+  document.getElementById("task-template-select").value = "";
   document.getElementById("task-points").value = existingTask ? existingTask.league_points : 0;
   document.getElementById("task-skill").value = existingTask ? existingTask.skill : "";
   document.getElementById("task-xp").value = existingTask ? existingTask.base_xp_per_action : 0;
@@ -531,6 +323,9 @@ function openTaskModal(existingTask = null) {
 
   updateTaskTypeFields();
   updateXpPreview();
+  uiStore()?.stopMapPicking();
+  document.getElementById("btn-pick-map").textContent = "Pick on map";
+  osrsMap.getContainer().style.cursor = "";
 
   showModal("taskModal");
 }
@@ -570,6 +365,7 @@ async function saveTask() {
   const mapY = document.getElementById("task-map-y").value;
 
   const body = {
+    template_key: document.getElementById("task-template-select").value || null,
     task_type: type,
     name,
     notes: document.getElementById("task-notes").value.trim(),
@@ -593,6 +389,11 @@ async function saveTask() {
   } else {
     result = await apiFetch(cfg.createTaskUrl, "POST", body);
     if (result) plan.tasks.push(result);
+  }
+
+  if (!result) {
+    alert("Could not save task. Please check required fields and try again.");
+    return;
   }
 
   hideModal("taskModal");
@@ -717,105 +518,3 @@ function openStatsModal(atTaskIndex = null) {
 // Initialise
 // ---------------------------------------------------------------------------
 
-async function loadPlanData() {
-  const data = await apiFetch(cfg.dataUrl);
-  if (!data) return;
-  plan.name = data.name;
-  plan.base_xp_multiplier = data.base_xp_multiplier;
-  plan.tiers = data.tiers;
-  plan.tasks = data.tasks;
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  initModalControls();
-  // Init map first (fast)
-  initMap();
-
-  // Load plan data
-  await loadPlanData();
-
-  // Render
-  renderTaskList();
-  renderTiersTable();
-
-  // ---- Event listeners ----
-
-  // Task type radio → show/hide fields
-  document.querySelectorAll('input[name="taskType"]').forEach(r => {
-    r.addEventListener("change", () => { updateTaskTypeFields(); updateXpPreview(); });
-  });
-
-  // XP preview live update
-  ["task-xp", "task-qty", "task-skill"].forEach(id => {
-    document.getElementById(id).addEventListener("input", updateXpPreview);
-  });
-
-  // Tier select → show info
-  document.getElementById("task-tier-select").addEventListener("change", () => {
-    const sel = document.getElementById("task-tier-select");
-    const tier = plan.tiers.find(t => t.id == sel.value);
-    document.getElementById("tier-info-text").textContent =
-      tier ? `Unlocking this tier changes the XP multiplier to ${tier.xp_multiplier}x.` : "";
-  });
-
-  // Add task button
-  document.getElementById("btn-add-task").addEventListener("click", () => openTaskModal());
-
-  // Save task
-  document.getElementById("btn-save-task").addEventListener("click", saveTask);
-
-  // Pick map coord
-  document.getElementById("btn-pick-map").addEventListener("click", () => {
-    pickingMapCoord = !pickingMapCoord;
-    document.getElementById("btn-pick-map").textContent = pickingMapCoord ? "Click the map…" : "Pick on map";
-    osrsMap.getContainer().style.cursor = pickingMapCoord ? "crosshair" : "";
-  });
-
-  // Manage tiers button
-  document.getElementById("btn-manage-tiers").addEventListener("click", () => {
-    renderTiersTable();
-    showModal("tiersModal");
-  });
-
-  // Add tier
-  document.getElementById("btn-add-tier").addEventListener("click", async () => {
-    const name = document.getElementById("new-tier-name").value.trim();
-    const pts = parseInt(document.getElementById("new-tier-pts").value);
-    const mult = parseFloat(document.getElementById("new-tier-mult").value);
-    if (!name || isNaN(pts) || isNaN(mult)) { alert("Fill in all tier fields."); return; }
-
-    const result = await apiFetch(cfg.createTierUrl, "POST", {
-      name, points_required: pts, xp_multiplier: mult,
-    });
-    if (result) {
-      plan.tiers.push(result);
-      plan.tiers.sort((a, b) => a.points_required - b.points_required);
-      document.getElementById("new-tier-name").value = "";
-      document.getElementById("new-tier-pts").value = "";
-      document.getElementById("new-tier-mult").value = "";
-      renderTiersTable();
-    }
-  });
-
-  // View stats button
-  document.getElementById("btn-view-stats").addEventListener("click", () => openStatsModal());
-
-  // Plan title rename
-  document.getElementById("plan-title").addEventListener("click", () => {
-    document.getElementById("rename-input").value = plan.name;
-    showModal("renameModal");
-  });
-
-  document.getElementById("btn-confirm-rename").addEventListener("click", async () => {
-    const newName = document.getElementById("rename-input").value.trim();
-    if (!newName) return;
-    await apiFetch(cfg.updateUrl, "PUT", { name: newName });
-    plan.name = newName;
-    document.getElementById("plan-title").textContent = newName;
-    document.title = `${newName} – Leagues Planner`;
-    hideModal("renameModal");
-  });
-
-  // Drag-and-drop
-  initSortable();
-});

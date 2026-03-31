@@ -1,0 +1,39 @@
+{% extends 'base_modal.html' %}
+{% block modal_content %}
+<div class="modal-header">
+  <h5 class="modal-title fw-bold">Manage League Tiers</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+  <p class="small text-muted">
+    Tiers are unlocked when you add a <em>Tier Unlock</em> task. A new XP multiplier takes effect from that task onward.
+  </p>
+  <table class="table table-sm table-bordered" id="tiers-table">
+    <thead class="table-dark">
+      <tr>
+        <th>Name</th>
+        <th>Points Required</th>
+        <th>XP Multiplier</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tiers-tbody"></tbody>
+  </table>
+  <hr>
+  <h6 class="fw-bold">Add Tier</h6>
+  <div class="row g-2">
+    <div class="col-md-5">
+      <input type="text" class="form-control form-control-sm" id="new-tier-name" placeholder="Tier name (e.g. Tier 1 – Woodsman)">
+    </div>
+    <div class="col-md-3">
+      <input type="number" class="form-control form-control-sm" id="new-tier-pts" placeholder="Points required" min="0">
+    </div>
+    <div class="col-md-3">
+      <input type="number" class="form-control form-control-sm" id="new-tier-mult" placeholder="XP multiplier" min="1" step="0.5">
+    </div>
+    <div class="col-md-1">
+      <button class="btn btn-sm btn-success w-100" id="btn-add-tier">+</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

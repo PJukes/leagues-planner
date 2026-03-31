@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
 from .models import LeagueTier, Plan, PlanTask
+from .task_library import get_task_library
 
 
 # ---------------------------------------------------------------------------
@@ -36,6 +37,24 @@ def _tier_to_dict(tier):
         "name": tier.name,
         "points_required": tier.points_required,
         "xp_multiplier": tier.xp_multiplier,
+    }
+
+
+def _library_task_to_dict(task_template):
+    """Normalize task-library item for API consumers."""
+    return {
+        "key": task_template["key"],
+        "task_type": task_template.get("task_type", "note"),
+        "name": task_template.get("name", ""),
+        "notes": task_template.get("notes", ""),
+        "league_points": int(task_template.get("league_points", 0)),
+        "skill": task_template.get("skill", ""),
+        "base_xp_per_action": float(task_template.get("base_xp_per_action", 0)),
+        "quantity": int(task_template.get("quantity", 1)),
+        "tier_id": task_template.get("tier_id"),
+        "map_x": task_template.get("map_x"),
+        "map_y": task_template.get("map_y"),
+        "map_plane": int(task_template.get("map_plane", 0)),
     }
 
 
@@ -95,6 +114,13 @@ def plan_data(request, plan_id):
 
 
 @login_required
+def task_library_data(request, plan_id):
+    get_object_or_404(Plan, pk=plan_id, user=request.user)
+    library = [_library_task_to_dict(item) for item in get_task_library()]
+    return JsonResponse({"tasks": library})
+
+
+@login_required
 @require_http_methods(["PUT"])
 def plan_update(request, plan_id):
     plan = get_object_or_404(Plan, pk=plan_id, user=request.user)
@@ -116,6 +142,17 @@ def plan_update(request, plan_id):
 def task_create(request, plan_id):
     plan = get_object_or_404(Plan, pk=plan_id, user=request.user)
     data = json.loads(request.body)
+
+    template_key = data.get("template_key")
+    if template_key:
+        template = next(
+            (item for item in get_task_library() if item.get("key") == template_key),
+            None,
+        )
+        if not template:
+            return JsonResponse({"error": "invalid template_key"}, status=400)
+        data = {**template, **data}
+        data.pop("key", None)
 
     tier = None
     if data.get("tier_id"):

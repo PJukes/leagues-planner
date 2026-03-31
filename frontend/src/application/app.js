@@ -1,16 +1,9 @@
-
 // This is the style entry file
-import "../styles/index.css";
+import "../styles/app.css";
+import Alpine from 'alpinejs';
+import focus from '@alpinejs/focus';
 
-// We can import other JS file as we like
-import Jumbotron from "../components/jumbotron";
+window.Alpine = Alpine;
+Alpine.plugin(focus);
 
-window.document.addEventListener("DOMContentLoaded", function () {
-  window.console.log("dom ready");
-
-  // Find elements and initialize
-  for (const elem of document.querySelectorAll(Jumbotron.selector())) {
-    new Jumbotron(elem);
-  }
-});
-
+Alpine.start();

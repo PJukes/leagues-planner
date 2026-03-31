@@ -1,0 +1,7 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=leaguesplanner
+POSTGRES_USER=ZJdIFAwuVFobszaoURnGQGVIIiOrbziH
+POSTGRES_PASSWORD=OGSnpOGflATETuJ0wkT1KfXzlciU8WAf0s7ecOsBkDSCQZzA9qdkLMOhPRL3Ti4s

@@ -11,6 +11,7 @@ urlpatterns = [
     # Plan detail / data / update
     path("<int:plan_id>/", views.plan_detail, name="plan_detail"),
     path("<int:plan_id>/data/", views.plan_data, name="plan_data"),
+    path("<int:plan_id>/task-library/", views.task_library_data, name="task_library_data"),
     path("<int:plan_id>/update/", views.plan_update, name="plan_update"),
     # Tasks
     path("<int:plan_id>/tasks/", views.task_create, name="task_create"),

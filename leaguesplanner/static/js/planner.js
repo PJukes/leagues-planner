@@ -70,6 +70,7 @@ let plan = {
   tasks: [],
 };
 
+let taskLibrary = [];
 let editingTaskId = null;  // null = creating new
 let pickingMapCoord = false;
 let osrsMap = null;
@@ -93,9 +94,11 @@ async function apiFetch(url, method = "GET", body = null) {
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(url, opts);
   if (!res.ok) {
-    console.error("API error", res.status, await res.text());
+    const text = await res.text();
+    console.error("API error", res.status, text);
     return null;
   }
+  if (res.status === 204) return {};
   return res.json();
 }
 
@@ -173,6 +176,7 @@ function initMap() {
     minZoom: -5,
     maxZoom: 2,
     zoomSnap: 0.5,
+    zoomControl: true,
   });
 
   // OSRS map tiles from the Jagex CDN.
@@ -187,9 +191,10 @@ function initMap() {
     errorTileUrl: "", // silently fail missing tiles
   }).addTo(osrsMap);
 
-  // Default view – Lumbridge (OSRS coords: x=3222, y=3218)
-  // In CRS.Simple latLng(y, x) = latLng(north, east)
-  osrsMap.setView([3218, 3222], -2);
+  // Configurable default view.
+  osrsMap.setView([cfg.mapStartY, cfg.mapStartX], cfg.mapStartZoom);
+  osrsMap.setMaxBounds([[-128, -128], [16384, 16384]]);
+  window.addEventListener("resize", () => osrsMap.invalidateSize());
 
   // Allow clicking the map to place / pick coordinates
   osrsMap.on("click", onMapClick);
@@ -519,6 +524,7 @@ function openTaskModal(existingTask = null) {
     r.checked = r.value === (existingTask ? existingTask.task_type : "league_task");
   });
   document.getElementById("task-name").value = existingTask ? existingTask.name : "";
+  document.getElementById("task-template-select").value = "";
   document.getElementById("task-points").value = existingTask ? existingTask.league_points : 0;
   document.getElementById("task-skill").value = existingTask ? existingTask.skill : "";
   document.getElementById("task-xp").value = existingTask ? existingTask.base_xp_per_action : 0;
@@ -570,6 +576,7 @@ async function saveTask() {
   const mapY = document.getElementById("task-map-y").value;
 
   const body = {
+    template_key: document.getElementById("task-template-select").value || null,
     task_type: type,
     name,
     notes: document.getElementById("task-notes").value.trim(),
@@ -593,6 +600,11 @@ async function saveTask() {
   } else {
     result = await apiFetch(cfg.createTaskUrl, "POST", body);
     if (result) plan.tasks.push(result);
+  }
+
+  if (!result) {
+    alert("Could not save task. Please check required fields and try again.");
+    return;
   }
 
   hideModal("taskModal");
@@ -726,6 +738,39 @@ async function loadPlanData() {
   plan.tasks = data.tasks;
 }
 
+async function loadTaskLibrary() {
+  const data = await apiFetch(cfg.taskLibraryUrl);
+  if (!data || !Array.isArray(data.tasks)) return;
+  taskLibrary = data.tasks;
+  const sel = document.getElementById("task-template-select");
+  sel.innerHTML = `<option value="">— start from scratch —</option>`;
+  taskLibrary.forEach(task => {
+    const opt = document.createElement("option");
+    opt.value = task.key;
+    opt.textContent = `${task.name} (${task.task_type.replace("_", " ")})`;
+    sel.appendChild(opt);
+  });
+}
+
+function applyTaskTemplate(templateKey) {
+  if (!templateKey) return;
+  const template = taskLibrary.find(item => item.key === templateKey);
+  if (!template) return;
+
+  const taskTypeRadio = document.querySelector(`input[name="taskType"][value="${template.task_type}"]`);
+  if (taskTypeRadio) taskTypeRadio.checked = true;
+  document.getElementById("task-name").value = template.name || "";
+  document.getElementById("task-points").value = template.league_points || 0;
+  document.getElementById("task-skill").value = template.skill || "";
+  document.getElementById("task-xp").value = template.base_xp_per_action || 0;
+  document.getElementById("task-qty").value = template.quantity || 1;
+  document.getElementById("task-notes").value = template.notes || "";
+  document.getElementById("task-map-x").value = template.map_x ?? "";
+  document.getElementById("task-map-y").value = template.map_y ?? "";
+  updateTaskTypeFields();
+  updateXpPreview();
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   initModalControls();
   // Init map first (fast)
@@ -733,6 +778,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Load plan data
   await loadPlanData();
+  await loadTaskLibrary();
 
   // Render
   renderTaskList();
@@ -763,6 +809,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Save task
   document.getElementById("btn-save-task").addEventListener("click", saveTask);
+  document.getElementById("task-template-select").addEventListener("change", (e) => {
+    applyTaskTemplate(e.target.value);
+  });
 
   // Pick map coord
   document.getElementById("btn-pick-map").addEventListener("click", () => {

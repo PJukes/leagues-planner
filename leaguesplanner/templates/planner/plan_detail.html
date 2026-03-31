@@ -48,8 +48,24 @@
     #main-split { display: flex; flex: 1; min-height: 0; }
 
     /* ---- Map pane ---- */
-    #map-pane { flex: 1 1 60%; min-width: 0; position: relative; }
-    #osrs-map { width: 100%; height: 100%; background: #2d4a22; }
+    #map-pane {
+      flex: 1 1 60%;
+      min-width: 0;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: .5rem;
+      background: #1f2d1b;
+    }
+    #osrs-map {
+      width: min(100%, 1050px);
+      height: min(72vh, 760px);
+      min-height: 520px;
+      background: #2d4a22;
+      border: 2px solid #172514;
+      border-radius: 6px;
+    }
 
     /* ---- Task pane ---- */
     #task-pane {
@@ -236,6 +252,15 @@
             <input type="radio" class="btn-check" name="taskType" id="tt-note"     value="note"           autocomplete="off">
             <label class="btn btn-outline-info btn-sm" for="tt-note">Note</label>
           </div>
+        </div>
+
+        <!-- Name -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Quick Template <span class="text-muted fw-normal">(optional)</span></label>
+          <select class="form-select" id="task-template-select">
+            <option value="">— start from scratch —</option>
+          </select>
+          <div class="form-text">Templates are loaded from a backend Python file.</div>
         </div>
 
         <!-- Name -->
@@ -429,10 +454,14 @@
     baseMultiplier: {{ plan.base_xp_multiplier }},
     csrfToken: '{{ csrf_token }}',
     dataUrl: '{% url "planner:plan_data" plan.pk %}',
+    taskLibraryUrl: '{% url "planner:task_library_data" plan.pk %}',
     createTaskUrl: '{% url "planner:task_create" plan.pk %}',
     reorderUrl: '{% url "planner:task_reorder" plan.pk %}',
     createTierUrl: '{% url "planner:tier_create" plan.pk %}',
     updateUrl: '{% url "planner:plan_update" plan.pk %}',
+    mapStartX: 3222,
+    mapStartY: 3218,
+    mapStartZoom: -2,
   };
 </script>
 <script src="{% static 'js/planner.js' %}"></script>

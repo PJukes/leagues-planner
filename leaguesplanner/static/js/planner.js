@@ -76,6 +76,100 @@ let pickingMapCoord = false;
 let osrsMap = null;
 const markers = {}; // taskId → L.marker
 const openModalIds = [];
+let activeTileLayer = null;
+let activeTileSource = null;
+let mapDebugState = {
+  loaded: 0,
+  errors: 0,
+  lastErrorUrl: "",
+};
+
+const GAME_TILES_PER_IMAGE_TILE = 64;
+const IMAGE_TILE_SIZE_PX = 256;
+const MAP_UNITS_PER_GAME_TILE = IMAGE_TILE_SIZE_PX / GAME_TILES_PER_IMAGE_TILE; // 4 px per game tile
+
+function gameToMapLatLng(x, y) {
+  return [y * MAP_UNITS_PER_GAME_TILE, x * MAP_UNITS_PER_GAME_TILE];
+}
+
+function mapLatLngToGame(latlng) {
+  return {
+    x: Math.round(latlng.lng / MAP_UNITS_PER_GAME_TILE),
+    y: Math.round(latlng.lat / MAP_UNITS_PER_GAME_TILE),
+  };
+}
+
+const OSRS_TILE_SOURCES = [
+  {
+    name: "RuneScape Wiki tiles",
+    url: "https://maps.runescape.wiki/osrs/tiles/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.jagex.com/">Jagex</a> / <a href="https://runescape.wiki/">RuneScape Wiki</a>',
+  },
+  {
+    name: "Jagex maps.runescape.com",
+    url: "https://maps.runescape.com/osrs/tiles/{z}/{x}_{y}.png",
+    attribution: "&copy; Jagex Ltd",
+  },
+];
+
+function updateMapDebugPanel() {
+  const panel = document.getElementById("map-debug-info");
+  if (!panel) return;
+  const sourceLabel = activeTileSource ? activeTileSource.name : "none";
+  const lastErr = mapDebugState.lastErrorUrl ? ` · last error: ${mapDebugState.lastErrorUrl}` : "";
+  panel.textContent = `tiles source: ${sourceLabel} · loaded: ${mapDebugState.loaded} · errors: ${mapDebugState.errors}${lastErr}`;
+}
+
+function ensureMapDebugPanel() {
+  const mapContainer = osrsMap.getContainer();
+  if (!mapContainer || document.getElementById("map-debug-info")) return;
+  const panel = document.createElement("div");
+  panel.id = "map-debug-info";
+  panel.style.cssText = "position:absolute;left:10px;bottom:10px;z-index:500;background:rgba(0,0,0,.7);color:#fff;padding:4px 8px;border-radius:4px;font-size:11px;max-width:90%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+  mapContainer.appendChild(panel);
+}
+
+function attachTileLayer(sourceIdx) {
+  if (sourceIdx >= OSRS_TILE_SOURCES.length) {
+    console.error("All OSRS tile sources failed.");
+    mapDebugState.lastErrorUrl = "all tile sources failed";
+    updateMapDebugPanel();
+    return;
+  }
+
+  const source = OSRS_TILE_SOURCES[sourceIdx];
+  activeTileSource = source;
+  mapDebugState = { loaded: 0, errors: 0, lastErrorUrl: "" };
+  updateMapDebugPanel();
+
+  const layer = L.tileLayer(source.url, {
+    attribution: source.attribution,
+    tileSize: 256,
+    noWrap: true,
+    tms: false,
+  });
+  activeTileLayer = layer;
+  layer.addTo(osrsMap);
+
+  let switchedSource = false;
+  layer.on("tileload", () => {
+    mapDebugState.loaded += 1;
+    updateMapDebugPanel();
+  });
+
+  layer.on("tileerror", (evt) => {
+    mapDebugState.errors += 1;
+    mapDebugState.lastErrorUrl = evt?.tile?.currentSrc || source.url;
+    updateMapDebugPanel();
+    if (!switchedSource && mapDebugState.loaded === 0 && mapDebugState.errors >= 6) {
+      switchedSource = true;
+      console.warn(`Switching tile source after repeated failures: ${source.name}`);
+      osrsMap.removeLayer(layer);
+      attachTileLayer(sourceIdx + 1);
+    }
+  });
+}
+
 
 // ---------------------------------------------------------------------------
 // API helpers
@@ -179,21 +273,15 @@ function initMap() {
     zoomControl: true,
   });
 
-  // OSRS map tiles from the Jagex CDN.
-  // The tile URL uses standard XYZ scheme; 'tms: false' keeps y=0 at north.
-  // Each tile covers 64 game tiles at the base resolution.
-  // Note: if tiles don't load the map is still fully interactive.
-  L.tileLayer("https://maps.runescape.com/osrs/tiles/{z}/{x}_{y}.png", {
-    attribution: "&copy; Jagex Ltd",
-    tileSize: 256,
-    noWrap: true,
-    tms: false,
-    errorTileUrl: "", // silently fail missing tiles
-  }).addTo(osrsMap);
+  // OSRS map tiles.
+  // Try multiple RuneScape tile API sources so users can still render the map
+  // if one provider is blocked or unavailable from their network.
+  ensureMapDebugPanel();
+  attachTileLayer(0);
 
   // Configurable default view.
-  osrsMap.setView([cfg.mapStartY, cfg.mapStartX], cfg.mapStartZoom);
-  osrsMap.setMaxBounds([[-128, -128], [16384, 16384]]);
+  osrsMap.setView(gameToMapLatLng(cfg.mapStartX, cfg.mapStartY), cfg.mapStartZoom);
+  osrsMap.setMaxBounds([[-512, -512], [16384 * MAP_UNITS_PER_GAME_TILE, 16384 * MAP_UNITS_PER_GAME_TILE]]);
   window.addEventListener("resize", () => osrsMap.invalidateSize());
 
   // Allow clicking the map to place / pick coordinates
@@ -201,8 +289,7 @@ function initMap() {
 }
 
 function onMapClick(e) {
-  const osrsX = Math.round(e.latlng.lng);
-  const osrsY = Math.round(e.latlng.lat);
+  const { x: osrsX, y: osrsY } = mapLatLngToGame(e.latlng);
 
   if (pickingMapCoord) {
     // Fill in the task modal coordinate inputs
@@ -242,7 +329,7 @@ function refreshMarkers() {
 
   for (const task of plan.tasks) {
     if (task.map_x != null && task.map_y != null) {
-      const marker = L.marker([task.map_y, task.map_x], {
+      const marker = L.marker(gameToMapLatLng(task.map_x, task.map_y), {
         icon: taskMarkerIcon(task.task_type),
         title: task.name,
       });
@@ -363,7 +450,7 @@ function renderTaskList() {
     if (gotoBtn) {
       gotoBtn.addEventListener("click", e => {
         e.stopPropagation();
-        osrsMap.setView([task.map_y, task.map_x], 0);
+        osrsMap.setView(gameToMapLatLng(task.map_x, task.map_y), 0);
         if (markers[task.id]) markers[task.id].openPopup();
       });
     }

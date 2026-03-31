@@ -86,7 +86,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "leaguesplanner.users",
-    # Your stuff: custom apps go here
+    "leaguesplanner.planner",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

@@ -1,0 +1,443 @@
+{% load static i18n %}
+{% load webpack_loader static %}
+<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ plan.name }} – Leagues Planner</title>
+  <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
+
+  <!-- Base app styles (Tailwind / Bootstrap) -->
+  {% stylesheet_pack 'app' %}
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <style>
+    /* ---- Layout ---- */
+    html, body { height: 100%; margin: 0; overflow: hidden; }
+    #planner-root { display: flex; flex-direction: column; height: 100vh; }
+
+    /* ---- Top bar ---- */
+    #top-bar {
+      background: #1a1a2e;
+      color: #eee;
+      padding: .5rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-shrink: 0;
+      border-bottom: 2px solid #e8b84b;
+    }
+    #top-bar a { color: #e8b84b; text-decoration: none; font-size: .85rem; }
+    #plan-title { font-size: 1.1rem; font-weight: 700; color: #e8b84b; cursor: pointer; }
+    .stat-badge {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 6px;
+      padding: .2rem .7rem;
+      font-size: .82rem;
+      white-space: nowrap;
+    }
+    .stat-badge strong { color: #e8b84b; }
+    #top-bar .ms-auto { margin-left: auto !important; }
+
+    /* ---- Main split ---- */
+    #main-split { display: flex; flex: 1; min-height: 0; }
+
+    /* ---- Map pane ---- */
+    #map-pane { flex: 1 1 60%; min-width: 0; position: relative; }
+    #osrs-map { width: 100%; height: 100%; background: #2d4a22; }
+
+    /* ---- Task pane ---- */
+    #task-pane {
+      flex: 0 0 400px;
+      display: flex;
+      flex-direction: column;
+      background: #f8f9fa;
+      border-left: 2px solid #dee2e6;
+      min-height: 0;
+    }
+    #task-pane-header {
+      background: #fff;
+      border-bottom: 1px solid #dee2e6;
+      padding: .6rem .8rem;
+      flex-shrink: 0;
+    }
+    #task-list-wrap { flex: 1; overflow-y: auto; padding: .5rem; }
+    #task-pane-footer { padding: .5rem .8rem; border-top: 1px solid #dee2e6; background: #fff; flex-shrink: 0; }
+
+    /* ---- Task cards ---- */
+    .task-card {
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-left: 4px solid #adb5bd;
+      border-radius: 6px;
+      margin-bottom: .4rem;
+      padding: .5rem .65rem;
+      cursor: grab;
+      position: relative;
+    }
+    .task-card:active { cursor: grabbing; }
+    .task-card.sortable-ghost { opacity: .4; }
+    .task-card[data-type="league_task"]  { border-left-color: #e8b84b; }
+    .task-card[data-type="generic_action"] { border-left-color: #4caf50; }
+    .task-card[data-type="tier_unlock"]  { border-left-color: #9c27b0; }
+    .task-card[data-type="note"]         { border-left-color: #2196f3; }
+
+    .task-name { font-weight: 600; font-size: .88rem; }
+    .task-meta { font-size: .75rem; color: #6c757d; margin-top: 2px; }
+    .task-cumulative { font-size: .75rem; color: #1a1a2e; font-weight: 600; text-align: right; }
+    .task-milestone {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 4px;
+      padding: .15rem .4rem;
+      font-size: .72rem;
+      font-weight: 700;
+      color: #856404;
+      margin-top: 3px;
+      display: inline-block;
+    }
+    .task-card .task-actions {
+      position: absolute; right: .4rem; top: .4rem;
+      display: none; gap: .2rem;
+    }
+    .task-card:hover .task-actions { display: flex; }
+    .task-card .btn-xs {
+      padding: .1rem .35rem;
+      font-size: .7rem;
+      line-height: 1.2;
+    }
+
+    /* ---- Tier badge pill on task card ---- */
+    .tier-badge {
+      background: #9c27b0;
+      color: #fff;
+      border-radius: 999px;
+      padding: .1rem .45rem;
+      font-size: .7rem;
+      font-weight: 700;
+    }
+
+    /* ---- Milestone toast ---- */
+    #milestone-toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: #1a1a2e; color: #fff;
+      padding: .8rem 1.2rem;
+      border-radius: 10px;
+      border-left: 4px solid #e8b84b;
+      box-shadow: 0 4px 16px rgba(0,0,0,.3);
+      display: none; z-index: 9999;
+      max-width: 300px;
+    }
+
+    /* ---- Stats panel ---- */
+    #stats-panel {
+      position: absolute; top: .5rem; left: .5rem;
+      background: rgba(26,26,46,.92);
+      color: #eee;
+      padding: .6rem .8rem;
+      border-radius: 8px;
+      font-size: .75rem;
+      z-index: 1000;
+      min-width: 170px;
+    }
+    #stats-panel .skill-row { display: flex; justify-content: space-between; gap: .5rem; }
+    #stats-panel .skill-row span:first-child { color: #aaa; }
+    #stats-panel .skill-row span:last-child { font-weight: 700; color: #e8b84b; }
+
+    /* ---- Map marker popup ---- */
+    .task-popup { font-size: .82rem; min-width: 120px; }
+    .task-popup strong { display: block; margin-bottom: 3px; }
+
+    /* ---- Scrollbar ---- */
+    #task-list-wrap::-webkit-scrollbar { width: 5px; }
+    #task-list-wrap::-webkit-scrollbar-track { background: #f1f1f1; }
+    #task-list-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+  </style>
+</head>
+<body>
+<div id="planner-root">
+
+  <!-- ===== Top Bar ===== -->
+  <div id="top-bar">
+    <a href="{% url 'planner:home' %}">&#8592; Plans</a>
+    <span id="plan-title" title="Click to rename">{{ plan.name }}</span>
+    <span class="stat-badge">Points: <strong id="hdr-points">0</strong></span>
+    <span class="stat-badge">Multiplier: <strong id="hdr-mult">{{ plan.base_xp_multiplier }}x</strong></span>
+    <span class="stat-badge">Tasks: <strong id="hdr-tasks">0</strong></span>
+    <div class="ms-auto d-flex gap-2">
+      <button class="btn btn-sm btn-outline-warning" id="btn-manage-tiers">Manage Tiers</button>
+      <button class="btn btn-sm btn-outline-light"   id="btn-view-stats">View Stats</button>
+    </div>
+  </div>
+
+  <!-- ===== Main Split ===== -->
+  <div id="main-split">
+
+    <!-- Map Pane -->
+    <div id="map-pane">
+      <div id="osrs-map"></div>
+      <!-- Stats overlay (top-left of map) -->
+      <div id="stats-panel" style="display:none"></div>
+    </div>
+
+    <!-- Task Pane -->
+    <div id="task-pane">
+      <div id="task-pane-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <strong style="font-size:.9rem">Task List</strong>
+          <button class="btn btn-sm btn-warning fw-semibold" id="btn-add-task">+ Add Task</button>
+        </div>
+      </div>
+      <div id="task-list-wrap">
+        <div id="task-list"></div>
+        <div id="empty-state" class="text-center text-muted py-4 small">
+          No tasks yet. Click <strong>+ Add Task</strong> to begin planning.
+        </div>
+      </div>
+      <div id="task-pane-footer">
+        <small class="text-muted">Drag tasks to reorder. Click a task to see its map marker.</small>
+      </div>
+    </div>
+
+  </div><!-- /main-split -->
+</div><!-- /planner-root -->
+
+<!-- ===== Milestone Toast ===== -->
+<div id="milestone-toast"></div>
+
+<!-- ===== Add/Edit Task Modal ===== -->
+<div class="modal fade" id="taskModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="taskModalTitle">Add Task</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Type selector -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Task Type</label>
+          <div class="btn-group w-100" role="group">
+            <input type="radio" class="btn-check" name="taskType" id="tt-league"   value="league_task"    autocomplete="off" checked>
+            <label class="btn btn-outline-warning btn-sm" for="tt-league">League Task</label>
+
+            <input type="radio" class="btn-check" name="taskType" id="tt-action"   value="generic_action" autocomplete="off">
+            <label class="btn btn-outline-success btn-sm" for="tt-action">Generic Action</label>
+
+            <input type="radio" class="btn-check" name="taskType" id="tt-tier"     value="tier_unlock"    autocomplete="off">
+            <label class="btn btn-outline-secondary btn-sm" for="tt-tier" style="border-color:#9c27b0;color:#9c27b0">Tier Unlock</label>
+
+            <input type="radio" class="btn-check" name="taskType" id="tt-note"     value="note"           autocomplete="off">
+            <label class="btn btn-outline-info btn-sm" for="tt-note">Note</label>
+          </div>
+        </div>
+
+        <!-- Name -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Name</label>
+          <input type="text" class="form-control" id="task-name" placeholder="Task name">
+        </div>
+
+        <!-- === League Task fields === -->
+        <div id="fields-league">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">League Points Awarded</label>
+            <input type="number" class="form-control" id="task-points" value="0" min="0">
+          </div>
+        </div>
+
+        <!-- === Generic Action fields === -->
+        <div id="fields-action" style="display:none">
+          <div class="row g-2 mb-3">
+            <div class="col-md-5">
+              <label class="form-label fw-semibold">Skill</label>
+              <select class="form-select" id="task-skill">
+                <option value="">— select skill —</option>
+                <option value="attack">Attack</option>
+                <option value="hitpoints">Hitpoints</option>
+                <option value="mining">Mining</option>
+                <option value="strength">Strength</option>
+                <option value="agility">Agility</option>
+                <option value="smithing">Smithing</option>
+                <option value="defence">Defence</option>
+                <option value="herblore">Herblore</option>
+                <option value="fishing">Fishing</option>
+                <option value="ranged">Ranged</option>
+                <option value="thieving">Thieving</option>
+                <option value="cooking">Cooking</option>
+                <option value="prayer">Prayer</option>
+                <option value="crafting">Crafting</option>
+                <option value="firemaking">Firemaking</option>
+                <option value="magic">Magic</option>
+                <option value="fletching">Fletching</option>
+                <option value="woodcutting">Woodcutting</option>
+                <option value="runecraft">Runecraft</option>
+                <option value="slayer">Slayer</option>
+                <option value="farming">Farming</option>
+                <option value="construction">Construction</option>
+                <option value="hunter">Hunter</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">XP per action (base)</label>
+              <input type="number" class="form-control" id="task-xp" value="0" min="0" step="0.1">
+              <div class="form-text">Before league multiplier.</div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Quantity</label>
+              <input type="number" class="form-control" id="task-qty" value="1" min="1">
+            </div>
+          </div>
+          <div id="xp-preview" class="alert alert-success py-1 px-2 small" style="display:none"></div>
+        </div>
+
+        <!-- === Tier Unlock fields === -->
+        <div id="fields-tier" style="display:none">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Tier to Unlock</label>
+            <select class="form-select" id="task-tier-select">
+              <option value="">— select tier —</option>
+            </select>
+            <div class="form-text" id="tier-info-text"></div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Notes <span class="text-muted fw-normal">(optional)</span></label>
+          <textarea class="form-control" id="task-notes" rows="2" placeholder="Any notes for this step…"></textarea>
+        </div>
+
+        <!-- Map marker -->
+        <div class="mb-0">
+          <label class="form-label fw-semibold">Map Marker</label>
+          <div class="d-flex gap-2 align-items-center">
+            <input type="number" class="form-control form-control-sm" id="task-map-x" placeholder="X (e.g. 3218)">
+            <input type="number" class="form-control form-control-sm" id="task-map-y" placeholder="Y (e.g. 3222)">
+            <button class="btn btn-sm btn-outline-secondary" id="btn-pick-map">Pick on map</button>
+          </div>
+          <div class="form-text">OSRS game tile coordinates, or click "Pick on map" then click the map.</div>
+        </div>
+
+      </div><!-- /modal-body -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-warning fw-semibold" id="btn-save-task">Save Task</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Manage Tiers Modal ===== -->
+<div class="modal fade" id="tiersModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Manage League Tiers</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small text-muted">
+          Tiers are unlocked when you add a <em>Tier Unlock</em> task. A new XP multiplier takes effect from that task onward.
+        </p>
+        <table class="table table-sm table-bordered" id="tiers-table">
+          <thead class="table-dark">
+            <tr>
+              <th>Name</th>
+              <th>Points Required</th>
+              <th>XP Multiplier</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tiers-tbody"></tbody>
+        </table>
+        <hr>
+        <h6 class="fw-bold">Add Tier</h6>
+        <div class="row g-2">
+          <div class="col-md-5">
+            <input type="text" class="form-control form-control-sm" id="new-tier-name" placeholder="Tier name (e.g. Tier 1 – Woodsman)">
+          </div>
+          <div class="col-md-3">
+            <input type="number" class="form-control form-control-sm" id="new-tier-pts" placeholder="Points required" min="0">
+          </div>
+          <div class="col-md-3">
+            <input type="number" class="form-control form-control-sm" id="new-tier-mult" placeholder="XP multiplier" min="1" step="0.5">
+          </div>
+          <div class="col-md-1">
+            <button class="btn btn-sm btn-success w-100" id="btn-add-tier">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Stats Modal ===== -->
+<div class="modal fade" id="statsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="statsModalTitle">Player Stats</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="stats-modal-body">
+        <p class="text-muted small">Stats at the end of the planned route.</p>
+        <div id="stats-grid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Rename Plan Modal ===== -->
+<div class="modal fade" id="renameModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Rename Plan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" class="form-control" id="rename-input" placeholder="Plan name">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-warning fw-semibold" id="btn-confirm-rename">Rename</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- SortableJS -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+
+<!-- Bootstrap JS (vendors) -->
+<script src="{% static 'js/vendors.js' %}"></script>
+
+<!-- Planner logic -->
+<script>
+  window.PLANNER_CONFIG = {
+    planId: {{ plan.pk }},
+    planName: "{{ plan.name|escapejs }}",
+    baseMultiplier: {{ plan.base_xp_multiplier }},
+    csrfToken: '{{ csrf_token }}',
+    dataUrl: '{% url "planner:plan_data" plan.pk %}',
+    createTaskUrl: '{% url "planner:task_create" plan.pk %}',
+    reorderUrl: '{% url "planner:task_reorder" plan.pk %}',
+    createTierUrl: '{% url "planner:tier_create" plan.pk %}',
+    updateUrl: '{% url "planner:plan_update" plan.pk %}',
+  };
+</script>
+<script src="{% static 'js/planner.js' %}"></script>
+</body>
+</html>

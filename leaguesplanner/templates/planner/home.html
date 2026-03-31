@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}OSRS Leagues Planner{% endblock %}
+
+{% block content %}
+<div class="py-8">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 fw-bold">Your League Plans</h1>
+    <button class="btn btn-warning fw-semibold" data-bs-toggle="modal" data-bs-target="#createPlanModal">
+      + New Plan
+    </button>
+  </div>
+
+  {% if plans %}
+    <div class="row g-3">
+      {% for plan in plans %}
+        <div class="col-md-4">
+          <a href="{% url 'planner:plan_detail' plan.pk %}" class="text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm plan-card">
+              <div class="card-body">
+                <h5 class="card-title fw-bold text-dark">{{ plan.name }}</h5>
+                <p class="card-text text-muted small mb-1">
+                  Base multiplier: <strong>{{ plan.base_xp_multiplier }}x</strong>
+                </p>
+                <p class="card-text text-muted small">
+                  {{ plan.tasks.count }} task{{ plan.tasks.count|pluralize }}
+                  &bull; {{ plan.tiers.count }} tier{{ plan.tiers.count|pluralize }}
+                </p>
+              </div>
+              <div class="card-footer bg-transparent border-0 text-muted small">
+                Last updated {{ plan.updated_at|timesince }} ago
+              </div>
+            </div>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-5 text-muted">
+      <div class="display-1 mb-3">🗺️</div>
+      <h3>No plans yet</h3>
+      <p>Create your first Leagues plan to get started!</p>
+      <button class="btn btn-warning btn-lg fw-semibold mt-2" data-bs-toggle="modal" data-bs-target="#createPlanModal">
+        Create Plan
+      </button>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Create Plan Modal -->
+<div class="modal fade" id="createPlanModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Create New Plan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="createPlanForm">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Plan Name</label>
+            <input type="text" class="form-control" id="planName" placeholder="e.g. Leagues 5 Run" value="My League Plan">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Base XP Multiplier</label>
+            <input type="number" class="form-control" id="baseMultiplier" value="5" min="1" max="100" step="0.5">
+            <div class="form-text">Default leagues multiplier (usually 5x at the start).</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-warning fw-semibold" id="confirmCreatePlan">Create Plan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .plan-card { transition: transform .15s, box-shadow .15s; }
+  .plan-card:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+</style>
+{% endblock %}
+
+{% block inline_javascript %}
+<script>
+document.getElementById('confirmCreatePlan').addEventListener('click', async () => {
+  const name = document.getElementById('planName').value.trim() || 'My League Plan';
+  const mult = parseFloat(document.getElementById('baseMultiplier').value) || 5;
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  const res = await fetch('{% url "planner:plan_create" %}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+    body: JSON.stringify({ name, base_xp_multiplier: mult }),
+  });
+  const data = await res.json();
+  window.location.href = `/planner/${data.id}/`;
+});
+</script>
+{% endblock %}

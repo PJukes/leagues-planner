@@ -1,3 +1,46 @@
 {% extends "base.html" %}
+{% load static i18n %}
 
+{% block title %}OSRS Leagues Planner{% endblock %}
 
+{% block content %}
+{% if request.user.is_authenticated %}
+  {# Redirect authenticated users straight to the planner #}
+  <script>window.location.href = "{% url 'planner:home' %}";</script>
+{% else %}
+<div class="py-5 text-center">
+  <h1 class="display-5 fw-bold mb-3">OSRS Leagues Planner</h1>
+  <p class="lead text-muted mb-4">
+    Plan your Oldschool Runescape Leagues run.<br>
+    Map your route, track league points, calculate XP gains and unlock tier rewards.
+  </p>
+  <div class="d-flex justify-content-center gap-3">
+    <a href="{% url 'account_signup' %}" class="btn btn-warning btn-lg fw-semibold px-4">Get Started</a>
+    <a href="{% url 'account_login' %}"  class="btn btn-outline-secondary btn-lg px-4">Sign In</a>
+  </div>
+  <div class="row mt-5 g-4 text-start">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100 p-3">
+        <div class="fs-2 mb-2">🗺️</div>
+        <h5 class="fw-bold">Interactive Map</h5>
+        <p class="text-muted small">Navigate the full OSRS world map and drop markers to plan your route.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100 p-3">
+        <div class="fs-2 mb-2">📋</div>
+        <h5 class="fw-bold">Task Ordering</h5>
+        <p class="text-muted small">Build an ordered list of tasks, drag to reorder, and track cumulative league points.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100 p-3">
+        <div class="fs-2 mb-2">⚡</div>
+        <h5 class="fw-bold">XP Multipliers</h5>
+        <p class="text-muted small">Unlock tiers to change your XP multiplier. See exactly how much XP each action yields.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

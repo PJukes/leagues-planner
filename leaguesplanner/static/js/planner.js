@@ -1,0 +1,759 @@
+/* ==========================================================================
+   OSRS Leagues Planner – planner.js
+   ========================================================================== */
+
+"use strict";
+
+// ---------------------------------------------------------------------------
+// OSRS XP / level utilities
+// ---------------------------------------------------------------------------
+
+/** Pre-compute the XP required for each level 1-99 using the OSRS formula. */
+const XP_TABLE = (() => {
+  const table = [0]; // index 0 unused; index 1 = XP for level 1 = 0
+  for (let lvl = 1; lvl <= 99; lvl++) {
+    let total = 0;
+    for (let i = 1; i < lvl; i++) {
+      total += Math.floor(i + 300 * Math.pow(2, i / 7));
+    }
+    table[lvl] = Math.floor(total / 4);
+  }
+  return table;
+})();
+
+function levelForXp(xp) {
+  for (let lvl = 99; lvl >= 1; lvl--) {
+    if (xp >= XP_TABLE[lvl]) return lvl;
+  }
+  return 1;
+}
+
+function xpForLevel(lvl) {
+  return XP_TABLE[Math.max(1, Math.min(99, lvl))];
+}
+
+const SKILLS = [
+  "attack", "hitpoints", "mining", "strength", "agility", "smithing",
+  "defence", "herblore", "fishing", "ranged", "thieving", "cooking",
+  "prayer", "crafting", "firemaking", "magic", "fletching", "woodcutting",
+  "runecraft", "slayer", "farming", "construction", "hunter",
+];
+
+const SKILL_LABELS = {
+  attack: "Attack", hitpoints: "Hitpoints", mining: "Mining",
+  strength: "Strength", agility: "Agility", smithing: "Smithing",
+  defence: "Defence", herblore: "Herblore", fishing: "Fishing",
+  ranged: "Ranged", thieving: "Thieving", cooking: "Cooking",
+  prayer: "Prayer", crafting: "Crafting", firemaking: "Firemaking",
+  magic: "Magic", fletching: "Fletching", woodcutting: "Woodcutting",
+  runecraft: "Runecraft", slayer: "Slayer", farming: "Farming",
+  construction: "Construction", hunter: "Hunter",
+};
+
+/** Starting XP (level 1 for all except Hitpoints which starts at level 10). */
+function baseStats() {
+  const s = {};
+  SKILLS.forEach(sk => { s[sk] = 0; });
+  s.hitpoints = xpForLevel(10); // OSRS starts at 10 hp
+  return s;
+}
+
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+
+let plan = {
+  id: window.PLANNER_CONFIG.planId,
+  name: window.PLANNER_CONFIG.planName,
+  base_xp_multiplier: window.PLANNER_CONFIG.baseMultiplier,
+  tiers: [],
+  tasks: [],
+};
+
+let editingTaskId = null;  // null = creating new
+let pickingMapCoord = false;
+let osrsMap = null;
+const markers = {}; // taskId → L.marker
+
+// ---------------------------------------------------------------------------
+// API helpers
+// ---------------------------------------------------------------------------
+
+const cfg = window.PLANNER_CONFIG;
+
+async function apiFetch(url, method = "GET", body = null) {
+  const opts = {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": cfg.csrfToken,
+    },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if (!res.ok) {
+    console.error("API error", res.status, await res.text());
+    return null;
+  }
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// Computed state helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Walk through all tasks in order and compute:
+ *  - cumulative league points after each task
+ *  - current XP multiplier at each task
+ *  - skill XP totals at each task
+ *  - which tiers become available (milestone notifications)
+ *
+ * Returns an array of state snapshots, one per task.
+ */
+function computeTaskStates() {
+  let cumPoints = 0;
+  let currentMult = plan.base_xp_multiplier;
+  const skillXp = baseStats();
+  const states = [];
+  const tiersById = Object.fromEntries(plan.tiers.map(t => [t.id, t]));
+
+  for (const task of plan.tasks) {
+    // --- Apply task effects ---
+    if (task.task_type === "league_task") {
+      cumPoints += task.league_points;
+    } else if (task.task_type === "generic_action") {
+      if (task.skill) {
+        const totalXp = task.base_xp_per_action * task.quantity * currentMult;
+        skillXp[task.skill] = (skillXp[task.skill] || 0) + totalXp;
+      }
+    } else if (task.task_type === "tier_unlock") {
+      if (task.tier_id && tiersById[task.tier_id]) {
+        currentMult = tiersById[task.tier_id].xp_multiplier;
+      }
+    }
+
+    // --- Check if this task tips us over a tier threshold ---
+    // (only for league tasks – these are what accumulate points)
+    let unlockedTier = null;
+    if (task.task_type === "league_task") {
+      for (const tier of plan.tiers) {
+        const prevPoints = cumPoints - task.league_points;
+        if (prevPoints < tier.points_required && cumPoints >= tier.points_required) {
+          unlockedTier = tier;
+        }
+      }
+    }
+
+    states.push({
+      taskId: task.id,
+      cumPoints,
+      multiplier: currentMult,
+      skillXp: { ...skillXp },
+      skillLevels: Object.fromEntries(
+        SKILLS.map(sk => [sk, levelForXp(skillXp[sk] || 0)])
+      ),
+      unlockedTier,
+    });
+  }
+
+  return states;
+}
+
+// ---------------------------------------------------------------------------
+// Map initialisation
+// ---------------------------------------------------------------------------
+
+function initMap() {
+  // OSRS uses game tile coordinates: x increases east, y increases north.
+  // Leaflet CRS.Simple treats lat=y (north), lng=x (east) which matches perfectly.
+  osrsMap = L.map("osrs-map", {
+    crs: L.CRS.Simple,
+    minZoom: -5,
+    maxZoom: 2,
+    zoomSnap: 0.5,
+  });
+
+  // OSRS map tiles from the Jagex CDN.
+  // The tile URL uses standard XYZ scheme; 'tms: false' keeps y=0 at north.
+  // Each tile covers 64 game tiles at the base resolution.
+  // Note: if tiles don't load the map is still fully interactive.
+  L.tileLayer("https://maps.runescape.com/osrs/tiles/{z}/{x}_{y}.png", {
+    attribution: "&copy; Jagex Ltd",
+    tileSize: 256,
+    noWrap: true,
+    tms: false,
+    errorTileUrl: "", // silently fail missing tiles
+  }).addTo(osrsMap);
+
+  // Default view – Lumbridge (OSRS coords: x=3222, y=3218)
+  // In CRS.Simple latLng(y, x) = latLng(north, east)
+  osrsMap.setView([3218, 3222], -2);
+
+  // Allow clicking the map to place / pick coordinates
+  osrsMap.on("click", onMapClick);
+}
+
+function onMapClick(e) {
+  const osrsX = Math.round(e.latlng.lng);
+  const osrsY = Math.round(e.latlng.lat);
+
+  if (pickingMapCoord) {
+    // Fill in the task modal coordinate inputs
+    document.getElementById("task-map-x").value = osrsX;
+    document.getElementById("task-map-y").value = osrsY;
+    pickingMapCoord = false;
+    document.getElementById("btn-pick-map").textContent = "Pick on map";
+    osrsMap.getContainer().style.cursor = "";
+    return;
+  }
+}
+
+function taskMarkerIcon(taskType) {
+  const colors = {
+    league_task: "#e8b84b",
+    generic_action: "#4caf50",
+    tier_unlock: "#9c27b0",
+    note: "#2196f3",
+  };
+  const color = colors[taskType] || "#aaa";
+  return L.divIcon({
+    className: "",
+    html: `<div style="
+      width:12px;height:12px;border-radius:50%;
+      background:${color};border:2px solid #fff;
+      box-shadow:0 1px 4px rgba(0,0,0,.5)
+    "></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  });
+}
+
+function refreshMarkers() {
+  // Remove old markers
+  Object.values(markers).forEach(m => osrsMap.removeLayer(m));
+  Object.keys(markers).forEach(k => delete markers[k]);
+
+  for (const task of plan.tasks) {
+    if (task.map_x != null && task.map_y != null) {
+      const marker = L.marker([task.map_y, task.map_x], {
+        icon: taskMarkerIcon(task.task_type),
+        title: task.name,
+      });
+      marker.bindPopup(`
+        <div class="task-popup">
+          <strong>${escHtml(task.name)}</strong>
+          <span style="color:#666;font-size:.72rem">${escHtml(task.task_type.replace("_", " "))}</span>
+        </div>
+      `);
+      marker.addTo(osrsMap);
+      markers[task.id] = marker;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Rendering
+// ---------------------------------------------------------------------------
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderTaskList() {
+  const list = document.getElementById("task-list");
+  const empty = document.getElementById("empty-state");
+  const states = computeTaskStates();
+
+  list.innerHTML = "";
+
+  if (plan.tasks.length === 0) {
+    empty.style.display = "";
+    updateHeader(0, plan.base_xp_multiplier, 0);
+    renderStatsPanel({});
+    return;
+  }
+  empty.style.display = "none";
+
+  const tiersById = Object.fromEntries(plan.tiers.map(t => [t.id, t]));
+  const lastState = states[states.length - 1];
+  updateHeader(lastState.cumPoints, lastState.multiplier, plan.tasks.length);
+
+  states.forEach((state, idx) => {
+    const task = plan.tasks[idx];
+    const card = document.createElement("div");
+    card.className = "task-card";
+    card.dataset.id = task.id;
+    card.dataset.type = task.task_type;
+    card.draggable = false; // SortableJS handles dragging
+
+    // --- Build meta line ---
+    let meta = "";
+    if (task.task_type === "league_task") {
+      meta = `+${task.league_points.toLocaleString()} pts`;
+    } else if (task.task_type === "generic_action" && task.skill) {
+      const totalXp = task.base_xp_per_action * task.quantity * (idx > 0 ? states[idx - 1].multiplier : plan.base_xp_multiplier);
+      meta = `${SKILL_LABELS[task.skill]} · ${fmtNum(totalXp)} XP (${fmtNum(task.base_xp_per_action)} × ${task.quantity} × ${fmtNum(state.multiplier)}x)`;
+    } else if (task.task_type === "tier_unlock" && task.tier_id && tiersById[task.tier_id]) {
+      const tier = tiersById[task.tier_id];
+      meta = `Multiplier → <strong>${tier.xp_multiplier}x</strong>`;
+    } else if (task.task_type === "note") {
+      meta = "Note";
+    }
+
+    // --- Milestone badge ---
+    let milestoneBadge = "";
+    if (state.unlockedTier) {
+      milestoneBadge = `<span class="task-milestone">🏆 ${escHtml(state.unlockedTier.name)} available! (${state.unlockedTier.xp_multiplier}x)</span>`;
+    }
+
+    // --- Tier badge (for tier_unlock tasks) ---
+    let tierBadge = "";
+    if (task.task_type === "tier_unlock" && task.tier_id && tiersById[task.tier_id]) {
+      tierBadge = `<span class="tier-badge">${escHtml(tiersById[task.tier_id].name)}</span> `;
+    }
+
+    // --- Map pin indicator ---
+    const pinIcon = (task.map_x != null) ? ` <span title="${task.map_x},${task.map_y}" style="color:#666;font-size:.7rem">📍</span>` : "";
+
+    card.innerHTML = `
+      <div class="d-flex align-items-start justify-content-between gap-1">
+        <div style="flex:1;min-width:0">
+          <div class="task-name">${tierBadge}${escHtml(task.name)}${pinIcon}</div>
+          <div class="task-meta">${meta}</div>
+          ${task.notes ? `<div class="task-meta" style="font-style:italic">${escHtml(task.notes)}</div>` : ""}
+          ${milestoneBadge}
+        </div>
+        <div class="task-cumulative" style="flex-shrink:0">
+          <div>${state.cumPoints.toLocaleString()} pts</div>
+          <div style="color:#6c757d;font-size:.7rem">${state.multiplier}x</div>
+        </div>
+      </div>
+      <div class="task-actions">
+        <button class="btn btn-outline-primary btn-xs btn-edit-task">Edit</button>
+        <button class="btn btn-outline-danger btn-xs btn-delete-task">✕</button>
+        ${task.map_x != null ? `<button class="btn btn-outline-secondary btn-xs btn-goto-marker">Map</button>` : ""}
+      </div>
+    `;
+
+    // Edit
+    card.querySelector(".btn-edit-task").addEventListener("click", e => {
+      e.stopPropagation();
+      openTaskModal(task);
+    });
+
+    // Delete
+    card.querySelector(".btn-delete-task").addEventListener("click", e => {
+      e.stopPropagation();
+      deleteTask(task.id);
+    });
+
+    // Go-to marker
+    const gotoBtn = card.querySelector(".btn-goto-marker");
+    if (gotoBtn) {
+      gotoBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        osrsMap.setView([task.map_y, task.map_x], 0);
+        if (markers[task.id]) markers[task.id].openPopup();
+      });
+    }
+
+    list.appendChild(card);
+  });
+
+  renderStatsPanel(lastState.skillLevels);
+  refreshMarkers();
+}
+
+function updateHeader(points, mult, taskCount) {
+  document.getElementById("hdr-points").textContent = points.toLocaleString();
+  document.getElementById("hdr-mult").textContent = mult + "x";
+  document.getElementById("hdr-tasks").textContent = taskCount;
+}
+
+function fmtNum(n) {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + "k";
+  return Math.round(n).toLocaleString();
+}
+
+function renderStatsPanel(skillLevels) {
+  const panel = document.getElementById("stats-panel");
+  if (!skillLevels || Object.keys(skillLevels).length === 0) {
+    panel.style.display = "none";
+    return;
+  }
+  panel.style.display = "";
+  const total = SKILLS.reduce((s, sk) => s + (skillLevels[sk] || 1), 0);
+  panel.innerHTML = `
+    <div style="font-weight:700;color:#e8b84b;margin-bottom:.35rem">
+      Stats <span style="font-size:.7rem;color:#aaa;font-weight:400">(total ${total})</span>
+    </div>
+    ${SKILLS.map(sk => `
+      <div class="skill-row">
+        <span>${SKILL_LABELS[sk]}</span>
+        <span>${skillLevels[sk] || 1}</span>
+      </div>
+    `).join("")}
+  `;
+}
+
+// ---------------------------------------------------------------------------
+// Tiers rendering
+// ---------------------------------------------------------------------------
+
+function renderTiersTable() {
+  const tbody = document.getElementById("tiers-tbody");
+  tbody.innerHTML = "";
+  if (plan.tiers.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-muted text-center small py-2">No tiers defined.</td></tr>`;
+    return;
+  }
+  plan.tiers.forEach(tier => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${escHtml(tier.name)}</td>
+      <td>${tier.points_required.toLocaleString()}</td>
+      <td>${tier.xp_multiplier}x</td>
+      <td>
+        <button class="btn btn-outline-danger btn-sm py-0 px-1" data-tier-id="${tier.id}">✕</button>
+      </td>
+    `;
+    tr.querySelector("button").addEventListener("click", () => deleteTier(tier.id));
+    tbody.appendChild(tr);
+  });
+
+  // Also refresh the tier dropdown in the task modal
+  refreshTierSelect();
+}
+
+function refreshTierSelect() {
+  const sel = document.getElementById("task-tier-select");
+  const current = sel.value;
+  sel.innerHTML = `<option value="">— select tier —</option>`;
+  plan.tiers.forEach(t => {
+    const opt = document.createElement("option");
+    opt.value = t.id;
+    opt.textContent = `${t.name} (${t.points_required.toLocaleString()} pts → ${t.xp_multiplier}x)`;
+    sel.appendChild(opt);
+  });
+  sel.value = current;
+}
+
+// ---------------------------------------------------------------------------
+// Task Modal
+// ---------------------------------------------------------------------------
+
+function openTaskModal(existingTask = null) {
+  editingTaskId = existingTask ? existingTask.id : null;
+  document.getElementById("taskModalTitle").textContent = existingTask ? "Edit Task" : "Add Task";
+
+  // Reset form
+  document.querySelectorAll('input[name="taskType"]').forEach(r => {
+    r.checked = r.value === (existingTask ? existingTask.task_type : "league_task");
+  });
+  document.getElementById("task-name").value = existingTask ? existingTask.name : "";
+  document.getElementById("task-points").value = existingTask ? existingTask.league_points : 0;
+  document.getElementById("task-skill").value = existingTask ? existingTask.skill : "";
+  document.getElementById("task-xp").value = existingTask ? existingTask.base_xp_per_action : 0;
+  document.getElementById("task-qty").value = existingTask ? existingTask.quantity : 1;
+  document.getElementById("task-notes").value = existingTask ? existingTask.notes : "";
+  document.getElementById("task-map-x").value = (existingTask && existingTask.map_x != null) ? existingTask.map_x : "";
+  document.getElementById("task-map-y").value = (existingTask && existingTask.map_y != null) ? existingTask.map_y : "";
+  refreshTierSelect();
+  document.getElementById("task-tier-select").value = existingTask ? (existingTask.tier_id || "") : "";
+
+  updateTaskTypeFields();
+  updateXpPreview();
+
+  const modal = new bootstrap.Modal(document.getElementById("taskModal"));
+  modal.show();
+}
+
+function updateTaskTypeFields() {
+  const type = document.querySelector('input[name="taskType"]:checked').value;
+  document.getElementById("fields-league").style.display = (type === "league_task") ? "" : "none";
+  document.getElementById("fields-action").style.display = (type === "generic_action") ? "" : "none";
+  document.getElementById("fields-tier").style.display = (type === "tier_unlock") ? "" : "none";
+}
+
+function updateXpPreview() {
+  const preview = document.getElementById("xp-preview");
+  const type = document.querySelector('input[name="taskType"]:checked').value;
+  if (type !== "generic_action") { preview.style.display = "none"; return; }
+
+  const xp = parseFloat(document.getElementById("task-xp").value) || 0;
+  const qty = parseInt(document.getElementById("task-qty").value) || 1;
+  const states = computeTaskStates();
+  const mult = states.length > 0 ? states[states.length - 1].multiplier : plan.base_xp_multiplier;
+  const total = xp * qty * mult;
+  const skill = document.getElementById("task-skill").value;
+  if (skill) {
+    preview.style.display = "";
+    preview.textContent = `Total XP: ${fmtNum(total)} (${fmtNum(xp)} × ${qty} × ${mult}x multiplier)`;
+  } else {
+    preview.style.display = "none";
+  }
+}
+
+async function saveTask() {
+  const type = document.querySelector('input[name="taskType"]:checked').value;
+  const name = document.getElementById("task-name").value.trim();
+  if (!name) { alert("Please enter a task name."); return; }
+
+  const mapX = document.getElementById("task-map-x").value;
+  const mapY = document.getElementById("task-map-y").value;
+
+  const body = {
+    task_type: type,
+    name,
+    notes: document.getElementById("task-notes").value.trim(),
+    league_points: parseInt(document.getElementById("task-points").value) || 0,
+    skill: document.getElementById("task-skill").value,
+    base_xp_per_action: parseFloat(document.getElementById("task-xp").value) || 0,
+    quantity: parseInt(document.getElementById("task-qty").value) || 1,
+    tier_id: document.getElementById("task-tier-select").value || null,
+    map_x: mapX !== "" ? parseInt(mapX) : null,
+    map_y: mapY !== "" ? parseInt(mapY) : null,
+    map_plane: 0,
+  };
+
+  let result;
+  if (editingTaskId) {
+    result = await apiFetch(`/planner/${plan.id}/tasks/${editingTaskId}/`, "PUT", body);
+    if (result) {
+      const idx = plan.tasks.findIndex(t => t.id === editingTaskId);
+      if (idx !== -1) plan.tasks[idx] = { ...plan.tasks[idx], ...result };
+    }
+  } else {
+    result = await apiFetch(cfg.createTaskUrl, "POST", body);
+    if (result) plan.tasks.push(result);
+  }
+
+  bootstrap.Modal.getInstance(document.getElementById("taskModal")).hide();
+  renderTaskList();
+  checkMilestones();
+}
+
+async function deleteTask(taskId) {
+  if (!confirm("Delete this task?")) return;
+  await apiFetch(`/planner/${plan.id}/tasks/${taskId}/`, "DELETE");
+  plan.tasks = plan.tasks.filter(t => t.id !== taskId);
+  renderTaskList();
+}
+
+// ---------------------------------------------------------------------------
+// Milestone notifications
+// ---------------------------------------------------------------------------
+
+let shownMilestones = new Set();
+
+function checkMilestones() {
+  const states = computeTaskStates();
+  for (const state of states) {
+    if (state.unlockedTier && !shownMilestones.has(state.unlockedTier.id)) {
+      shownMilestones.add(state.unlockedTier.id);
+      showMilestoneToast(state.unlockedTier, state.cumPoints);
+    }
+  }
+}
+
+function showMilestoneToast(tier, points) {
+  const toast = document.getElementById("milestone-toast");
+  toast.innerHTML = `
+    <div style="font-size:.75rem;color:#e8b84b;font-weight:700;margin-bottom:.25rem">🏆 TIER MILESTONE</div>
+    <div style="font-weight:700">${escHtml(tier.name)}</div>
+    <div style="font-size:.8rem;margin-top:.2rem">${points.toLocaleString()} pts — now available to unlock!</div>
+    <div style="font-size:.75rem;color:#aaa;margin-top:.15rem">New multiplier on unlock: ${tier.xp_multiplier}x</div>
+  `;
+  toast.style.display = "";
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => { toast.style.display = "none"; }, 6000);
+}
+
+// ---------------------------------------------------------------------------
+// Tier management
+// ---------------------------------------------------------------------------
+
+async function deleteTier(tierId) {
+  if (!confirm("Delete this tier?")) return;
+  await apiFetch(`/planner/${plan.id}/tiers/${tierId}/`, "DELETE");
+  plan.tiers = plan.tiers.filter(t => t.id !== tierId);
+  // Remove any references from tasks
+  plan.tasks.forEach(t => { if (t.tier_id === tierId) t.tier_id = null; });
+  renderTiersTable();
+  renderTaskList();
+}
+
+// ---------------------------------------------------------------------------
+// Drag-and-drop reorder
+// ---------------------------------------------------------------------------
+
+function initSortable() {
+  Sortable.create(document.getElementById("task-list"), {
+    animation: 150,
+    ghostClass: "sortable-ghost",
+    onEnd: async () => {
+      const cards = document.querySelectorAll(".task-card");
+      const newOrder = Array.from(cards).map(c => parseInt(c.dataset.id));
+
+      // Reorder local state
+      const taskMap = Object.fromEntries(plan.tasks.map(t => [t.id, t]));
+      plan.tasks = newOrder.map((id, idx) => {
+        const t = { ...taskMap[id], order: idx };
+        return t;
+      });
+
+      renderTaskList();
+
+      // Persist
+      await apiFetch(cfg.reorderUrl, "POST", { order: newOrder });
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Stats modal
+// ---------------------------------------------------------------------------
+
+function openStatsModal(atTaskIndex = null) {
+  const states = computeTaskStates();
+  const state = atTaskIndex !== null ? states[atTaskIndex] : (states.length ? states[states.length - 1] : null);
+
+  const title = atTaskIndex !== null
+    ? `Stats after step ${atTaskIndex + 1}: ${escHtml(plan.tasks[atTaskIndex]?.name || "")}`
+    : "Stats (end of plan)";
+  document.getElementById("statsModalTitle").textContent = title;
+
+  const grid = document.getElementById("stats-grid");
+  if (!state) {
+    grid.innerHTML = `<p class="text-muted">No tasks yet.</p>`;
+  } else {
+    const total = SKILLS.reduce((s, sk) => s + (state.skillLevels[sk] || 1), 0);
+    grid.innerHTML = `
+      <p class="mb-2"><strong>Total level:</strong> ${total} &nbsp;|&nbsp;
+         <strong>League Points:</strong> ${state.cumPoints.toLocaleString()} &nbsp;|&nbsp;
+         <strong>Multiplier:</strong> ${state.multiplier}x</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.4rem">
+        ${SKILLS.map(sk => `
+          <div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;padding:.35rem .6rem;display:flex;justify-content:space-between">
+            <span style="font-size:.8rem">${SKILL_LABELS[sk]}</span>
+            <strong style="color:#1a1a2e;font-size:.85rem">${state.skillLevels[sk] || 1}</strong>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  new bootstrap.Modal(document.getElementById("statsModal")).show();
+}
+
+// ---------------------------------------------------------------------------
+// Initialise
+// ---------------------------------------------------------------------------
+
+async function loadPlanData() {
+  const data = await apiFetch(cfg.dataUrl);
+  if (!data) return;
+  plan.name = data.name;
+  plan.base_xp_multiplier = data.base_xp_multiplier;
+  plan.tiers = data.tiers;
+  plan.tasks = data.tasks;
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  // Init map first (fast)
+  initMap();
+
+  // Load plan data
+  await loadPlanData();
+
+  // Render
+  renderTaskList();
+  renderTiersTable();
+
+  // ---- Event listeners ----
+
+  // Task type radio → show/hide fields
+  document.querySelectorAll('input[name="taskType"]').forEach(r => {
+    r.addEventListener("change", () => { updateTaskTypeFields(); updateXpPreview(); });
+  });
+
+  // XP preview live update
+  ["task-xp", "task-qty", "task-skill"].forEach(id => {
+    document.getElementById(id).addEventListener("input", updateXpPreview);
+  });
+
+  // Tier select → show info
+  document.getElementById("task-tier-select").addEventListener("change", () => {
+    const sel = document.getElementById("task-tier-select");
+    const tier = plan.tiers.find(t => t.id == sel.value);
+    document.getElementById("tier-info-text").textContent =
+      tier ? `Unlocking this tier changes the XP multiplier to ${tier.xp_multiplier}x.` : "";
+  });
+
+  // Add task button
+  document.getElementById("btn-add-task").addEventListener("click", () => openTaskModal());
+
+  // Save task
+  document.getElementById("btn-save-task").addEventListener("click", saveTask);
+
+  // Pick map coord
+  document.getElementById("btn-pick-map").addEventListener("click", () => {
+    pickingMapCoord = !pickingMapCoord;
+    document.getElementById("btn-pick-map").textContent = pickingMapCoord ? "Click the map…" : "Pick on map";
+    osrsMap.getContainer().style.cursor = pickingMapCoord ? "crosshair" : "";
+  });
+
+  // Manage tiers button
+  document.getElementById("btn-manage-tiers").addEventListener("click", () => {
+    renderTiersTable();
+    new bootstrap.Modal(document.getElementById("tiersModal")).show();
+  });
+
+  // Add tier
+  document.getElementById("btn-add-tier").addEventListener("click", async () => {
+    const name = document.getElementById("new-tier-name").value.trim();
+    const pts = parseInt(document.getElementById("new-tier-pts").value);
+    const mult = parseFloat(document.getElementById("new-tier-mult").value);
+    if (!name || isNaN(pts) || isNaN(mult)) { alert("Fill in all tier fields."); return; }
+
+    const result = await apiFetch(cfg.createTierUrl, "POST", {
+      name, points_required: pts, xp_multiplier: mult,
+    });
+    if (result) {
+      plan.tiers.push(result);
+      plan.tiers.sort((a, b) => a.points_required - b.points_required);
+      document.getElementById("new-tier-name").value = "";
+      document.getElementById("new-tier-pts").value = "";
+      document.getElementById("new-tier-mult").value = "";
+      renderTiersTable();
+    }
+  });
+
+  // View stats button
+  document.getElementById("btn-view-stats").addEventListener("click", () => openStatsModal());
+
+  // Plan title rename
+  document.getElementById("plan-title").addEventListener("click", () => {
+    document.getElementById("rename-input").value = plan.name;
+    new bootstrap.Modal(document.getElementById("renameModal")).show();
+  });
+
+  document.getElementById("btn-confirm-rename").addEventListener("click", async () => {
+    const newName = document.getElementById("rename-input").value.trim();
+    if (!newName) return;
+    await apiFetch(cfg.updateUrl, "PUT", { name: newName });
+    plan.name = newName;
+    document.getElementById("plan-title").textContent = newName;
+    document.title = `${newName} – Leagues Planner`;
+    bootstrap.Modal.getInstance(document.getElementById("renameModal")).hide();
+  });
+
+  // Drag-and-drop
+  initSortable();
+});

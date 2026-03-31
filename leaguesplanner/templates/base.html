@@ -1,5 +1,5 @@
 
-{% load static i18n %}
+{% load static %}
 {% load webpack_loader static %}
 
   <!DOCTYPE html>
@@ -35,7 +35,7 @@
 
 <!-- place project specific Javascript in this file -->
 {% render_bundle 'app' 'js' attrs='defer' %}
-
+<script src="{% static 'js/planner.js' %}" defer></script>
 
 {% endblock javascript %}
 </head>

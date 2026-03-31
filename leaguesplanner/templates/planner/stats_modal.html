@@ -1,0 +1,17 @@
+{% extends 'base_modal.html' %}
+{% block modal_content %}
+<div class="modal fade" id="statsModal" tabindex="-1" x-cloak>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="statsModalTitle">Player Stats</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="stats-modal-body">
+        <p class="text-muted small">Stats at the end of the planned route.</p>
+        <div id="stats-grid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

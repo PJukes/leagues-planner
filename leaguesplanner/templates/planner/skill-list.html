@@ -1,27 +1,43 @@
 <template id="skill-list-template">
-  <form x-data="{ skill: '', method: '', quantity: 0 }">
+  <form>
     <h5 class="text-gray-700 font-medium text-lg mb-4">Select a Skill to Train</h5>
-    <p class="text-gray-600 mb-2">Choose a skill to add a training task.</p>
-    <div class="flex">
-      <select name="skillSelection" id="skillSelection" x-model="skill">
-        <template x-for="s in ['', 'Thieving', 'Agility', 'Herblore', 'Farming', 'Construction', 'Hunter']">
-          <option :value="s" x-text="s"></option>
-        </template>
-      </select>
+    <p class="text-gray-600 mb-2">Choose a skill activity and quantity.</p>
+    <div class="flex items-end gap-2">
+      <div>
+        <label for="skillSelection" class="text-sm text-gray-600">Skill</label>
+        <select name="skillSelection" id="skillSelection" x-model="skillSelection" class="ml-1">
+          <option value="">Select skill</option>
+          <template x-for="s in skillOptions" :key="s.key">
+            <option :value="s.key" x-text="s.label"></option>
+          </template>
+        </select>
+      </div>
 
-      <select name="skillMethod" id="skillMethod" x-model="method">
-        <template x-for="m in ['', 'Pickpocket Men', 'Pickpocket Citizen', 'Pickpocket Guard']">
-          <option :value="m" x-text="m"></option>
-        </template>
-      </select>
+      <div>
+        <label for="skillMethod" class="text-sm text-gray-600">Method</label>
+        <select name="skillMethod" id="skillMethod" x-model="methodSelection" class="ml-1" :disabled="!skillSelection">
+          <option value="">Select method</option>
+          <template x-for="m in getMethodOptions()" :key="m.key">
+            <option :value="m.key" x-text="`${m.name} (${m.xpPerAction} xp)`"></option>
+          </template>
+        </select>
+      </div>
 
-      <input type="number" name="quantity" id="id_quantity" x-model="quantity" placeholder="Quantity" min="1" class="ml-2 p-1 border border-gray-300 rounded">
+      <div>
+        <label for="id_quantity" class="text-sm text-gray-600">Quantity</label>
+        <input type="number" name="quantity" id="id_quantity" x-model.number="skillQuantity" placeholder="Quantity" min="1" class="ml-1 p-1 border border-gray-300 rounded">
+      </div>
     </div>
-  
+
+    <p class="mt-2 text-sm text-gray-600" x-show="getSelectedMethod()">
+      <span x-text="`Total xp: ${(getSelectedMethod()?.xpPerAction || 0) * (skillQuantity || 0)}`"></span>
+    </p>
+
     <div class="mt-4 flex items-end">
       <button type="button"
-        @click="addSkillAction(skill, method, quantity); console.log({ skill, method, quantity })"
-        class="relative flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent bg-gray-800 px-4 py-2 text-white hover:bg-gray-900">
+        @click="addSkillAction(skillSelection, methodSelection, skillQuantity)"
+        :disabled="!canAddSkillAction()"
+        class="relative flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent bg-gray-800 px-4 py-2 text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:bg-gray-400">
         Confirm
       </button>
     </div>

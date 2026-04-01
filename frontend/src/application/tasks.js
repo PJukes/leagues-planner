@@ -1,3 +1,5 @@
+import { getMethod, getMethodsForSkill, getSkillOptions } from "./skill-methods.js";
+
 export function taskManager() {
     const RELIC_LIST = [
         ["Endless Harvest", "Barbarian Gathering", "Abundance"],
@@ -20,6 +22,10 @@ export function taskManager() {
         relicSelection: [],
         currentRelicTier: 0,
         selectedTask: null,
+        skillSelection: "",
+        methodSelection: "",
+        skillQuantity: 1,
+        skillOptions: getSkillOptions(),
         init() {
             window.addEventListener('add-task', (event) => {
                 console.log("Adding task", event);
@@ -95,21 +101,28 @@ export function taskManager() {
             this.closeModal();
         },
         getSkillExperience(action) {
-            // Loop through all actions up to the current action and calculate experience
-            // for all skills
             let experience = 0;
             for (const act of this.actions) {
                 if (act.key === action.key) break;
-                experience += act.experience;
+                experience += act.experience || 0;
             }
             return experience;
+        },
+        getMethodOptions() {
+            return getMethodsForSkill(this.skillSelection);
+        },
+        getSelectedMethod() {
+            return getMethod(this.skillSelection, this.methodSelection);
+        },
+        canAddSkillAction() {
+            return Boolean(this.skillSelection && this.methodSelection && Number(this.skillQuantity) > 0);
         },
         canPickRelic() {
             if (this.currentRelicTier === 0 && this.relicSelection.length === 0) {
                 return true;
             }
             const totalPoints = this.totalPoints;
-            for(let i=0; i<RELIC_POINTS_TIER.length; i++) {
+            for (let i = 0; i < RELIC_POINTS_TIER.length; i++) {
                 if (totalPoints >= RELIC_POINTS_TIER[i] && this.currentRelicTier < i) {
                     return true;
                 }
@@ -122,15 +135,31 @@ export function taskManager() {
             }
         },
         addSkillAction(skill, method, quantity) {
-            console.log("Adding skill action", skill, method, quantity);
+            const parsedQuantity = Number(quantity);
+            const selectedMethod = getMethod(skill, method);
+
+            if (!selectedMethod || parsedQuantity <= 0) {
+                return;
+            }
+
+            const skillLabel = this.skillOptions.find((opt) => opt.key === skill)?.label || skill;
+            const experience = selectedMethod.xpPerAction * parsedQuantity;
             const skillAction = {
-                key: `${skill}-${method}-${quantity}`,
-                name: skill,
-                method: method,
-                quantity: quantity,
+                key: `${skill}-${method}-${Date.now()}`,
+                skill,
+                skillLabel,
+                method,
+                methodLabel: selectedMethod.name,
+                quantity: parsedQuantity,
+                quantityLabel: selectedMethod.actionLabel,
+                xpPerAction: selectedMethod.xpPerAction,
+                experience,
                 type: "skill"
             };
             this.actions.push(skillAction);
+            this.skillSelection = "";
+            this.methodSelection = "";
+            this.skillQuantity = 1;
             this.closeModal();
         }
 

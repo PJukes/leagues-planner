@@ -131,9 +131,10 @@
       
                     <div class="min-w-0 flex-1">
                       <div class="flex justify-between">
-                        <p x-text="action.skill" class="text-sm font-medium text-purple-900"></p>
-                        <p x-text="action.method" class="text-sm text-purple-900"></p>
-                        <p x-text="action.quantity" class="text-sm text-purple-900"></p>
+                        <p x-text="action.skillLabel" class="text-sm font-medium text-purple-900"></p>
+                        <p x-text="action.methodLabel" class="text-sm text-purple-900"></p>
+                        <p x-text="`${action.quantity} ${action.quantityLabel || ''}`" class="text-sm text-purple-900"></p>
+                        <p x-text="`${action.experience || 0} xp`" class="text-sm text-purple-900"></p>
                       </div>
                     </div>
       

@@ -1,8 +1,19 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+  #osrs-map {
+  width: min(100%, 1050px);
+  height: min(72vh, 760px);
+  min-height: 520px;
+  background: #2d4a22;
+  border: 2px solid #172514;
+  border-radius: 6px;
+}
+</style>
 
   <!-- ===== Top Bar ===== -->
 <nav class="relative bg-gray-200 rounded-lg h-full">

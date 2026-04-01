@@ -1,4 +1,13 @@
 export function taskManager() {
+    const SKILLS = [
+        "attack", "hitpoints", "mining", "strength", "agility", "smithing",
+        "defence", "herblore", "fishing", "ranged", "thieving", "cooking",
+        "prayer", "crafting", "firemaking", "magic", "fletching", "woodcutting",
+        "runecraft", "slayer", "farming", "construction", "hunter",
+    ];
+
+    const emptySkillExperience = () => Object.fromEntries(SKILLS.map(skill => [skill, 0]));
+
     const RELIC_LIST = [
         ["Endless Harvest", "Barbarian Gathering", "Abundance"],
         ["Woodsman",],
@@ -20,6 +29,7 @@ export function taskManager() {
         relicSelection: [],
         currentRelicTier: 0,
         selectedTask: null,
+        skillExperience: emptySkillExperience(),
         init() {
             window.addEventListener('add-task', (event) => {
                 console.log("Adding task", event);
@@ -59,8 +69,7 @@ export function taskManager() {
                 task.selected = false;
                 this.actions.push(task);
                 this.totalTasks += 1;
-                this.totalPoints += task.league_points;
-                task.cumulativePoints = this.totalPoints;
+                this.recalculateActionState();
             }
             this.closeModal();
         },
@@ -80,8 +89,8 @@ export function taskManager() {
             const removedTask = this.taskList.find(task => task.key === taskKey);
             if (removedTask) {
                 this.totalTasks -= 1;
-                this.totalPoints -= removedTask.league_points;
             }
+            this.recalculateActionState();
         },
         addRelic(relicKey) {
             console.log("Adding relic", relicKey);
@@ -92,17 +101,12 @@ export function taskManager() {
             };
             this.actions.push(relic);
             this.relicSelection.push(relicKey);
+            this.recalculateActionState();
             this.closeModal();
         },
-        getSkillExperience(action) {
-            // Loop through all actions up to the current action and calculate experience
-            // for all skills
-            let experience = 0;
-            for (const act of this.actions) {
-                if (act.key === action.key) break;
-                experience += act.experience;
-            }
-            return experience;
+        getSkillExperience(action, skill) {
+            if (!action?.cumulativeExperienceBySkill) return 0;
+            return action.cumulativeExperienceBySkill[skill] || 0;
         },
         canPickRelic() {
             if (this.currentRelicTier === 0 && this.relicSelection.length === 0) {
@@ -121,18 +125,53 @@ export function taskManager() {
                 this.openModal('relic-list-template');
             }
         },
-        addSkillAction(skill, method, quantity) {
-            console.log("Adding skill action", skill, method, quantity);
+        addSkillAction(skill, method, quantity, xpPerAction) {
+            console.log("Adding skill action", skill, method, quantity, xpPerAction);
+            const safeQuantity = Number(quantity) || 0;
+            const safeXpPerAction = Number(xpPerAction) || 0;
             const skillAction = {
-                key: `${skill}-${method}-${quantity}`,
+                key: `${skill}-${method}-${Date.now()}`,
                 name: skill,
+                skill: skill,
+                skillKey: (skill || "").toLowerCase(),
                 method: method,
-                quantity: quantity,
-                type: "skill"
+                quantity: safeQuantity,
+                xpPerAction: safeXpPerAction,
+                type: "skill",
             };
             this.actions.push(skillAction);
+            this.recalculateActionState();
             this.closeModal();
-        }
+        },
+        recalculateActionState() {
+            let runningPoints = 0;
+            let runningExperience = 0;
+            const runningBySkill = emptySkillExperience();
+
+            this.actions.forEach(action => {
+                runningPoints += Number(action.league_points || 0);
+                action.cumulativePoints = runningPoints;
+
+                const actionExperienceBySkill = emptySkillExperience();
+                if (action.type === "skill" && action.skillKey && SKILLS.includes(action.skillKey)) {
+                    actionExperienceBySkill[action.skillKey] =
+                        (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0);
+                }
+
+                Object.entries(actionExperienceBySkill).forEach(([skill, xp]) => {
+                    runningBySkill[skill] += xp;
+                });
+
+                action.experienceBySkill = actionExperienceBySkill;
+                action.totalExperienceGain = Object.values(actionExperienceBySkill).reduce((sum, xp) => sum + xp, 0);
+                runningExperience += action.totalExperienceGain;
+                action.cumulativeExperience = runningExperience;
+                action.cumulativeExperienceBySkill = { ...runningBySkill };
+            });
+
+            this.totalPoints = runningPoints;
+            this.skillExperience = { ...runningBySkill };
+        },
 
     };
 }

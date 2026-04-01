@@ -84,6 +84,7 @@ export function taskManager() {
                 this.selectedTask.selected = false;
             }
             if (this.selectedTask === taskKey) {
+                this.selectedTask.selected = false;
                 this.selectedTask = null;
                 return;
             }

@@ -94,9 +94,16 @@
                       </svg>
                     </button>
                   </div>
-                  <div x-show="action.selected">
-                    <p>Total Points</p><p x-text="action.cumulativePoints"></p>
-                    <p>Total XP (all skills)</p><p x-text="action.cumulativeExperience || 0"></p>
+
+                  <div x-show="action.selected" class="flex gap-x-4 mt-2">
+                    <div>
+                      <p class="text-xs font-medium text-gray-500">Total Points</p>
+                      <p x-text="action.cumulativePoints"></p>
+                    </div>
+                    <div>
+                      <p class="text-xs font-medium text-gray-500">Total XP</p>
+                      <p x-text="action.cumulativeExperience || 0"></p>
+                    </div>
                   </div>
                 </li>
               </template>

@@ -1,6 +1,15 @@
 import { getMethod, getMethodsForSkill, getSkillOptions } from "./skill-methods.js";
 
 export function taskManager() {
+    const SKILLS = [
+        "attack", "hitpoints", "mining", "strength", "agility", "smithing",
+        "defence", "herblore", "fishing", "ranged", "thieving", "cooking",
+        "prayer", "crafting", "firemaking", "magic", "fletching", "woodcutting",
+        "runecraft", "slayer", "farming", "construction", "hunter",
+    ];
+
+    const emptySkillExperience = () => Object.fromEntries(SKILLS.map(skill => [skill, 0]));
+
     const RELIC_LIST = [
         ["Endless Harvest", "Barbarian Gathering", "Abundance"],
         ["Woodsman",],
@@ -26,6 +35,7 @@ export function taskManager() {
         methodSelection: "",
         skillQuantity: 1,
         skillOptions: getSkillOptions(),
+        skillExperience: emptySkillExperience(),
         init() {
             window.addEventListener('add-task', (event) => {
                 console.log("Adding task", event);
@@ -65,8 +75,7 @@ export function taskManager() {
                 task.selected = false;
                 this.actions.push(task);
                 this.totalTasks += 1;
-                this.totalPoints += task.league_points;
-                task.cumulativePoints = this.totalPoints;
+                this.recalculateActionState();
             }
             this.closeModal();
         },
@@ -86,8 +95,8 @@ export function taskManager() {
             const removedTask = this.taskList.find(task => task.key === taskKey);
             if (removedTask) {
                 this.totalTasks -= 1;
-                this.totalPoints -= removedTask.league_points;
             }
+            this.recalculateActionState();
         },
         addRelic(relicKey) {
             console.log("Adding relic", relicKey);
@@ -98,13 +107,16 @@ export function taskManager() {
             };
             this.actions.push(relic);
             this.relicSelection.push(relicKey);
+            this.recalculateActionState();
             this.closeModal();
         },
         getSkillExperience(action) {
+            // Loop through all actions up to the current action and calculate experience
+            // for all skills
             let experience = 0;
             for (const act of this.actions) {
                 if (act.key === action.key) break;
-                experience += act.experience || 0;
+                experience += act.experience;
             }
             return experience;
         },
@@ -134,34 +146,53 @@ export function taskManager() {
                 this.openModal('relic-list-template');
             }
         },
-        addSkillAction(skill, method, quantity) {
-            const parsedQuantity = Number(quantity);
-            const selectedMethod = getMethod(skill, method);
-
-            if (!selectedMethod || parsedQuantity <= 0) {
-                return;
-            }
-
-            const skillLabel = this.skillOptions.find((opt) => opt.key === skill)?.label || skill;
-            const experience = selectedMethod.xpPerAction * parsedQuantity;
+        addSkillAction(skill, method, quantity, xpPerAction) {
+            console.log("Adding skill action", skill, method, quantity, xpPerAction);
+            const safeQuantity = Number(quantity) || 0;
+            const safeXpPerAction = Number(xpPerAction) || 0;
             const skillAction = {
                 key: `${skill}-${method}-${Date.now()}`,
-                skill,
-                skillLabel,
-                method,
-                methodLabel: selectedMethod.name,
-                quantity: parsedQuantity,
-                quantityLabel: selectedMethod.actionLabel,
-                xpPerAction: selectedMethod.xpPerAction,
-                experience,
-                type: "skill"
+                name: skill,
+                skill: skill,
+                skillKey: (skill || "").toLowerCase(),
+                method: method,
+                quantity: safeQuantity,
+                xpPerAction: safeXpPerAction,
+                type: "skill",
             };
             this.actions.push(skillAction);
-            this.skillSelection = "";
-            this.methodSelection = "";
-            this.skillQuantity = 1;
+            this.recalculateActionState();
             this.closeModal();
-        }
+        },
+        recalculateActionState() {
+            let runningPoints = 0;
+            let runningExperience = 0;
+            const runningBySkill = emptySkillExperience();
+
+            this.actions.forEach(action => {
+                runningPoints += Number(action.league_points || 0);
+                action.cumulativePoints = runningPoints;
+
+                const actionExperienceBySkill = emptySkillExperience();
+                if (action.type === "skill" && action.skillKey && SKILLS.includes(action.skillKey)) {
+                    actionExperienceBySkill[action.skillKey] =
+                        (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0);
+                }
+
+                Object.entries(actionExperienceBySkill).forEach(([skill, xp]) => {
+                    runningBySkill[skill] += xp;
+                });
+
+                action.experienceBySkill = actionExperienceBySkill;
+                action.totalExperienceGain = Object.values(actionExperienceBySkill).reduce((sum, xp) => sum + xp, 0);
+                runningExperience += action.totalExperienceGain;
+                action.cumulativeExperience = runningExperience;
+                action.cumulativeExperienceBySkill = { ...runningBySkill };
+            });
+
+            this.totalPoints = runningPoints;
+            this.skillExperience = { ...runningBySkill };
+        },
 
     };
 }

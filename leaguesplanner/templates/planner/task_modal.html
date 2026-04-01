@@ -1,117 +1,127 @@
-{% include 'modal-header.html' with modal_name='taskModal' %}
-<h5 class="modal-title fw-bold" id="taskModalTitle">Add Task</h5>
-        
-<!-- Type selector -->
-<div class="mb-3">
-  <label class="form-label fw-semibold">Task Type</label>
-  <div class="btn-group w-100" role="group">
-    <input type="radio" class="btn-check" name="taskType" id="tt-league"   value="league_task"    autocomplete="off" checked>
-    <label class="btn btn-outline-warning btn-sm" for="tt-league">League Task</label>
+<div class="modal fade" id="taskModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="taskModalTitle">Add Task</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
 
-    <input type="radio" class="btn-check" name="taskType" id="tt-action"   value="generic_action" autocomplete="off">
-    <label class="btn btn-outline-success btn-sm" for="tt-action">Generic Action</label>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Task Type</label>
+          <div class="btn-group w-100" role="group">
+            <input type="radio" class="btn-check" name="taskType" id="tt-league" value="league_task" autocomplete="off" checked>
+            <label class="btn btn-outline-warning btn-sm" for="tt-league">League Task</label>
 
-    <input type="radio" class="btn-check" name="taskType" id="tt-tier"     value="tier_unlock"    autocomplete="off">
-    <label class="btn btn-outline-secondary btn-sm" for="tt-tier" style="border-color:#9c27b0;color:#9c27b0">Tier Unlock</label>
+            <input type="radio" class="btn-check" name="taskType" id="tt-action" value="generic_action" autocomplete="off">
+            <label class="btn btn-outline-success btn-sm" for="tt-action">Generic Action</label>
 
-    <input type="radio" class="btn-check" name="taskType" id="tt-note"     value="note"           autocomplete="off">
-    <label class="btn btn-outline-info btn-sm" for="tt-note">Note</label>
-  </div>
-</div>
+            <input type="radio" class="btn-check" name="taskType" id="tt-tier" value="tier_unlock" autocomplete="off">
+            <label class="btn btn-outline-secondary btn-sm" for="tt-tier" style="border-color:#9c27b0;color:#9c27b0">Tier Unlock</label>
 
-<!-- Name -->
-<div class="mb-3">
-  <label class="form-label fw-semibold">Quick Template <span class="text-muted fw-normal">(optional)</span></label>
-  <select class="form-select" id="task-template-select">
-    <option value="">— start from scratch —</option>
-  </select>
-  <div class="form-text">Templates are loaded from a backend Python file.</div>
-</div>
+            <input type="radio" class="btn-check" name="taskType" id="tt-note" value="note" autocomplete="off">
+            <label class="btn btn-outline-info btn-sm" for="tt-note">Note</label>
+          </div>
+        </div>
 
-<!-- Name -->
-<div class="mb-3">
-  <label class="form-label fw-semibold">Name</label>
-  <input type="text" class="form-control" id="task-name" placeholder="Task name">
-</div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Task Library</label>
+          <input type="text" class="form-control form-control-sm mb-2" id="task-template-search" placeholder="Search task templates...">
+          <div id="task-template-list" class="list-group small" style="max-height: 180px; overflow-y: auto;">
+            <div class="list-group-item text-muted">Loading task templates...</div>
+          </div>
+          <div class="form-text" id="task-template-count">Templates are loaded from a backend Python file.</div>
+          <select class="form-select d-none" id="task-template-select">
+            <option value="">— start from scratch —</option>
+          </select>
+        </div>
 
-<!-- === League Task fields === -->
-<div id="fields-league">
-  <div class="mb-3">
-    <label class="form-label fw-semibold">League Points Awarded</label>
-    <input type="number" class="form-control" id="task-points" value="0" min="0">
-  </div>
-</div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Name</label>
+          <input type="text" class="form-control" id="task-name" placeholder="Task name">
+        </div>
 
-<!-- === Generic Action fields === -->
-<div id="fields-action" style="display:none">
-  <div class="row g-2 mb-3">
-    <div class="col-md-5">
-      <label class="form-label fw-semibold">Skill</label>
-      <select class="form-select" id="task-skill">
-        <option value="">— select skill —</option>
-        <option value="attack">Attack</option>
-        <option value="hitpoints">Hitpoints</option>
-        <option value="mining">Mining</option>
-        <option value="strength">Strength</option>
-        <option value="agility">Agility</option>
-        <option value="smithing">Smithing</option>
-        <option value="defence">Defence</option>
-        <option value="herblore">Herblore</option>
-        <option value="fishing">Fishing</option>
-        <option value="ranged">Ranged</option>
-        <option value="thieving">Thieving</option>
-        <option value="cooking">Cooking</option>
-        <option value="prayer">Prayer</option>
-        <option value="crafting">Crafting</option>
-        <option value="firemaking">Firemaking</option>
-        <option value="magic">Magic</option>
-        <option value="fletching">Fletching</option>
-        <option value="woodcutting">Woodcutting</option>
-        <option value="runecraft">Runecraft</option>
-        <option value="slayer">Slayer</option>
-        <option value="farming">Farming</option>
-        <option value="construction">Construction</option>
-        <option value="hunter">Hunter</option>
-      </select>
+        <div id="fields-league">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">League Points Awarded</label>
+            <input type="number" class="form-control" id="task-points" value="0" min="0">
+          </div>
+        </div>
+
+        <div id="fields-action" style="display:none">
+          <div class="row g-2 mb-3">
+            <div class="col-md-5">
+              <label class="form-label fw-semibold">Skill</label>
+              <select class="form-select" id="task-skill">
+                <option value="">— select skill —</option>
+                <option value="attack">Attack</option>
+                <option value="hitpoints">Hitpoints</option>
+                <option value="mining">Mining</option>
+                <option value="strength">Strength</option>
+                <option value="agility">Agility</option>
+                <option value="smithing">Smithing</option>
+                <option value="defence">Defence</option>
+                <option value="herblore">Herblore</option>
+                <option value="fishing">Fishing</option>
+                <option value="ranged">Ranged</option>
+                <option value="thieving">Thieving</option>
+                <option value="cooking">Cooking</option>
+                <option value="prayer">Prayer</option>
+                <option value="crafting">Crafting</option>
+                <option value="firemaking">Firemaking</option>
+                <option value="magic">Magic</option>
+                <option value="fletching">Fletching</option>
+                <option value="woodcutting">Woodcutting</option>
+                <option value="runecraft">Runecraft</option>
+                <option value="slayer">Slayer</option>
+                <option value="farming">Farming</option>
+                <option value="construction">Construction</option>
+                <option value="hunter">Hunter</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">XP per action (base)</label>
+              <input type="number" class="form-control" id="task-xp" value="0" min="0" step="0.1">
+              <div class="form-text">Before league multiplier.</div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Quantity</label>
+              <input type="number" class="form-control" id="task-qty" value="1" min="1">
+            </div>
+          </div>
+          <div id="xp-preview" class="alert alert-success py-1 px-2 small" style="display:none"></div>
+        </div>
+
+        <div id="fields-tier" style="display:none">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Tier to Unlock</label>
+            <select class="form-select" id="task-tier-select">
+              <option value="">— select tier —</option>
+            </select>
+            <div class="form-text" id="tier-info-text"></div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Notes <span class="text-muted fw-normal">(optional)</span></label>
+          <textarea class="form-control" id="task-notes" rows="2" placeholder="Any notes for this step…"></textarea>
+        </div>
+
+        <div class="mb-0">
+          <label class="form-label fw-semibold">Map Marker</label>
+          <div class="d-flex gap-2 align-items-center">
+            <input type="number" class="form-control form-control-sm" id="task-map-x" placeholder="X (e.g. 3218)">
+            <input type="number" class="form-control form-control-sm" id="task-map-y" placeholder="Y (e.g. 3222)">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-pick-map">Pick on map</button>
+          </div>
+          <div class="form-text">OSRS game tile coordinates, or click "Pick on map" then click the map.</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-warning fw-semibold" id="btn-save-task">Save Task</button>
+      </div>
     </div>
-    <div class="col-md-4">
-      <label class="form-label fw-semibold">XP per action (base)</label>
-      <input type="number" class="form-control" id="task-xp" value="0" min="0" step="0.1">
-      <div class="form-text">Before league multiplier.</div>
-    </div>
-    <div class="col-md-3">
-      <label class="form-label fw-semibold">Quantity</label>
-      <input type="number" class="form-control" id="task-qty" value="1" min="1">
-    </div>
-  </div>
-  <div id="xp-preview" class="alert alert-success py-1 px-2 small" style="display:none"></div>
-</div>
-
-<!-- === Tier Unlock fields === -->
-<div id="fields-tier" style="display:none">
-  <div class="mb-3">
-    <label class="form-label fw-semibold">Tier to Unlock</label>
-    <select class="form-select" id="task-tier-select">
-      <option value="">— select tier —</option>
-    </select>
-    <div class="form-text" id="tier-info-text"></div>
   </div>
 </div>
-
-<!-- Notes -->
-<div class="mb-3">
-  <label class="form-label fw-semibold">Notes <span class="text-muted fw-normal">(optional)</span></label>
-  <textarea class="form-control" id="task-notes" rows="2" placeholder="Any notes for this step…"></textarea>
-</div>
-
-<!-- Map marker -->
-<div class="mb-0">
-  <label class="form-label fw-semibold">Map Marker</label>
-  <div class="d-flex gap-2 align-items-center">
-    <input type="number" class="form-control form-control-sm" id="task-map-x" placeholder="X (e.g. 3218)">
-    <input type="number" class="form-control form-control-sm" id="task-map-y" placeholder="Y (e.g. 3222)">
-    <button class="btn btn-sm btn-outline-secondary" id="btn-pick-map">Pick on map</button>
-  </div>
-  <div class="form-text">OSRS game tile coordinates, or click "Pick on map" then click the map.</div>
-</div>
-{% include 'modal-footer.html' with modal_name='taskModal' %}

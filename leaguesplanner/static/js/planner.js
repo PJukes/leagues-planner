@@ -717,7 +717,6 @@ function showModal(modalId) {
     backdrop.className = "modal-backdrop fade show";
     document.body.appendChild(backdrop);
   }
-  Alpine.store('modal').toggle();
 }
 
 function hideModal(modalId) {
@@ -1064,11 +1063,67 @@ function applyTaskTemplate(templateKey) {
   updateXpPreview();
 }
 
+function renderTaskLibraryList(filterText = "") {
+  const list = document.getElementById("task-template-list");
+  const count = document.getElementById("task-template-count");
+  if (!list) return;
+
+  const filter = filterText.trim().toLowerCase();
+  const items = taskLibrary.filter(item => !filter || item.name.toLowerCase().includes(filter));
+
+  list.innerHTML = "";
+  if (items.length === 0) {
+    list.innerHTML = `<div class="list-group-item text-muted">No templates match your search.</div>`;
+  } else {
+    items.forEach(item => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "list-group-item list-group-item-action d-flex justify-content-between align-items-center";
+      btn.dataset.templateKey = item.key;
+      btn.innerHTML = `
+        <span>${escHtml(item.name)}</span>
+        <span class="badge text-bg-light">${escHtml(item.task_type.replace("_", " "))}</span>
+      `;
+      btn.addEventListener("click", () => {
+        document.getElementById("task-template-select").value = item.key;
+        applyTaskTemplate(item.key);
+      });
+      list.appendChild(btn);
+    });
+  }
+
+  if (count) count.textContent = `${items.length} of ${taskLibrary.length} templates shown. Click one to prefill the task form.`;
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   initModalControls();
-  // Init map first (fast)
   initMap();
-
-  // Drag-and-drop
   initSortable();
+
+  await loadPlanData();
+  await loadTaskLibrary();
+  renderTaskList();
+  renderTiersTable();
+
+  document.getElementById("btn-open-add-task")?.addEventListener("click", () => openTaskModal());
+  document.getElementById("btn-open-stats")?.addEventListener("click", () => openStatsModal());
+  document.getElementById("btn-save-task")?.addEventListener("click", saveTask);
+  document.getElementById("task-template-select")?.addEventListener("change", e => applyTaskTemplate(e.target.value));
+  document.getElementById("task-template-search")?.addEventListener("input", e => renderTaskLibraryList(e.target.value));
+  document.getElementById("btn-pick-map")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    pickingMapCoord = true;
+    osrsMap.getContainer().style.cursor = "crosshair";
+    e.target.textContent = "Click map...";
+  });
+  document.querySelectorAll('input[name="taskType"]').forEach(radio => {
+    radio.addEventListener("change", () => {
+      updateTaskTypeFields();
+      updateXpPreview();
+    });
+  });
+  ["task-xp", "task-qty", "task-skill"].forEach(id => {
+    document.getElementById(id)?.addEventListener("input", updateXpPreview);
+  });
+  renderTaskLibraryList();
 });

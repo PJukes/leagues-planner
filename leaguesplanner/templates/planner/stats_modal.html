@@ -1,10 +1,9 @@
-{% include 'modal-header.html' with modal_name='statsModal' %}
-<div class="modal fade" id="statsModal" tabindex="-1" x-cloak>
+<div class="modal fade" id="statsModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title fw-bold" id="statsModalTitle">Player Stats</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" id="stats-modal-body">
         <p class="text-muted small">Stats at the end of the planned route.</p>
@@ -13,4 +12,3 @@
     </div>
   </div>
 </div>
-{% include 'modal-footer.html' with modal_name='statsModal' %}

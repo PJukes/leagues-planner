@@ -84,12 +84,36 @@ let mapDebugState = {
   lastErrorUrl: "",
 };
 
-const GAME_TILES_PER_IMAGE_TILE = 64;
-const IMAGE_TILE_SIZE_PX = 256;
-const MAP_UNITS_PER_GAME_TILE = IMAGE_TILE_SIZE_PX / GAME_TILES_PER_IMAGE_TILE; // 4 px per game tile
+const TILE_X_OFFSET = 100;
+const TILE_Y_OFFSET = 100;
 
-function gameToMapLatLng(x, y) {
-  return [y * MAP_UNITS_PER_GAME_TILE, x * MAP_UNITS_PER_GAME_TILE];
+const MIN_TILE_X = 0;
+const MIN_TILE_Y = 0;
+const MAX_TILE_X = 66; // example
+const MAX_TILE_Y = 96; // example
+
+const REGION_SIZE = 64;
+const RENDER_TILE_SIZE = 256;
+const MAP_UNITS_PER_GAME_TILE = RENDER_TILE_SIZE / REGION_SIZE; // 4
+
+function gameToMapLatLng(gameX, gameY) {
+  const serverTileX = Math.floor(gameX / REGION_SIZE);
+  const serverTileY = Math.floor(gameY / REGION_SIZE);
+
+  const localX = gameX % REGION_SIZE;
+  const localY = gameY % REGION_SIZE;
+
+  const lng =
+    serverTileX * RENDER_TILE_SIZE +
+    (localX + 0.5) * MAP_UNITS_PER_GAME_TILE;
+
+  const lat =
+    -(
+      serverTileY * RENDER_TILE_SIZE +
+      (REGION_SIZE - 1 - localY + 0.5) * MAP_UNITS_PER_GAME_TILE
+    );
+
+  return [lat, lng];
 }
 
 function mapLatLngToGame(latlng) {
@@ -102,13 +126,8 @@ function mapLatLngToGame(latlng) {
 const OSRS_TILE_SOURCES = [
   {
     name: "RuneScape Wiki tiles",
-    url: "https://maps.runescape.wiki/osrs/tiles/{z}/{x}/{y}.png",
+    url: "https://maps.runescape.wiki/osrs/versions/2026-03-04_a/tiles/rendered/0/2/{z}_{x}_{y}.png",
     attribution: '&copy; <a href="https://www.jagex.com/">Jagex</a> / <a href="https://runescape.wiki/">RuneScape Wiki</a>',
-  },
-  {
-    name: "Jagex maps.runescape.com",
-    url: "https://maps.runescape.com/osrs/tiles/{z}/{x}_{y}.png",
-    attribution: "&copy; Jagex Ltd",
   },
 ];
 
@@ -130,45 +149,132 @@ function ensureMapDebugPanel() {
 }
 
 function attachTileLayer(sourceIdx) {
-  if (sourceIdx >= OSRS_TILE_SOURCES.length) {
-    console.error("All OSRS tile sources failed.");
-    mapDebugState.lastErrorUrl = "all tile sources failed";
-    updateMapDebugPanel();
-    return;
-  }
-
   const source = OSRS_TILE_SOURCES[sourceIdx];
-  activeTileSource = source;
-  mapDebugState = { loaded: 0, errors: 0, lastErrorUrl: "" };
-  updateMapDebugPanel();
 
-  const layer = L.tileLayer(source.url, {
+  const layer = L.tileLayer("", {
     attribution: source.attribution,
     tileSize: 256,
     noWrap: true,
     tms: false,
+    errorTileUrl:
+      "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=",
   });
-  activeTileLayer = layer;
-  layer.addTo(osrsMap);
 
-  let switchedSource = false;
-  layer.on("tileload", () => {
-    mapDebugState.loaded += 1;
-    updateMapDebugPanel();
-  });
+  // layer.getTileUrl = function (coords) {
+  //   const z = coords.z;
+  //   const x = coords.x + TILE_X_OFFSET;  
+  //   const MAX_Y_AT_Z0 = 100; // example, adjust to your tile set
+  //   // flip Y
+  //   const y = MAX_Y_AT_Z0 - coords.y;
+
+  //   if (
+  //     x < MIN_TILE_X || x > MAX_TILE_X ||
+  //     y < MIN_TILE_Y || y > MAX_TILE_Y
+  //   ) {
+  //     return this.options.errorTileUrl;
+  //   }
+
+  //   return `https://maps.runescape.wiki/osrs/versions/2026-03-04_a/tiles/rendered/0/2/${z}_${x}_${y}.png`;
+  // };
+
+  layer.getTileUrl = function (coords) {
+    const z = coords.z;
+    const x = coords.x;
+    const y = MAX_TILE_Y - coords.y;
+
+    console.log(`tile url: ${z}_${x}_${y}`);
+    return `https://maps.runescape.wiki/osrs/versions/2026-03-04_a/tiles/rendered/0/2/${z}_${x}_${y}.png`;
+  };
 
   layer.on("tileerror", (evt) => {
-    mapDebugState.errors += 1;
-    mapDebugState.lastErrorUrl = evt?.tile?.currentSrc || source.url;
-    updateMapDebugPanel();
-    if (!switchedSource && mapDebugState.loaded === 0 && mapDebugState.errors >= 6) {
-      switchedSource = true;
-      console.warn(`Switching tile source after repeated failures: ${source.name}`);
-      osrsMap.removeLayer(layer);
-      attachTileLayer(sourceIdx + 1);
-    }
+    console.log("tileerror url:", evt.tile?.src || evt.tile?.currentSrc);
+    console.log("tile coords:", evt.coords);
   });
+
+  layer.on("tileloadstart", (evt) => {
+    console.log("tileloadstart url:", evt.tile?.src || evt.tile?.currentSrc);
+    console.log("tile coords:", evt.coords);
+  });
+
+  layer.on("tileload", (evt) => {
+    console.log("tileload url:", evt.tile?.src || evt.tile?.currentSrc);
+    console.log("tile coords:", evt.coords);
+  });
+
+
+  activeTileLayer = layer;
+  layer.addTo(osrsMap);
 }
+
+// function attachTileLayer(sourceIdx) {
+//   if (sourceIdx >= OSRS_TILE_SOURCES.length) {
+//     console.error("All OSRS tile sources failed.");
+//     mapDebugState.lastErrorUrl = "all tile sources failed";
+//     updateMapDebugPanel();
+//     return;
+//   }
+
+//   const source = OSRS_TILE_SOURCES[sourceIdx];
+//   activeTileSource = source;
+//   mapDebugState = { loaded: 0, errors: 0, lastErrorUrl: "" };
+//   updateMapDebugPanel();
+
+//   const OsrsTileLayer = L.TileLayer.extend({
+//     getTileUrl(coords) {
+//       // adjust these rules to match the server
+//       const z = Math.max(0, Math.min(2, coords.z));
+//       const x = coords.x;
+//       const y = coords.y; // or flip if needed
+//       return `https://maps.runescape.wiki/osrs/tiles/0_2019-10-31_1/3/${z}_${x}_${y}.png`;
+//     }
+//   });
+
+//   const layer = new OsrsTileLayer("", {
+//     attribution: source.attribution,
+//     tileSize: 256,
+//     noWrap: true,
+//   });
+
+//   activeTileLayer = layer;
+//   layer.addTo(osrsMap);
+
+//   let switchedSource = false;
+//   layer.on("tileload", () => {
+//     mapDebugState.loaded += 1;
+//     updateMapDebugPanel();
+//   });
+
+//   layer.on("tileerror", (evt) => {
+//     console.log("tileerror url:", evt.tile?.src || evt.tile?.currentSrc);
+//     console.log("tile coords:", evt.coords);
+//   });
+
+//   layer.on("tileloadstart", (evt) => {
+//     console.log("tileloadstart url:", evt.tile?.src || evt.tile?.currentSrc);
+//     console.log("tile coords:", evt.coords);
+//   });
+
+//   layer.on("tileload", (evt) => {
+//     console.log("tileload url:", evt.tile?.src || evt.tile?.currentSrc);
+//     console.log("tile coords:", evt.coords);
+//   });
+
+//   console.log(
+//     activeTileLayer.getTileUrl({ z: 0, x: 100, y: 100 })
+//   );
+
+//   layer.on("tileerror", (evt) => {
+//     mapDebugState.errors += 1;
+//     mapDebugState.lastErrorUrl = evt?.tile?.currentSrc || source.url;
+//     updateMapDebugPanel();
+//     if (!switchedSource && mapDebugState.loaded === 0 && mapDebugState.errors >= 6) {
+//       switchedSource = true;
+//       console.warn(`Switching tile source after repeated failures: ${source.name}`);
+//       osrsMap.removeLayer(layer);
+//       attachTileLayer(sourceIdx + 1);
+//     }
+//   });
+// }
 
 
 // ---------------------------------------------------------------------------
@@ -280,8 +386,14 @@ function initMap() {
   attachTileLayer(0);
 
   // Configurable default view.
-  osrsMap.setView(gameToMapLatLng(cfg.mapStartX, cfg.mapStartY), cfg.mapStartZoom);
-  osrsMap.setMaxBounds([[-512, -512], [16384 * MAP_UNITS_PER_GAME_TILE, 16384 * MAP_UNITS_PER_GAME_TILE]]);
+  osrsMap.setView(gameToMapLatLng(1680, 3107), Math.max(0, cfg.mapStartZoom));
+  const south = -((MAX_TILE_Y + 1) * RENDER_TILE_SIZE);
+  const north = -(MIN_TILE_Y * RENDER_TILE_SIZE);
+  const west  = MIN_TILE_X * RENDER_TILE_SIZE;
+  const east  = (MAX_TILE_X + 1) * RENDER_TILE_SIZE;
+
+  const mapBounds = [[south, west], [north, east]];
+  osrsMap.setMaxBounds(mapBounds);
   window.addEventListener("resize", () => osrsMap.invalidateSize());
 
   // Allow clicking the map to place / pick coordinates

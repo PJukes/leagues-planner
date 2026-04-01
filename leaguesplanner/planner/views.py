@@ -98,7 +98,11 @@ def plan_create(request):
 @login_required
 def plan_detail(request, plan_id):
     plan = get_object_or_404(Plan, pk=plan_id, user=request.user)
-    return render(request, "planner/plan_detail.html", {"plan": plan})
+    context = {
+        "plan": plan,
+        "task_list": get_task_library(),
+    }
+    return render(request, "planner/plan_detail.html", context)
 
 
 @login_required

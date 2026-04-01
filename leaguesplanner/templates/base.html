@@ -35,6 +35,11 @@
 <!-- place project specific Javascript in this file -->
 {% render_bundle 'app' 'js' attrs='defer' %}
 <script src="{% static 'js/planner.js' %}" defer></script>
+<script src="{% static 'js/tasks.js' %}" defer></script>
+
+<style>
+  [x-cloak] {display: none !important;}
+</style>
 
 {% endblock javascript %}
 </head>

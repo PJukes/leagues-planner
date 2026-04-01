@@ -821,30 +821,11 @@ function refreshTierSelect() {
 // Task Modal
 // ---------------------------------------------------------------------------
 
-function openTaskModal(existingTask = null, defaultTaskType = "league_task") {
-  editingTaskId = existingTask ? existingTask.id : null;
-  document.getElementById("taskModalTitle").textContent = existingTask ? "Edit Task" : "Add Task";
-
-  // Reset form
-  document.querySelectorAll('input[name="taskType"]').forEach(r => {
-    r.checked = r.value === (existingTask ? existingTask.task_type : defaultTaskType);
-  });
-  document.getElementById("task-name").value = existingTask ? existingTask.name : "";
-  document.getElementById("task-template-select").value = "";
-  document.getElementById("task-points").value = existingTask ? existingTask.league_points : 0;
-  document.getElementById("task-skill").value = existingTask ? existingTask.skill : "";
-  document.getElementById("task-xp").value = existingTask ? existingTask.base_xp_per_action : 0;
-  document.getElementById("task-qty").value = existingTask ? existingTask.quantity : 1;
-  document.getElementById("task-notes").value = existingTask ? existingTask.notes : "";
-  document.getElementById("task-map-x").value = (existingTask && existingTask.map_x != null) ? existingTask.map_x : "";
-  document.getElementById("task-map-y").value = (existingTask && existingTask.map_y != null) ? existingTask.map_y : "";
-  refreshTierSelect();
-  document.getElementById("task-tier-select").value = existingTask ? (existingTask.tier_id || "") : "";
-
-  updateTaskTypeFields();
-  updateXpPreview();
-
-  showModal("taskModal");
+function openTaskModal() {
+  window.dispatchEvent(new CustomEvent('add-task', {
+    detail: { id: 123 }
+  }));
+  console.log("Yeet", 123);
 }
 
 function updateTaskTypeFields() {
@@ -1110,34 +1091,5 @@ function renderTaskLibraryList(filterText = "") {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  initModalControls();
   initMap();
-  initSortable();
-
-  await loadPlanData();
-  await loadTaskLibrary();
-  renderTaskList();
-  renderTiersTable();
-
-  document.getElementById("btn-open-add-task")?.addEventListener("click", () => openTaskModal());
-  document.getElementById("btn-open-stats")?.addEventListener("click", () => openStatsModal());
-  document.getElementById("btn-save-task")?.addEventListener("click", saveTask);
-  document.getElementById("task-template-select")?.addEventListener("change", e => applyTaskTemplate(e.target.value));
-  document.getElementById("task-template-search")?.addEventListener("input", e => renderTaskLibraryList(e.target.value));
-  document.getElementById("btn-pick-map")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    pickingMapCoord = true;
-    osrsMap.getContainer().style.cursor = "crosshair";
-    e.target.textContent = "Click map...";
-  });
-  document.querySelectorAll('input[name="taskType"]').forEach(radio => {
-    radio.addEventListener("change", () => {
-      updateTaskTypeFields();
-      updateXpPreview();
-    });
-  });
-  ["task-xp", "task-qty", "task-skill"].forEach(id => {
-    document.getElementById(id)?.addEventListener("input", updateXpPreview);
-  });
-  renderTaskLibraryList();
 });

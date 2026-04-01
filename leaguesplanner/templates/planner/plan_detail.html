@@ -41,28 +41,7 @@
 }
 </style>
 
-<script>
-  document.addEventListener("alpine:init", () => {
-    Alpine.store("plannerModals", {
-      states: {
-        taskModal: false,
-        statsModal: false,
-        relicModal: false,
-      },
-      open(id) {
-        this.states[id] = true;
-      },
-      close(id) {
-        this.states[id] = false;
-      },
-      isOpen(id) {
-        return !!this.states[id];
-      },
-    });
-  });
-</script>
-
-<nav class="relative bg-gray-200 rounded-lg h-full">
+<div x-data="taskManager()" class="relative bg-gray-200 rounded-lg h-full">
   <div class="mx-auto px-2 sm:px-6 lg:px-8">
     <div class="relative flex h-16 items-center justify-between">
 
@@ -78,13 +57,12 @@
     </div>
 
     <!-- Task Pane -->
-    <div x-data="{tasks: [{name: 'Open the Leagues Menu', points: 10, id: 1}]}" id="task-pane" class="p-4 overflow-hidden rounded-lg bg-white shadow">
+    <div id="task-pane" class="p-4 overflow-hidden rounded-lg bg-white shadow">
       <div id="task-pane-header">
         <div class="flex justify-between items-center">
           <h3>Task List</h3>
           <div class="d-flex gap-2">
-            <button type="button" class="btn btn-sm btn-warning" id="btn-open-add-task">+ Task</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-open-stats">Stats</button>
+            <button type="button" @click="openModal();">+ Task</button>
           </div>
         </div>
       </div>
@@ -142,12 +120,14 @@
   </div><!-- /main-split -->
 </div><!-- /planner-root -->
 
-<!-- ===== Add/Edit Task Modal ===== -->
-{% include 'planner/task_modal.html' %}
+<!-- Modal content -->
+{% include 'modal.html' %}
 
-{% include 'planner/relic_modal.html' %}
+{% include 'planner/task-list.html' %}
 
-{% include 'planner/stats_modal.html' %}
+{% include 'planner/relic-list.html' %}
+
+{% include 'planner/stats.html' %}
 
 
 <!-- Leaflet JS -->

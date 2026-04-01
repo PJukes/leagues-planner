@@ -1,0 +1,41 @@
+<!-- Modal -->
+<div x-show="showModal"
+  x-on:keyup.escape.window="closeModal()"
+  role="dialog"
+  aria-modal="true"
+  x-id="['modal-title']"
+  id="modal"
+  :aria-labelledby="$id('modal-title')"
+  class="fixed inset-0 z-[100] overflow-y-auto"
+  style="display: none;">
+  <!-- Overlay -->
+  <div x-on:click="closeModal()"
+    x-transition.opacity
+    class="fixed inset-0 bg-black/50">
+  </div>
+
+  <!-- Panel wrapper -->
+  <div class="relative flex min-h-screen items-center justify-center p-4">
+    <!-- Panel -->
+    <div x-on:click.stop
+      x-trap.inert="showModal"
+      x-transition
+      class="relative w-full max-w-lg transform rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:p-6">
+      <div id="modalContent"></div>
+
+      <div class="mt-6 flex justify-end space-x-2">
+        <button type="button"
+          x-on:click="closeModal()"
+          class="relative flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent bg-transparent px-4 py-2 text-gray-800 hover:bg-gray-800/10">
+          Cancel
+        </button>
+
+        <button type="button"
+          x-on:click="closeModal()"
+          class="relative flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent bg-gray-800 px-4 py-2 text-white hover:bg-gray-900">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -2,6 +2,8 @@
    OSRS Leagues Planner – planner.js
    ========================================================================== */
 
+"use strict";
+
 // ---------------------------------------------------------------------------
 // OSRS XP / level utilities
 // ---------------------------------------------------------------------------
@@ -70,6 +72,7 @@ let plan = {
 
 let taskLibrary = [];
 let editingTaskId = null;  // null = creating new
+let pickingMapCoord = false;
 let osrsMap = null;
 const markers = {}; // taskId → L.marker
 const openModalIds = [];
@@ -609,11 +612,40 @@ function renderStatsPanel(skillLevels) {
 // ---------------------------------------------------------------------------
 
 function showModal(modalId) {
-  uiStore()?.showModal(modalId);
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+
+  if (!openModalIds.includes(modalId)) openModalIds.push(modalId);
+
+  modal.style.display = "block";
+  modal.classList.add("show");
+  modal.setAttribute("aria-modal", "true");
+  modal.removeAttribute("aria-hidden");
+  document.body.classList.add("modal-open");
+
+  if (!document.querySelector(".modal-backdrop")) {
+    const backdrop = document.createElement("div");
+    backdrop.className = "modal-backdrop fade show";
+    document.body.appendChild(backdrop);
+  }
 }
 
 function hideModal(modalId) {
-  uiStore()?.hideModal(modalId);
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+
+  modal.classList.remove("show");
+  modal.style.display = "none";
+  modal.setAttribute("aria-hidden", "true");
+  modal.removeAttribute("aria-modal");
+
+  const idx = openModalIds.indexOf(modalId);
+  if (idx !== -1) openModalIds.splice(idx, 1);
+
+  if (openModalIds.length === 0) {
+    document.body.classList.remove("modal-open");
+    document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+  }
 }
 
 function initModalControls() {
@@ -631,8 +663,8 @@ function initModalControls() {
   });
 
   document.addEventListener("keydown", e => {
-    if (e.key !== "Escape") return;
-    uiStore()?.hideTopModal();
+    if (e.key !== "Escape" || openModalIds.length === 0) return;
+    hideModal(openModalIds[openModalIds.length - 1]);
   });
 }
 
@@ -704,9 +736,6 @@ function openTaskModal(existingTask = null) {
 
   updateTaskTypeFields();
   updateXpPreview();
-  uiStore()?.stopMapPicking();
-  document.getElementById("btn-pick-map").textContent = "Pick on map";
-  osrsMap.getContainer().style.cursor = "";
 
   showModal("taskModal");
 }
@@ -899,3 +928,142 @@ function openStatsModal(atTaskIndex = null) {
 // Initialise
 // ---------------------------------------------------------------------------
 
+async function loadPlanData() {
+  const data = await apiFetch(cfg.dataUrl);
+  if (!data) return;
+  plan.name = data.name;
+  plan.base_xp_multiplier = data.base_xp_multiplier;
+  plan.tiers = data.tiers;
+  plan.tasks = data.tasks;
+}
+
+async function loadTaskLibrary() {
+  const data = await apiFetch(cfg.taskLibraryUrl);
+  if (!data || !Array.isArray(data.tasks)) return;
+  taskLibrary = data.tasks;
+  const sel = document.getElementById("task-template-select");
+  sel.innerHTML = `<option value="">— start from scratch —</option>`;
+  taskLibrary.forEach(task => {
+    const opt = document.createElement("option");
+    opt.value = task.key;
+    opt.textContent = `${task.name} (${task.task_type.replace("_", " ")})`;
+    sel.appendChild(opt);
+  });
+}
+
+function applyTaskTemplate(templateKey) {
+  if (!templateKey) return;
+  const template = taskLibrary.find(item => item.key === templateKey);
+  if (!template) return;
+
+  const taskTypeRadio = document.querySelector(`input[name="taskType"][value="${template.task_type}"]`);
+  if (taskTypeRadio) taskTypeRadio.checked = true;
+  document.getElementById("task-name").value = template.name || "";
+  document.getElementById("task-points").value = template.league_points || 0;
+  document.getElementById("task-skill").value = template.skill || "";
+  document.getElementById("task-xp").value = template.base_xp_per_action || 0;
+  document.getElementById("task-qty").value = template.quantity || 1;
+  document.getElementById("task-notes").value = template.notes || "";
+  document.getElementById("task-map-x").value = template.map_x ?? "";
+  document.getElementById("task-map-y").value = template.map_y ?? "";
+  updateTaskTypeFields();
+  updateXpPreview();
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  initModalControls();
+  // Init map first (fast)
+  initMap();
+
+  // Load plan data
+  await loadPlanData();
+  await loadTaskLibrary();
+
+  // Render
+  renderTaskList();
+  renderTiersTable();
+
+  // ---- Event listeners ----
+
+  // Task type radio → show/hide fields
+  document.querySelectorAll('input[name="taskType"]').forEach(r => {
+    r.addEventListener("change", () => { updateTaskTypeFields(); updateXpPreview(); });
+  });
+
+  // XP preview live update
+  ["task-xp", "task-qty", "task-skill"].forEach(id => {
+    document.getElementById(id).addEventListener("input", updateXpPreview);
+  });
+
+  // Tier select → show info
+  document.getElementById("task-tier-select").addEventListener("change", () => {
+    const sel = document.getElementById("task-tier-select");
+    const tier = plan.tiers.find(t => t.id == sel.value);
+    document.getElementById("tier-info-text").textContent =
+      tier ? `Unlocking this tier changes the XP multiplier to ${tier.xp_multiplier}x.` : "";
+  });
+
+  // Add task button
+  document.getElementById("btn-add-task").addEventListener("click", () => openTaskModal());
+
+  // Save task
+  document.getElementById("btn-save-task").addEventListener("click", saveTask);
+  document.getElementById("task-template-select").addEventListener("change", (e) => {
+    applyTaskTemplate(e.target.value);
+  });
+
+  // Pick map coord
+  document.getElementById("btn-pick-map").addEventListener("click", () => {
+    pickingMapCoord = !pickingMapCoord;
+    document.getElementById("btn-pick-map").textContent = pickingMapCoord ? "Click the map…" : "Pick on map";
+    osrsMap.getContainer().style.cursor = pickingMapCoord ? "crosshair" : "";
+  });
+
+  // Manage tiers button
+  document.getElementById("btn-manage-tiers").addEventListener("click", () => {
+    renderTiersTable();
+    showModal("tiersModal");
+  });
+
+  // Add tier
+  document.getElementById("btn-add-tier").addEventListener("click", async () => {
+    const name = document.getElementById("new-tier-name").value.trim();
+    const pts = parseInt(document.getElementById("new-tier-pts").value);
+    const mult = parseFloat(document.getElementById("new-tier-mult").value);
+    if (!name || isNaN(pts) || isNaN(mult)) { alert("Fill in all tier fields."); return; }
+
+    const result = await apiFetch(cfg.createTierUrl, "POST", {
+      name, points_required: pts, xp_multiplier: mult,
+    });
+    if (result) {
+      plan.tiers.push(result);
+      plan.tiers.sort((a, b) => a.points_required - b.points_required);
+      document.getElementById("new-tier-name").value = "";
+      document.getElementById("new-tier-pts").value = "";
+      document.getElementById("new-tier-mult").value = "";
+      renderTiersTable();
+    }
+  });
+
+  // View stats button
+  document.getElementById("btn-view-stats").addEventListener("click", () => openStatsModal());
+
+  // Plan title rename
+  document.getElementById("plan-title").addEventListener("click", () => {
+    document.getElementById("rename-input").value = plan.name;
+    showModal("renameModal");
+  });
+
+  document.getElementById("btn-confirm-rename").addEventListener("click", async () => {
+    const newName = document.getElementById("rename-input").value.trim();
+    if (!newName) return;
+    await apiFetch(cfg.updateUrl, "PUT", { name: newName });
+    plan.name = newName;
+    document.getElementById("plan-title").textContent = newName;
+    document.title = `${newName} – Leagues Planner`;
+    hideModal("renameModal");
+  });
+
+  // Drag-and-drop
+  initSortable();
+});

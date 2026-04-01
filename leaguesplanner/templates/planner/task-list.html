@@ -2,6 +2,7 @@
   <h5 class="text-gray-700 font-medium text-lg mb-4">Select a Task</h5>
   <ul class="space-y-2 max-h-96 overflow-y-scroll bg-gray-100 p-4 rounded-lg">
     {% for task in task_list %}
+    {% if task.selectable|default:True %}
     <li class="relative flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-4 py-2 shadow-sm hover:border-gray-400 hover:bg-gray-100">
       <div class="min-w-0 flex-1">
         <button @click="addTask('{{ task.key }}')" class="w-full">
@@ -17,6 +18,7 @@
         </button>
       </div>
     </li>
+    {% endif %}
     {% endfor %}
   </ul>  
 </template>

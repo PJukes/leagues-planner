@@ -111,12 +111,10 @@ export function taskManager() {
             this.closeModal();
         },
         getSkillExperience(action) {
-            // Loop through all actions up to the current action and calculate experience
-            // for all skills
             let experience = 0;
             for (const act of this.actions) {
                 if (act.key === action.key) break;
-                experience += act.experience;
+                experience += act.experience || 0;
             }
             return experience;
         },
@@ -146,22 +144,32 @@ export function taskManager() {
                 this.openModal('relic-list-template');
             }
         },
-        addSkillAction(skill, method, quantity, xpPerAction) {
-            console.log("Adding skill action", skill, method, quantity, xpPerAction);
-            const safeQuantity = Number(quantity) || 0;
-            const safeXpPerAction = Number(xpPerAction) || 0;
+        addSkillAction(skill, method, quantity) {
+            const parsedQuantity = Number(quantity);
+            const selectedMethod = getMethod(skill, method);
+
+            if (!selectedMethod || parsedQuantity <= 0) {
+                return;
+            }
+
+            const skillLabel = this.skillOptions.find((opt) => opt.key === skill)?.label || skill;
+            const experience = selectedMethod.xpPerAction * parsedQuantity;
             const skillAction = {
                 key: `${skill}-${method}-${Date.now()}`,
-                name: skill,
-                skill: skill,
-                skillKey: (skill || "").toLowerCase(),
-                method: method,
-                quantity: safeQuantity,
-                xpPerAction: safeXpPerAction,
-                type: "skill",
+                skill,
+                skillLabel,
+                method,
+                methodLabel: selectedMethod.name,
+                quantity: parsedQuantity,
+                quantityLabel: selectedMethod.actionLabel,
+                xpPerAction: selectedMethod.xpPerAction,
+                experience,
+                type: "skill"
             };
             this.actions.push(skillAction);
-            this.recalculateActionState();
+            this.skillSelection = "";
+            this.methodSelection = "";
+            this.skillQuantity = 1;
             this.closeModal();
         },
         recalculateActionState() {

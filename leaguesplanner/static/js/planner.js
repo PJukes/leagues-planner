@@ -83,6 +83,11 @@ let mapDebugState = {
   errors: 0,
   lastErrorUrl: "",
 };
+let mapContextMenuEl = null;
+let pathDrawingEnabled = false;
+let pathDraftPoints = [];
+let pathDraftPolyline = null;
+const pathCommittedPolylines = [];
 
 const TILE_X_OFFSET = 100;
 const TILE_Y_OFFSET = 100;
@@ -398,10 +403,16 @@ function initMap() {
 
   // Allow clicking the map to place / pick coordinates
   osrsMap.on("click", onMapClick);
+  osrsMap.on("contextmenu", onMapContextMenu);
+  osrsMap.on("movestart", hideMapContextMenu);
+  osrsMap.on("zoomstart", hideMapContextMenu);
+  osrsMap.on("dblclick", () => finishPathDrawingMode());
+  initMapContextMenu();
 }
 
 function onMapClick(e) {
   const { x: osrsX, y: osrsY } = mapLatLngToGame(e.latlng);
+  hideMapContextMenu();
 
   if (pickingMapCoord) {
     // Fill in the task modal coordinate inputs
@@ -412,6 +423,101 @@ function onMapClick(e) {
     osrsMap.getContainer().style.cursor = "";
     return;
   }
+
+  if (pathDrawingEnabled) {
+    pathDraftPoints.push(e.latlng);
+    if (!pathDraftPolyline) {
+      pathDraftPolyline = L.polyline(pathDraftPoints, {
+        color: "#00d4ff",
+        weight: 3,
+        opacity: 0.95,
+      }).addTo(osrsMap);
+    } else {
+      pathDraftPolyline.setLatLngs(pathDraftPoints);
+    }
+  }
+}
+
+function initMapContextMenu() {
+  const container = osrsMap.getContainer();
+  if (!container) return;
+  if (mapContextMenuEl) return;
+
+  const menu = document.createElement("div");
+  menu.id = "map-context-menu";
+  menu.className = "map-context-menu";
+  menu.style.display = "none";
+  menu.innerHTML = `
+    <button type="button" data-map-action="complete_task">Complete Task</button>
+    <button type="button" data-map-action="add_action">Add Action</button>
+    <button type="button" data-map-action="set_path">Set Path</button>
+  `;
+  container.appendChild(menu);
+  mapContextMenuEl = menu;
+
+  menu.addEventListener("click", e => {
+    const btn = e.target.closest("button[data-map-action]");
+    if (!btn) return;
+    handleMapContextAction(btn.dataset.mapAction);
+  });
+}
+
+function onMapContextMenu(e) {
+  L.DomEvent.preventDefault(e.originalEvent);
+  const point = osrsMap.latLngToContainerPoint(e.latlng);
+  showMapContextMenu(point.x, point.y);
+}
+
+function showMapContextMenu(x, y) {
+  if (!mapContextMenuEl) return;
+  const container = osrsMap.getContainer();
+  const menuWidth = 180;
+  const menuHeight = 120;
+  const clampedX = Math.max(8, Math.min(x, container.clientWidth - menuWidth));
+  const clampedY = Math.max(8, Math.min(y, container.clientHeight - menuHeight));
+  mapContextMenuEl.style.left = `${clampedX}px`;
+  mapContextMenuEl.style.top = `${clampedY}px`;
+  mapContextMenuEl.style.display = "block";
+}
+
+function hideMapContextMenu() {
+  if (!mapContextMenuEl) return;
+  mapContextMenuEl.style.display = "none";
+}
+
+function handleMapContextAction(action) {
+  hideMapContextMenu();
+  if (action === "complete_task") {
+    openTaskModal(null, "league_task");
+  } else if (action === "add_action") {
+    openTaskModal(null, "generic_action");
+  } else if (action === "set_path") {
+    startPathDrawingMode();
+  }
+}
+
+function startPathDrawingMode() {
+  pathDrawingEnabled = true;
+  pathDraftPoints = [];
+  if (pathDraftPolyline) {
+    osrsMap.removeLayer(pathDraftPolyline);
+    pathDraftPolyline = null;
+  }
+  osrsMap.getContainer().style.cursor = "crosshair";
+}
+
+function finishPathDrawingMode() {
+  if (!pathDrawingEnabled) return;
+  pathDrawingEnabled = false;
+  if (pathDraftPoints.length >= 2 && pathDraftPolyline) {
+    pathCommittedPolylines.push(pathDraftPolyline);
+    pathDraftPolyline = null;
+  } else if (pathDraftPolyline) {
+    osrsMap.removeLayer(pathDraftPolyline);
+    pathDraftPolyline = null;
+  }
+  pathDraftPoints = [];
+  osrsMap.getContainer().style.cursor = pickingMapCoord ? "crosshair" : "";
 }
 
 function taskMarkerIcon(taskType) {
@@ -663,6 +769,10 @@ function initModalControls() {
   });
 
   document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && pathDrawingEnabled) {
+      finishPathDrawingMode();
+      return;
+    }
     if (e.key !== "Escape" || openModalIds.length === 0) return;
     hideModal(openModalIds[openModalIds.length - 1]);
   });
@@ -714,13 +824,13 @@ function refreshTierSelect() {
 // Task Modal
 // ---------------------------------------------------------------------------
 
-function openTaskModal(existingTask = null) {
+function openTaskModal(existingTask = null, defaultTaskType = "league_task") {
   editingTaskId = existingTask ? existingTask.id : null;
   document.getElementById("taskModalTitle").textContent = existingTask ? "Edit Task" : "Add Task";
 
   // Reset form
   document.querySelectorAll('input[name="taskType"]').forEach(r => {
-    r.checked = r.value === (existingTask ? existingTask.task_type : "league_task");
+    r.checked = r.value === (existingTask ? existingTask.task_type : defaultTaskType);
   });
   document.getElementById("task-name").value = existingTask ? existingTask.name : "";
   document.getElementById("task-template-select").value = "";
@@ -1014,9 +1124,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Pick map coord
   document.getElementById("btn-pick-map").addEventListener("click", () => {
+    if (pathDrawingEnabled) finishPathDrawingMode();
     pickingMapCoord = !pickingMapCoord;
+    hideMapContextMenu();
     document.getElementById("btn-pick-map").textContent = pickingMapCoord ? "Click the map…" : "Pick on map";
     osrsMap.getContainer().style.cursor = pickingMapCoord ? "crosshair" : "";
+  });
+
+  document.addEventListener("click", e => {
+    if (!mapContextMenuEl || !osrsMap) return;
+    const mapEl = osrsMap.getContainer();
+    if (!mapContextMenuEl.contains(e.target) && !mapEl.contains(e.target)) {
+      hideMapContextMenu();
+    }
+  });
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Enter" && pathDrawingEnabled && openModalIds.length === 0) {
+      e.preventDefault();
+      finishPathDrawingMode();
+    }
   });
 
   // Manage tiers button

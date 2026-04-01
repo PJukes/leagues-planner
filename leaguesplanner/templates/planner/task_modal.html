@@ -1,5 +1,4 @@
-{% extends 'base_modal.html' %}
-{% block modal_content %}
+{% include 'modal-header.html' with modal_name='taskModal' %}
 <h5 class="modal-title fw-bold" id="taskModalTitle">Add Task</h5>
         
 <!-- Type selector -->
@@ -115,4 +114,4 @@
   </div>
   <div class="form-text">OSRS game tile coordinates, or click "Pick on map" then click the map.</div>
 </div>
-{% endblock %}
+{% include 'modal-footer.html' with modal_name='taskModal' %}

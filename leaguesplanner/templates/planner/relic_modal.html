@@ -1,5 +1,4 @@
-{% extends 'base_modal.html' %}
-{% block modal_content %}
+{% include 'modal-header.html' with modal_name='relicModal' %}
 <div class="modal-header">
   <h5 class="modal-title fw-bold">Manage League Tiers</h5>
   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -36,4 +35,4 @@
     </div>
   </div>
 </div>
-{% endblock %}
+{% include 'modal-footer.html' with modal_name='relicModal' %}

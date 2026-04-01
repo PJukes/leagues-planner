@@ -1,5 +1,4 @@
-{% extends 'base_modal.html' %}
-{% block modal_content %}
+{% include 'modal-header.html' with modal_name='statsModal' %}
 <div class="modal fade" id="statsModal" tabindex="-1" x-cloak>
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -14,4 +13,4 @@
     </div>
   </div>
 </div>
-{% endblock %}
+{% include 'modal-footer.html' with modal_name='statsModal' %}

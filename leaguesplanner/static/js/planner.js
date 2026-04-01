@@ -187,25 +187,8 @@ function attachTileLayer(sourceIdx) {
     const x = coords.x;
     const y = MAX_TILE_Y - coords.y;
 
-    console.log(`tile url: ${z}_${x}_${y}`);
     return `https://maps.runescape.wiki/osrs/versions/2026-03-04_a/tiles/rendered/0/2/${z}_${x}_${y}.png`;
   };
-
-  layer.on("tileerror", (evt) => {
-    console.log("tileerror url:", evt.tile?.src || evt.tile?.currentSrc);
-    console.log("tile coords:", evt.coords);
-  });
-
-  layer.on("tileloadstart", (evt) => {
-    console.log("tileloadstart url:", evt.tile?.src || evt.tile?.currentSrc);
-    console.log("tile coords:", evt.coords);
-  });
-
-  layer.on("tileload", (evt) => {
-    console.log("tileload url:", evt.tile?.src || evt.tile?.currentSrc);
-    console.log("tile coords:", evt.coords);
-  });
-
 
   activeTileLayer = layer;
   layer.addTo(osrsMap);
@@ -734,6 +717,7 @@ function showModal(modalId) {
     backdrop.className = "modal-backdrop fade show";
     document.body.appendChild(backdrop);
   }
+  Alpine.store('modal').toggle();
 }
 
 function hideModal(modalId) {
@@ -1084,112 +1068,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   initModalControls();
   // Init map first (fast)
   initMap();
-
-  // Load plan data
-  await loadPlanData();
-  await loadTaskLibrary();
-
-  // Render
-  renderTaskList();
-  renderTiersTable();
-
-  // ---- Event listeners ----
-
-  // Task type radio → show/hide fields
-  document.querySelectorAll('input[name="taskType"]').forEach(r => {
-    r.addEventListener("change", () => { updateTaskTypeFields(); updateXpPreview(); });
-  });
-
-  // XP preview live update
-  ["task-xp", "task-qty", "task-skill"].forEach(id => {
-    document.getElementById(id).addEventListener("input", updateXpPreview);
-  });
-
-  // Tier select → show info
-  document.getElementById("task-tier-select").addEventListener("change", () => {
-    const sel = document.getElementById("task-tier-select");
-    const tier = plan.tiers.find(t => t.id == sel.value);
-    document.getElementById("tier-info-text").textContent =
-      tier ? `Unlocking this tier changes the XP multiplier to ${tier.xp_multiplier}x.` : "";
-  });
-
-  // Add task button
-  document.getElementById("btn-add-task").addEventListener("click", () => openTaskModal());
-
-  // Save task
-  document.getElementById("btn-save-task").addEventListener("click", saveTask);
-  document.getElementById("task-template-select").addEventListener("change", (e) => {
-    applyTaskTemplate(e.target.value);
-  });
-
-  // Pick map coord
-  document.getElementById("btn-pick-map").addEventListener("click", () => {
-    if (pathDrawingEnabled) finishPathDrawingMode();
-    pickingMapCoord = !pickingMapCoord;
-    hideMapContextMenu();
-    document.getElementById("btn-pick-map").textContent = pickingMapCoord ? "Click the map…" : "Pick on map";
-    osrsMap.getContainer().style.cursor = pickingMapCoord ? "crosshair" : "";
-  });
-
-  document.addEventListener("click", e => {
-    if (!mapContextMenuEl || !osrsMap) return;
-    const mapEl = osrsMap.getContainer();
-    if (!mapContextMenuEl.contains(e.target) && !mapEl.contains(e.target)) {
-      hideMapContextMenu();
-    }
-  });
-
-  document.addEventListener("keydown", e => {
-    if (e.key === "Enter" && pathDrawingEnabled && openModalIds.length === 0) {
-      e.preventDefault();
-      finishPathDrawingMode();
-    }
-  });
-
-  // Manage tiers button
-  document.getElementById("btn-manage-tiers").addEventListener("click", () => {
-    renderTiersTable();
-    showModal("tiersModal");
-  });
-
-  // Add tier
-  document.getElementById("btn-add-tier").addEventListener("click", async () => {
-    const name = document.getElementById("new-tier-name").value.trim();
-    const pts = parseInt(document.getElementById("new-tier-pts").value);
-    const mult = parseFloat(document.getElementById("new-tier-mult").value);
-    if (!name || isNaN(pts) || isNaN(mult)) { alert("Fill in all tier fields."); return; }
-
-    const result = await apiFetch(cfg.createTierUrl, "POST", {
-      name, points_required: pts, xp_multiplier: mult,
-    });
-    if (result) {
-      plan.tiers.push(result);
-      plan.tiers.sort((a, b) => a.points_required - b.points_required);
-      document.getElementById("new-tier-name").value = "";
-      document.getElementById("new-tier-pts").value = "";
-      document.getElementById("new-tier-mult").value = "";
-      renderTiersTable();
-    }
-  });
-
-  // View stats button
-  document.getElementById("btn-view-stats").addEventListener("click", () => openStatsModal());
-
-  // Plan title rename
-  document.getElementById("plan-title").addEventListener("click", () => {
-    document.getElementById("rename-input").value = plan.name;
-    showModal("renameModal");
-  });
-
-  document.getElementById("btn-confirm-rename").addEventListener("click", async () => {
-    const newName = document.getElementById("rename-input").value.trim();
-    if (!newName) return;
-    await apiFetch(cfg.updateUrl, "PUT", { name: newName });
-    plan.name = newName;
-    document.getElementById("plan-title").textContent = newName;
-    document.title = `${newName} – Leagues Planner`;
-    hideModal("renameModal");
-  });
 
   // Drag-and-drop
   initSortable();

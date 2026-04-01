@@ -41,6 +41,27 @@
 }
 </style>
 
+<script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("plannerModals", {
+      states: {
+        taskModal: false,
+        statsModal: false,
+        relicModal: false,
+      },
+      open(id) {
+        this.states[id] = true;
+      },
+      close(id) {
+        this.states[id] = false;
+      },
+      isOpen(id) {
+        return !!this.states[id];
+      },
+    });
+  });
+</script>
+
 <nav class="relative bg-gray-200 rounded-lg h-full">
   <div class="mx-auto px-2 sm:px-6 lg:px-8">
     <div class="relative flex h-16 items-center justify-between">

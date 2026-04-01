@@ -701,6 +701,9 @@ function renderStatsPanel(skillLevels) {
 // ---------------------------------------------------------------------------
 
 function showModal(modalId) {
+  const modalStore = getAlpineModalStore();
+  if (modalStore) modalStore.open(modalId);
+
   const modal = document.getElementById(modalId);
   if (!modal) return;
 
@@ -720,6 +723,9 @@ function showModal(modalId) {
 }
 
 function hideModal(modalId) {
+  const modalStore = getAlpineModalStore();
+  if (modalStore) modalStore.close(modalId);
+
   const modal = document.getElementById(modalId);
   if (!modal) return;
 
@@ -734,6 +740,14 @@ function hideModal(modalId) {
   if (openModalIds.length === 0) {
     document.body.classList.remove("modal-open");
     document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+  }
+}
+
+function getAlpineModalStore() {
+  try {
+    return window.Alpine?.store("plannerModals") || null;
+  } catch {
+    return null;
   }
 }
 

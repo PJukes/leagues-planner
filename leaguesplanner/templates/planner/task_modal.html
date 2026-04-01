@@ -1,4 +1,14 @@
-<div class="modal fade" id="taskModal" tabindex="-1" aria-hidden="true">
+<div
+  class="modal fade"
+  id="taskModal"
+  tabindex="-1"
+  aria-hidden="true"
+  x-data
+  x-cloak
+  x-show="$store.plannerModals?.isOpen('taskModal')"
+  :class="$store.plannerModals?.isOpen('taskModal') ? 'show d-block' : ''"
+  @click.self="$store.plannerModals?.close('taskModal')"
+>
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">

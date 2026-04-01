@@ -1,4 +1,14 @@
-<div class="modal fade" id="relicModal" tabindex="-1" aria-hidden="true">
+<div
+  class="modal fade"
+  id="relicModal"
+  tabindex="-1"
+  aria-hidden="true"
+  x-data
+  x-cloak
+  x-show="$store.plannerModals?.isOpen('relicModal')"
+  :class="$store.plannerModals?.isOpen('relicModal') ? 'show d-block' : ''"
+  @click.self="$store.plannerModals?.close('relicModal')"
+>
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">

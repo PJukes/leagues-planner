@@ -1,4 +1,14 @@
-<div class="modal fade" id="statsModal" tabindex="-1" aria-hidden="true">
+<div
+  class="modal fade"
+  id="statsModal"
+  tabindex="-1"
+  aria-hidden="true"
+  x-data
+  x-cloak
+  x-show="$store.plannerModals?.isOpen('statsModal')"
+  :class="$store.plannerModals?.isOpen('statsModal') ? 'show d-block' : ''"
+  @click.self="$store.plannerModals?.close('statsModal')"
+>
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">

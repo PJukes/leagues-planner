@@ -55,6 +55,9 @@ def _library_task_to_dict(task_template):
         "map_x": task_template.get("map_x"),
         "map_y": task_template.get("map_y"),
         "map_plane": int(task_template.get("map_plane", 0)),
+        "is_passive": bool(task_template.get("is_passive", False)),
+        "selectable": bool(task_template.get("selectable", True)),
+        "passive_requirement": task_template.get("passive_requirement"),
     }
 
 

@@ -8,7 +8,9 @@ export function taskManager() {
         "runecraft", "slayer", "farming", "construction", "hunter",
     ];
 
+    const STARTING_LEVEL = 1;
     const emptySkillExperience = () => Object.fromEntries(SKILLS.map(skill => [skill, 0]));
+    const emptySkillLevels = () => Object.fromEntries(SKILLS.map(skill => [skill, STARTING_LEVEL]));
 
     const RELIC_LIST = [
         ["Endless Harvest", "Barbarian Gathering", "Abundance"],
@@ -17,9 +19,38 @@ export function taskManager() {
         ["Conniving Clues"],
         ["Nature's Accord"],
         ["Culling Spree"],
-        ["Minion", "Flask of Fervour"]
+        ["Minion", "Flask of Fervour"],
     ];
     const RELIC_POINTS_TIER = [0, 750, 1500, 2500, 3500, 5000, 10000, 15000];
+
+    const experienceToLevel = (experience) => {
+        const safeExperience = Math.max(0, Number(experience) || 0);
+        let points = 0;
+        let output = 0;
+        for (let level = 1; level <= 99; level++) {
+            points += Math.floor(level + 300 * Math.pow(2, level / 7));
+            const threshold = Math.floor(points / 4);
+            if (threshold > safeExperience) {
+                return level;
+            }
+            output = level;
+        }
+        return Math.max(1, output);
+    };
+
+    const evaluatePassiveRequirement = (requirement, skillLevels, totalLevel) => {
+        if (!requirement || !requirement.type) {
+            return false;
+        }
+        const targetValue = Number(requirement.value) || 0;
+        if (requirement.type === "any_skill_level") {
+            return Object.values(skillLevels).some(level => level >= targetValue);
+        }
+        if (requirement.type === "total_level") {
+            return totalLevel >= targetValue;
+        }
+        return false;
+    };
 
     return {
         showModal: false,
@@ -36,30 +67,32 @@ export function taskManager() {
         skillQuantity: 1,
         skillOptions: getSkillOptions(),
         skillExperience: emptySkillExperience(),
+        skillLevels: emptySkillLevels(),
+        totalLevel: SKILLS.length,
         init() {
-            window.addEventListener('add-task', (event) => {
+            window.addEventListener("add-task", (event) => {
                 console.log("Adding task", event);
                 this.openModal();
             });
-            window.addEventListener('add-skill', (event) => {
+            window.addEventListener("add-skill", (event) => {
                 console.log("Adding skill", event);
                 this.openModal("skill-list-template");
             });
-            fetch('http://127.0.0.1:8002/planner/task-list/')
+            fetch("http://127.0.0.1:8002/planner/task-list/")
                 .then(res => res.json())
                 .then(data => {
-                    this.taskList = data["tasks"];
+                    this.taskList = data.tasks || [];
                     console.log(this.taskList);
                 });
         },
-        openModal(content="task-list-template") {
+        openModal(content = "task-list-template") {
             this.showModal = true;
             const template = document.getElementById(content);
-            const modalContent = document.getElementById('modalContent');
+            const modalContent = document.getElementById("modalContent");
 
             if (!template || !modalContent) return;
 
-            modalContent.innerHTML = '';
+            modalContent.innerHTML = "";
             modalContent.appendChild(template.content.cloneNode(true));
 
             this.showModal = true;
@@ -67,12 +100,15 @@ export function taskManager() {
         closeModal() {
             this.showModal = false;
         },
-        addTask(task_key) {
-            console.log("Adding task", task_key);
-            const task = this.taskList.find(task => task.key === task_key);
-            if (task) {
-                task.type = "task";
-                task.selected = false;
+        addTask(taskKey) {
+            console.log("Adding task", taskKey);
+            const taskTemplate = this.taskList.find(task => task.key === taskKey);
+            if (taskTemplate && !taskTemplate.is_passive) {
+                const task = {
+                    ...taskTemplate,
+                    type: "task",
+                    selected: false,
+                };
                 this.actions.push(task);
                 this.totalTasks += 1;
                 this.recalculateActionState();
@@ -93,7 +129,7 @@ export function taskManager() {
         removeTask(taskKey) {
             this.actions = this.actions.filter(task => task.key !== taskKey);
             const removedTask = this.taskList.find(task => task.key === taskKey);
-            if (removedTask) {
+            if (removedTask && !removedTask.is_passive) {
                 this.totalTasks -= 1;
             }
             this.recalculateActionState();
@@ -103,22 +139,12 @@ export function taskManager() {
             const relic = {
                 key: relicKey,
                 name: relicKey,
-                type: "relic"
+                type: "relic",
             };
             this.actions.push(relic);
             this.relicSelection.push(relicKey);
             this.recalculateActionState();
             this.closeModal();
-        },
-        getSkillExperience(action) {
-            // Loop through all actions up to the current action and calculate experience
-            // for all skills
-            let experience = 0;
-            for (const act of this.actions) {
-                if (act.key === action.key) break;
-                experience += act.experience;
-            }
-            return experience;
         },
         getMethodOptions() {
             return getMethodsForSkill(this.skillSelection);
@@ -143,13 +169,13 @@ export function taskManager() {
         },
         pickRelic() {
             if (this.canPickRelic()) {
-                this.openModal('relic-list-template');
+                this.openModal("relic-list-template");
             }
         },
-        addSkillAction(skill, method, quantity, xpPerAction) {
-            console.log("Adding skill action", skill, method, quantity, xpPerAction);
+        addSkillAction(skill, method, quantity) {
+            const methodDef = getMethod(skill, method);
             const safeQuantity = Number(quantity) || 0;
-            const safeXpPerAction = Number(xpPerAction) || 0;
+            const safeXpPerAction = Number(methodDef?.xpPerAction) || 0;
             const skillAction = {
                 key: `${skill}-${method}-${Date.now()}`,
                 name: skill,
@@ -164,7 +190,51 @@ export function taskManager() {
             this.recalculateActionState();
             this.closeModal();
         },
+        syncPassiveTasks() {
+            const manualActions = this.actions.filter(action => !action.isPassiveAward);
+            const runningBySkill = emptySkillExperience();
+
+            manualActions.forEach(action => {
+                if (action.skillKey && SKILLS.includes(action.skillKey)) {
+                    const gain = (Number(action.quantity) || 0) * (Number(action.xpPerAction || action.base_xp_per_action) || 0);
+                    runningBySkill[action.skillKey] += gain;
+                }
+            });
+
+            const levelsBySkill = Object.fromEntries(
+                Object.entries(runningBySkill).map(([skill, xp]) => [skill, experienceToLevel(xp)]),
+            );
+            const totalLevel = Object.values(levelsBySkill).reduce((sum, lvl) => sum + lvl, 0);
+            const passiveTemplates = this.taskList.filter(task => task.is_passive && task.passive_requirement);
+            const unlockedPassiveKeys = new Set(
+                passiveTemplates
+                    .filter(task => evaluatePassiveRequirement(task.passive_requirement, levelsBySkill, totalLevel))
+                    .map(task => task.key),
+            );
+
+            const preservedPassiveActions = this.actions.filter(
+                action => action.isPassiveAward && unlockedPassiveKeys.has(action.key),
+            );
+
+            const existingPassiveKeys = new Set(preservedPassiveActions.map(action => action.key));
+            const newlyUnlockedPassiveActions = passiveTemplates
+                .filter(task => unlockedPassiveKeys.has(task.key) && !existingPassiveKeys.has(task.key))
+                .map(task => ({
+                    ...task,
+                    type: "task",
+                    selected: false,
+                    isPassiveAward: true,
+                }));
+
+            this.actions = [
+                ...manualActions,
+                ...preservedPassiveActions,
+                ...newlyUnlockedPassiveActions,
+            ];
+        },
         recalculateActionState() {
+            this.syncPassiveTasks();
+
             let runningPoints = 0;
             let runningExperience = 0;
             const runningBySkill = emptySkillExperience();
@@ -174,9 +244,9 @@ export function taskManager() {
                 action.cumulativePoints = runningPoints;
 
                 const actionExperienceBySkill = emptySkillExperience();
-                if (action.type === "skill" && action.skillKey && SKILLS.includes(action.skillKey)) {
+                if (action.skillKey && SKILLS.includes(action.skillKey)) {
                     actionExperienceBySkill[action.skillKey] =
-                        (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0);
+                        (Number(action.quantity) || 0) * (Number(action.xpPerAction || action.base_xp_per_action) || 0);
                 }
 
                 Object.entries(actionExperienceBySkill).forEach(([skill, xp]) => {
@@ -192,6 +262,11 @@ export function taskManager() {
 
             this.totalPoints = runningPoints;
             this.skillExperience = { ...runningBySkill };
+            this.skillLevels = Object.fromEntries(
+                Object.entries(runningBySkill).map(([skill, xp]) => [skill, experienceToLevel(xp)]),
+            );
+            this.totalLevel = Object.values(this.skillLevels).reduce((sum, lvl) => sum + lvl, 0);
+            this.totalTasks = this.actions.filter(action => action.type === "task").length;
         },
 
     };

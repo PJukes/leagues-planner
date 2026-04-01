@@ -1,1 +1,51 @@
-<template></template>
+<template id="relic-list-template">
+  <h5 class="text-gray-700 font-medium text-lg mb-4">Select a Relic</h5>
+  <div class="space-y-2 max-h-96 overflow-y-scroll bg-gray-100 p-4 rounded-lg">
+    <div class="space-y-3">
+      <button @click="addRelic('endless_harvest')" class="hover:bg-gray-200 rounded-lg p-2 w-full text-left">
+        <div>
+          <p>Endless Harvest</p>
+        </div>
+  
+        <div class="col-span-2 text-xs">
+          <ul><li>Toggleable effect: All resources gathered will be sent to the bank.</li>
+          <li>You can endlessly gather from fishing spots, trees, and mining rocks even if they deplete after your initial interaction.</li>
+          <li>Resources gathered from <a href="/w/Fishing" title="Fishing">Fishing</a>, <a href="/w/Woodcutting" title="Woodcutting">Woodcutting</a>, and <a href="/w/Mining" title="Mining">Mining</a> are multiplied by 2.</li>
+          <li>XP is granted for all additional resources gathered.</li></ul>
+        </div>
+      </button>
+
+      <button @click="addRelic('barbarian_gathering')" class="hover:bg-gray-200 rounded-lg p-2 w-full text-left">
+        <div>
+          <p>Barbarian Gathering</p>
+        </div>
+  
+        <div class="col-span-2 text-xs">
+          <ul><li>Grants the <a href="/w/Knapsack" title="Knapsack">knapsack</a>
+          <ul><li>Up to 3 different types of gathered items (wood, fish, metallic ore and coal) can be placed in the knapsack, which has a total maximum capacity of 140.</li>
+          <li>Toggleable effect: dispose option will ask what to destroy</li>
+          <li>The knapsack can be retrieved from the <a href="/w/Leagues_Tutor" title="Leagues Tutor">Leagues Tutor</a> in Yama's lair if lost.</li></ul></li>
+          <li>You become capable of chopping wood, mining rocks and fishing with your bare hands without requiring any tools or bait.
+          <ul><li>Your hands are equivalent to the <a href="/w/Crystal_tool" title="Crystal tool">crystal version</a> of the respective tools where those exist.</li></ul></li>
+          <li>Whenever you gain <a href="/w/Fishing" title="Fishing">Fishing</a>, <a href="/w/Woodcutting" title="Woodcutting">Woodcutting</a> or <a href="/w/Mining" title="Mining">Mining</a> XP while gathering you will also receive an additional 10% XP in both <a href="/w/Strength" title="Strength">Strength</a> and <a href="/w/Agility" title="Agility">Agility</a></li>
+          <li>On failing to mine a rock, catch a fish or chop a tree you will have a separate 50% chance to succeed instead.</li></ul>
+        </div>
+      </button>
+
+      <button @click="addRelic('abundance')" class="hover:bg-gray-200 rounded-lg p-2 w-full text-left">
+        <div>
+          <p>Abundance</p>
+        </div>
+  
+        <div class="col-span-2 text-xs">
+          <ul>
+            <li>Toggleable effect: <a href="/w/Coins" title="Coins">Coins</a> generated will be put into your inventory.</li>
+            <li>All non-combat skills are permanently boosted by 10.</li>
+            <li>Every time you receive an XP drop, gain an additional 2 XP in the same skill. This is affected by the league passive XP modifier.</li>
+            <li>For every XP gained, gain 2x as many coins. These can go either to your bank or inventory if there is room, which can be toggled above.</li>
+          </ul>
+        </div>
+      </button>
+    </div>
+  </div>  
+</template>

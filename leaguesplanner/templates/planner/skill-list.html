@@ -1,0 +1,29 @@
+<template id="skill-list-template">
+  <form x-data="{ skill: '', method: '', quantity: 0 }">
+    <h5 class="text-gray-700 font-medium text-lg mb-4">Select a Skill to Train</h5>
+    <p class="text-gray-600 mb-2">Choose a skill to add a training task.</p>
+    <div class="flex">
+      <select name="skillSelection" id="skillSelection" x-model="skill">
+        <template x-for="s in ['', 'Thieving', 'Agility', 'Herblore', 'Farming', 'Construction', 'Hunter']">
+          <option :value="s" x-text="s"></option>
+        </template>
+      </select>
+
+      <select name="skillMethod" id="skillMethod" x-model="method">
+        <template x-for="m in ['', 'Pickpocket Men', 'Pickpocket Citizen', 'Pickpocket Guard']">
+          <option :value="m" x-text="m"></option>
+        </template>
+      </select>
+
+      <input type="number" name="quantity" id="id_quantity" x-model="quantity" placeholder="Quantity" min="1" class="ml-2 p-1 border border-gray-300 rounded">
+    </div>
+  
+    <div class="mt-4 flex items-end">
+      <button type="button"
+        @click="addSkillAction(skill, method, quantity); console.log({ skill, method, quantity })"
+        class="relative flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent bg-gray-800 px-4 py-2 text-white hover:bg-gray-900">
+        Confirm
+      </button>
+    </div>
+  </form>
+</template>

@@ -4,7 +4,7 @@
     {% for task in task_list %}
     <li class="relative flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-4 py-2 shadow-sm hover:border-gray-400 hover:bg-gray-100">
       <div class="min-w-0 flex-1">
-        <button class="w-full">
+        <button @click="addTask('{{ task.key }}')" class="w-full">
           <div class="flex justify-between">
             <span aria-hidden="true" class="absolute inset-0"></span>
             <p class="text-sm font-medium text-gray-900">{{ task.name }}</p>

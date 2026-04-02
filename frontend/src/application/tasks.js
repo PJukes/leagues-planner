@@ -387,7 +387,7 @@ export function taskManager() {
                 runningPoints += Number(action.league_points || 0);
                 action.cumulativePoints = runningPoints;
 
-                const actionExperienceBySkill = emptySkillExperience();
+                const actionExperienceBySkill = Object.fromEntries(SKILLS.map(skill => [skill, 0]));
                 if (action.skill && SKILLS.includes(action.skill)) {
                     const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0);
                     actionExperienceBySkill[action.skill] = baseXp;

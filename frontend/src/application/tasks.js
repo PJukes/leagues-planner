@@ -348,9 +348,8 @@ export function taskManager() {
                 resultActions.push(action);
 
                 if (action.skill && SKILLS.includes(action.skill)) {
-                    const multiplier = getXpMultiplier(runningPoints);
                     const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0);
-                    runningBySkill[action.skill] += baseXp * multiplier;
+                    runningBySkill[action.skill] += baseXp;
                 }
                 runningPoints += Number(action.league_points || 0);
 
@@ -391,10 +390,9 @@ export function taskManager() {
                 const actionExperienceBySkill = emptySkillExperience();
                 if (action.skill && SKILLS.includes(action.skill)) {
                     const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0);
-                    const effectiveXp = baseXp * currentMultiplier;
-                    actionExperienceBySkill[action.skill] = effectiveXp;
+                    actionExperienceBySkill[action.skill] = baseXp;
                     action.currentMultiplier = currentMultiplier;
-                    action.effectiveExperience = effectiveXp;
+                    action.effectiveExperience = baseXp * currentMultiplier;
                 }
 
                 Object.entries(actionExperienceBySkill).forEach(([skill, xp]) => {

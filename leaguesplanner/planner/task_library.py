@@ -1,212 +1,50 @@
 """
 Backend-managed task templates for quick plan setup.
 
-Add/edit tasks in ``TASK_LIBRARY`` and they will be available in the Add Task modal.
+Tasks are defined in tasks.csv alongside this file.
+Edit that file to add, remove, or update tasks.
 """
 
-TASK_LIBRARY = [
-    {"key": "open_the_leagues_menu", "name": "Open the Leagues Menu", "league_points": 10,},
-    {"key": "complete_the_leagues_tutorial", "name": "Complete the Leagues Tutorial", "league_points": 10,},
-    {"key": "achieve_your_first_level_up", "name": "Achieve Your First Level Up", "league_points": 10, "is_passive": True, "selectable": False, "passive_requirement": {"type": "any_skill_level", "value": 2},},
-    {"key": "achieve_your_first_level_5", "name": "Achieve Your First Level 5", "league_points": 10, "is_passive": True, "selectable": False, "passive_requirement": {"type": "any_skill_level", "value": 5},},
-    {"key": "achieve_your_first_level_10", "name": "Achieve Your First Level 10", "league_points": 10, "is_passive": True, "selectable": False, "passive_requirement": {"type": "any_skill_level", "value": 10},},
-    {"key": "achieve_your_first_level_20", "name": "Achieve Your First Level 20", "league_points": 10, "is_passive": True, "selectable": False, "passive_requirement": {"type": "any_skill_level", "value": 20},},
-    {
-        "key": "pickpocket_a_citizen",
-        "name": "Pickpocket a Citizen",
-        "league_points": 10,
-        "is_passive": True,
-        "selectable": True,
-        "passive_requirement": {
-            "type": "skill_action_quantity",
-            "skill": "thieving",
-            "method": "pickpocket_men",
-            "quantity": 1,
-        },
-        "xp_reward": {"skill": "thieving", "amount": 50},
-    },
-    {"key": "bury_some_bones", "name": "Bury Some Bones", "league_points": 10,"xp_reward": {"skill": "prayer", "amount": 4},},
-    {"key": "defeat_a_goblin", "name": "Defeat a Goblin", "league_points": 10,},
-    {"key": "reach_total_level_100", "name": "Reach Total Level 100", "league_points": 30, "is_passive": True, "selectable": False, "passive_requirement": {"type": "total_level", "value": 100},},
-    {
-        "key": "chop_some_logs",
-        "name": "Chop Some Logs",
-        "league_points": 10,
-        "is_passive": True,
-        "selectable": True,
-        "passive_requirement": {
-            "type": "skill_action_quantity",
-            "skill": "woodcutting",
-            "method": "regular_trees",
-            "quantity": 1,
-        },
-        "xp_reward": {"skill": "woodcutting", "amount": 25},
-    },
-    {"key": "catch_a_shrimp", "name": "Catch a Shrimp", "league_points": 10,},
-    {"key": "burn_some_normal_logs", "name": "Burn Some Normal Logs", "league_points": 10,},
-    {"key": "cook_shrimp", "name": "Cook Shrimp", "league_points": 10,},
-    {"key": "achieve_your_first_level_30", "name": "Achieve Your First Level 30", "league_points": 30, "is_passive": True, "selectable": False, "passive_requirement": {"type": "any_skill_level", "value": 30},},
-    {"key": "successfully_cook_5_pieces_of_food", "name": "Successfully Cook 5 Pieces of Food", "league_points": 30,},
-    {"key": "cast_home_teleport", "name": "Cast Home Teleport", "league_points": 10,},
-    {"key": "achieve_your_first_level_40", "name": "Achieve Your First Level 40", "league_points": 30, "is_passive": True, "selectable": False, "passive_requirement": {"type": "any_skill_level", "value": 40},},
-    {"key": "reach_combat_level_10", "name": "Reach Combat Level 10", "league_points": 10,},
-    {"key": "catch_an_anchovy", "name": "Catch an Anchovy", "league_points": 10,},
-    {"key": "obtain_a_mark_of_grace", "name": "Obtain a Mark of Grace", "league_points": 30,},
-    {"key": "fletch_some_arrow_shafts", "name": "Fletch Some Arrow Shafts", "league_points": 10,
-        "is_passive": True,
-        "selectable": True,
-        "passive_requirement": {
-            "type": "skill_action_quantity",
-            "skill": "fletching",
-            "method": "arrow_shafts_logs",
-            "quantity": 1,
-        },
-        "xp_reward": {"skill": "fletching", "amount": 5},
-    },
-    {"key": "mine_some_copper_ore", "name": "Mine some Copper Ore", "league_points": 10,},
-    {"key": "achieve_your_first_level_50", "name": "Achieve Your First Level 50", "league_points": 30, "is_passive": True, "selectable": False, "passive_requirement": {"type": "any_skill_level", "value": 50},},
-    {"key": "reach_total_level_250", "name": "Reach Total Level 250", "league_points": 30, "is_passive": True, "selectable": False, "passive_requirement": {"type": "total_level", "value": 250},},
-    {"key": "make_some_flour", "name": "Make some Flour", "league_points": 30,},
-    {"key": "open_28_coin_pouches_at_once", "name": "Open 28 Coin Pouches At Once", "league_points": 30,
-        "is_passive": True,
-        "selectable": True,
-        "passive_requirement": {
-            "type": "skill_action_quantity",
-            "skill": "thieving",
-            "method": "pickpocket_men",
-            "quantity": 28,
-        },
-        "xp_reward": {"skill": "thieving", "amount": 8},
-    },
-    {"key": "visit_deaths_domain", "name": "Visit Death's Domain", "league_points": 10,},
-    {"key": "mine_5_tin_ore", "name": "Mine 5 Tin Ore", "league_points": 10,},
-    {"key": "smelt_a_bronze_bar", "name": "Smelt a Bronze Bar", "league_points": 10,},
-    {"key": "burn_some_oak_logs", "name": "Burn Some Oak Logs", "league_points": 10,},
-    {"key": "equip_an_elemental_staff", "name": "Equip an Elemental Staff", "league_points": 10,},
-    {"key": "chop_some_logs_with_a_steel_axe", "name": "Chop Some Logs With a Steel Axe", "league_points": 10,},
-    {"key": "dance_in_a_graveyard", "name": "Dance in a graveyard", "league_points": 10,},
-    {"key": "perform_a_special_attack", "name": "Perform a Special Attack", "league_points": 10,},
-    {"key": "spin_a_ball_of_wool", "name": "Spin a Ball of Wool", "league_points": 10,
-        "xp_reward": {"skill": "crafting", "amount": 2.5},
-    },
-    {"key": "achieve_your_first_level_60", "name": "Achieve Your First Level 60", "league_points": 30, "is_passive": True, "selectable": False, "passive_requirement": {"type": "any_skill_level", "value": 60},},
-    {"key": "cry_in_a_wheat_field", "name": "Cry in a wheat field", "league_points": 10,},
-    {"key": "defeat_a_guard", "name": "Defeat a Guard", "league_points": 10,},
-    {"key": "visit_the_rune_essence_mine", "name": "Visit the Rune Essence Mine", "league_points": 10,},
-    {"key": "reach_combat_level_25", "name": "Reach Combat Level 25", "league_points": 10,},
-    {"key": "rake_a_farming_patch", "name": "Rake a Farming Patch", "league_points": 10,
-        "xp_reward": {"skill": "farming", "amount": 4},
-    },
-    {"key": "mine_some_essence", "name": "Mine some essence", "league_points": 10,},
-    {"key": "reach_total_level_500", "name": "Reach Total Level 500", "league_points": 30, "is_passive": True, "selectable": False, "passive_requirement": {"type": "total_level", "value": 500},},
-    {"key": "clean_a_grimy_guam", "name": "Clean a Grimy Guam", "league_points": 10,},
-    {"key": "restore_5_prayer_points_at_an_altar", "name": "Restore 5 Prayer Points at an Altar", "league_points": 10,},
-    {"key": "defeat_a_moss_giant", "name": "Defeat a Moss Giant", "league_points": 10,},
-    {"key": "scatter_some_ashes", "name": "Scatter some Ashes", "league_points": 10,},
-    {"key": "achieve_your_first_level_70", "name": "Achieve Your First Level 70", "league_points": 80, "is_passive": True, "selectable": False, "passive_requirement": {"type": "any_skill_level", "value": 70},},
-    {"key": "check_your_slayer_task", "name": "Check Your Slayer Task", "league_points": 10,},
-    {"key": "eat_a_banana", "name": "Eat a Banana", "league_points": 10,},
-    {"key": "defeat_a_lesser_demon", "name": "Defeat a Lesser Demon", "league_points": 30,},
-    {"key": "purchase_a_player_owned_house", "name": "Purchase a Player Owned House", "league_points": 10,},
-    {"key": "5_collection_log_slots", "name": "5 Collection log slots", "league_points": 30,},
-    {"key": "reach_combat_level_50", "name": "Reach Combat Level 50", "league_points": 30,},
-    {"key": "buy_something_from_trader_crewmembers", "name": "Buy Something From Trader Crewmembers", "league_points": 10,},
-    {"key": "turn_any_logs_into_a_plank", "name": "Turn any Logs Into a Plank", "league_points": 10,},
-    {"key": "smith_a_bronze_full_helm", "name": "Smith a Bronze full helm", "league_points": 10,},
-    {"key": "reach_total_level_750", "name": "Reach Total Level 750", "league_points": 30, "is_passive": True, "selectable": False, "passive_requirement": {"type": "total_level", "value": 750},},
-    {"key": "achieve_your_first_level_80", "name": "Achieve Your First Level 80", "league_points": 80, "is_passive": True, "selectable": False, "passive_requirement": {"type": "any_skill_level", "value": 80},},
-    {"key": "equip_some_steel_armour", "name": "Equip some Steel armour", "league_points": 30,},
-    {"key": "equip_a_spiny_helmet", "name": "Equip a Spiny Helmet", "league_points": 10,},
-    {"key": "obtain_a_bird_nest", "name": "Obtain a Bird Nest", "league_points": 10,},
-    {"key": "equip_a_mithril_weapon", "name": "Equip a Mithril Weapon", "league_points": 30,},
-    {"key": "catch_a_herring", "name": "Catch a Herring", "league_points": 10,},
-    {"key": "pickpocket_a_master_farmer", "name": "Pickpocket a Master Farmer", "league_points": 30,},
-    {"key": "superhuman_strength_and_improved_reflexes", "name": "Superhuman Strength and Improved Reflexes", "league_points": 10,},
-    {"key": "fletch_1000_arrow_shafts", "name": "Fletch 1000 arrow shafts", "league_points": 30,},
-    {"key": "cast_high_level_alchemy", "name": "Cast High Level Alchemy", "league_points": 30,},
-    {"key": "1_easy_clue_scroll", "name": "1 Easy Clue Scroll", "league_points": 30,},
-    {"key": "burn_some_food", "name": "Burn Some Food", "league_points": 10,},
-    {"key": "enter_your_player_owned_house", "name": "Enter your Player Owned House", "league_points": 10,},
-    {"key": "cut_a_sapphire", "name": "Cut a Sapphire", "league_points": 10,},
-    {"key": "complete_1_slayer_task", "name": "Complete 1 Slayer Task", "league_points": 30,},
-    {"key": "equip_an_adamant_weapon", "name": "Equip an Adamant Weapon", "league_points": 30,},
-    {"key": "equip_a_rune_weapon", "name": "Equip a Rune Weapon", "league_points": 30,},
-    {"key": "smelt_an_iron_bar", "name": "Smelt an Iron Bar", "league_points": 10,},
-    {"key": "gain_a_unique_item_from_an_easy_clue", "name": "Gain a Unique Item From an Easy Clue", "league_points": 30,},
-    {"key": "use_the_protect_from_melee_prayer", "name": "Use the Protect from Melee Prayer", "league_points": 30,},
-    {"key": "mine_50_iron_ore", "name": "Mine 50 Iron Ore", "league_points": 30,},
-    {"key": "obtain_800_coins_from_coin_pouches_at_once", "name": "Obtain 800 Coins From Coin Pouches At Once", "league_points": 30,},
-    {"key": "light_a_torch", "name": "Light a Torch", "league_points": 10,},
-    {"key": "mine_some_ore_with_a_steel_pickaxe", "name": "Mine some Ore With a Steel Pickaxe", "league_points": 10,},
-    {"key": "15_collection_log_slots", "name": "15 Collection log slots", "league_points": 30,},
-    {"key": "find_the_needle", "name": "Find the Needle", "league_points": 30,},
-    {"key": "cast_a_blast_spell", "name": "Cast a Blast Spell", "league_points": 30,},
-    {"key": "catch_100_lobsters", "name": "Catch 100 Lobsters", "league_points": 30,},
-    {"key": "reach_combat_level_75", "name": "Reach Combat Level 75", "league_points": 30,},
-    {"key": "achieve_your_first_level_90", "name": "Achieve Your First Level 90", "league_points": 200, "is_passive": True, "selectable": False, "passive_requirement": {"type": "any_skill_level", "value": 90},},
-    {"key": "smith_a_bronze_plateskirt", "name": "Smith a Bronze plateskirt", "league_points": 10,},
-    {"key": "catch_50_salmon", "name": "Catch 50 Salmon", "league_points": 30,},
-    {"key": "chop_100_willow_logs", "name": "Chop 100 Willow Logs", "league_points": 30,},
-    {"key": "reach_total_level_1000", "name": "Reach Total Level 1000", "league_points": 80, "is_passive": True, "selectable": False, "passive_requirement": {"type": "total_level", "value": 1000},},
-    {"key": "clean_25_grimy_guam_leafs", "name": "Clean 25 Grimy Guam Leafs", "league_points": 10,},
-    {"key": "catch_10_pike", "name": "Catch 10 Pike", "league_points": 30,},
-    {"key": "teleport_using_law_runes", "name": "Teleport Using Law Runes", "league_points": 30,},
-    {"key": "build_a_room_in_your_player_owned_house", "name": "Build a Room in Your Player Owned House", "league_points": 30,},
-    {"key": "30_collection_log_slots", "name": "30 Collection log slots", "league_points": 30,},
-    {"key": "equip_some_black_armour", "name": "Equip some Black armour", "league_points": 30,},
-    {"key": "smelt_a_steel_bar", "name": "Smelt a Steel Bar", "league_points": 30,},
-    {"key": "achieve_your_first_level_95", "name": "Achieve Your First Level 95", "league_points": 200, "is_passive": True, "selectable": False, "passive_requirement": {"type": "any_skill_level", "value": 95},},
-    {"key": "buy_a_candle_in_lumbridge", "name": "Buy a candle in Lumbridge", "league_points": 30,},
-    {"key": "cook_100_lobsters", "name": "Cook 100 Lobsters", "league_points": 30,},
-    {"key": "cook_10_sardines", "name": "Cook 10 Sardines", "league_points": 30,},
-    {"key": "catch_50_swordfish", "name": "Catch 50 Swordfish", "league_points": 30,},
-    {"key": "obtain_a_gem_while_mining", "name": "Obtain a Gem While Mining", "league_points": 30,},
-    {"key": "fill_5_easy_clue_collection_log_slots", "name": "Fill 5 Easy Clue Collection Log Slots", "league_points": 30,},
-    {"key": "1_medium_clue_scroll", "name": "1 Medium Clue Scroll", "league_points": 30,},
-    {"key": "catch_25_sardines", "name": "Catch 25 Sardines", "league_points": 30,},
-    {"key": "gain_a_unique_item_from_a_beginner_clue", "name": "Gain a Unique Item From a Beginner Clue", "league_points": 30,},
-    {"key": "gain_a_unique_item_from_a_medium_clue", "name": "Gain a Unique Item From a Medium Clue", "league_points": 30,},
-    {"key": "cast_a_wave_spell", "name": "Cast a Wave Spell", "league_points": 80,},
-    {"key": "equip_a_studded_body_and_chaps", "name": "Equip a Studded Body and Chaps", "league_points": 10,},
-    {"key": "fletch_a_willow_shortbow_(u)", "name": "Fletch a Willow Shortbow (u)", "league_points": 30,},
-    {"key": "50_collection_log_slots", "name": "50 Collection log slots", "league_points": 30,},
-    {"key": "reach_total_level_1250", "name": "Reach Total Level 1250", "league_points": 80, "is_passive": True, "selectable": False, "passive_requirement": {"type": "total_level", "value": 1250},},
-    {"key": "reach_base_level_5", "name": "Reach Base Level 5", "league_points": 30,},
-    {"key": "cook_20_pike", "name": "Cook 20 Pike", "league_points": 30,},
-    {"key": "chop_some_logs_with_a_rune_axe", "name": "Chop Some Logs With a Rune Axe", "league_points": 30,},
-    {"key": "smith_150_iron_arrowtips", "name": "Smith 150 Iron Arrowtips", "league_points": 30,},
-    {"key": "drink_a_strength_potion", "name": "Drink a Strength Potion", "league_points": 10,},
-    {"key": "clean_15_grimy_tarromin", "name": "Clean 15 Grimy Tarromin", "league_points": 10,},
-    {"key": "gain_10_unique_items_from_easy_clues", "name": "Gain 10 Unique Items From Easy Clues", "league_points": 30,},
-    {"key": "bury_some_wyvern_or_dragon_bones", "name": "Bury Some Wyvern or Dragon Bones", "league_points": 30,},
-    {"key": "locate_a_runecrafting_altar_with_a_talisman", "name": "Locate a Runecrafting Altar With a Talisman", "league_points": 10,},
-    {"key": "mine_15_coal", "name": "Mine 15 coal", "league_points": 30,},
-    {"key": "use_a_hat_stand", "name": "Use a Hat Stand", "league_points": 10,},
-    {"key": "1_hard_clue_scroll", "name": "1 Hard Clue Scroll", "league_points": 30,},
-    {"key": "eat_some_purple_sweets", "name": "Eat some Purple Sweets", "league_points": 30,},
-    {"key": "gain_a_unique_item_from_a_hard_clue", "name": "Gain a Unique Item From a Hard Clue", "league_points": 30,},
-    {"key": "equip_a_dragon_weapon", "name": "Equip a Dragon Weapon", "league_points": 80,},
-    {"key": "fletch_150_iron_arrows", "name": "Fletch 150 Iron Arrows", "league_points": 30,},
-    {"key": "fletch_25_oak_stocks", "name": "Fletch 25 Oak Stocks", "league_points": 30,},
-    {"key": "burn_100_willow_logs", "name": "Burn 100 Willow Logs", "league_points": 30,},
-    {"key": "reach_combat_level_100", "name": "Reach Combat Level 100", "league_points": 80,},
-    {"key": "equip_a_maple_shortbow", "name": "Equip a Maple Shortbow", "league_points": 30,},
-    {"key": "fletch_an_oak_shortbow", "name": "Fletch an Oak Shortbow", "league_points": 10,},
-    {"key": "fill_3_hard_clue_collection_log_slots", "name": "Fill 3 Hard Clue Collection Log Slots", "league_points": 30,},
-    {"key": "kill_three_chickens_in_6_seconds", "name": "Kill three chickens in 6 seconds", "league_points": 30,},
-    {"key": "combat_achievements_easy_tier", "name": "Combat Achievements Easy Tier", "league_points": 80,},
-    {"key": "smith_10_steel_bolts_(unf)", "name": "Smith 10 Steel bolts (unf)", "league_points": 30,},
-    {"key": "equip_a_gilded_or_trimmed_wizard_item", "name": "Equip a Gilded or Trimmed Wizard Item", "league_points": 80,},
-    {"key": "equip_a_wizard_robe_and_hat", "name": "Equip a Wizard Robe and Hat", "league_points": 30,},
-    {"key": "reach_base_level_10", "name": "Reach Base Level 10", "league_points": 30,},
-    {"key": "reach_a_prayer_bonus_of_15", "name": "Reach a Prayer Bonus of 15", "league_points": 30,},
-    {"key": "gain_5_unique_items_from_hard_clues", "name": "Gain 5 Unique Items From Hard Clues", "league_points": 30,},
-    {"key": "obtain_a_clue_geode_while_mining", "name": "Obtain a Clue Geode While Mining", "league_points": 30,},
-    {"key": "mine_some_ore_with_a_rune_pickaxe", "name": "Mine some Ore With a Rune Pickaxe", "league_points": 30,},
-    {"key": "restore_75_prayer_points_at_an_altar", "name": "Restore 75 Prayer Points at an Altar", "league_points": 80,},
-]
+import csv
+from pathlib import Path
+
+_CSV_PATH = Path(__file__).parent / "tasks.csv"
 
 
-def get_task_library():
-    """Return a copy-safe list of task template dictionaries."""
-    return [dict(item) for item in TASK_LIBRARY]
+def _parse_row(row: dict) -> dict:
+    task: dict = {
+        "key": row["key"],
+        "name": row["name"],
+        "league_points": int(row["league_points"]),
+    }
+
+    if row.get("is_passive"):
+        task["is_passive"] = row["is_passive"].strip().lower() == "true"
+        task["selectable"] = row.get("selectable", "").strip().lower() == "true"
+
+    req_type = row.get("passive_req_type", "").strip()
+    if req_type:
+        requirement: dict = {"type": req_type}
+        if row.get("passive_req_value"):
+            requirement["value"] = int(row["passive_req_value"])
+        if row.get("passive_req_skill"):
+            requirement["skill"] = row["passive_req_skill"].strip()
+        if row.get("passive_req_method"):
+            requirement["method"] = row["passive_req_method"].strip()
+        if row.get("passive_req_quantity"):
+            requirement["quantity"] = int(row["passive_req_quantity"])
+        task["passive_requirement"] = requirement
+
+    xp_skill = row.get("xp_reward_skill", "").strip()
+    xp_amount = row.get("xp_reward_amount", "").strip()
+    if xp_skill and xp_amount:
+        task["xp_reward"] = {"skill": xp_skill, "amount": float(xp_amount)}
+
+    return task
+
+
+def get_task_library() -> list[dict]:
+    """Return the full task library parsed from tasks.csv."""
+    with _CSV_PATH.open(newline="", encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        return [_parse_row(row) for row in reader]

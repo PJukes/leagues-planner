@@ -337,48 +337,43 @@ export function taskManager() {
         syncPassiveTasks() {
             console.log("Syncing passive tasks...");
             const manualActions = this.actions.filter(action => !action.isPassiveAward);
+            const passiveTemplates = this.taskList.filter(task => task.is_passive && task.passive_requirement);
+
             const runningBySkill = emptySkillExperience();
             let runningPoints = 0;
+            const unlockedPassiveKeys = new Set();
+            const resultActions = [];
 
             manualActions.forEach(action => {
+                resultActions.push(action);
+
                 if (action.skill && SKILLS.includes(action.skill)) {
                     const multiplier = getXpMultiplier(runningPoints);
                     const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0);
                     runningBySkill[action.skill] += baseXp * multiplier;
                 }
                 runningPoints += Number(action.league_points || 0);
+
+                const levelsBySkill = Object.fromEntries(
+                    Object.entries(runningBySkill).map(([skill, xp]) => [skill, experienceToLevel(xp)]),
+                );
+                const totalLevel = Object.values(levelsBySkill).reduce((sum, lvl) => sum + lvl, 0);
+
+                passiveTemplates.forEach(task => {
+                    if (!unlockedPassiveKeys.has(task.key) &&
+                        evaluatePassiveRequirement(task.passive_requirement, levelsBySkill, totalLevel)) {
+                        unlockedPassiveKeys.add(task.key);
+                        resultActions.push({
+                            ...task,
+                            type: "task",
+                            selected: false,
+                            isPassiveAward: true,
+                        });
+                    }
+                });
             });
 
-            const levelsBySkill = Object.fromEntries(
-                Object.entries(runningBySkill).map(([skill, xp]) => [skill, experienceToLevel(xp)]),
-            );
-            const totalLevel = Object.values(levelsBySkill).reduce((sum, lvl) => sum + lvl, 0);
-            const passiveTemplates = this.taskList.filter(task => task.is_passive && task.passive_requirement);
-            const unlockedPassiveKeys = new Set(
-                passiveTemplates
-                    .filter(task => evaluatePassiveRequirement(task.passive_requirement, levelsBySkill, totalLevel))
-                    .map(task => task.key),
-            );
-
-            const preservedPassiveActions = this.actions.filter(
-                action => action.isPassiveAward && unlockedPassiveKeys.has(action.key),
-            );
-
-            const existingPassiveKeys = new Set(preservedPassiveActions.map(action => action.key));
-            const newlyUnlockedPassiveActions = passiveTemplates
-                .filter(task => unlockedPassiveKeys.has(task.key) && !existingPassiveKeys.has(task.key))
-                .map(task => ({
-                    ...task,
-                    type: "task",
-                    selected: false,
-                    isPassiveAward: true,
-                }));
-
-            this.actions = [
-                ...manualActions,
-                ...preservedPassiveActions,
-                ...newlyUnlockedPassiveActions,
-            ];
+            this.actions = resultActions;
         },
         recalculateActionState() {
             console.log("Recalculating action state...");

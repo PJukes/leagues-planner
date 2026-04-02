@@ -88,11 +88,12 @@
                       </div>
                     </div>
       
-                    <button @click="removeTask(action.id)" class="remove-task-btn">
+                    <button x-show="!action.passive" @click="removeTask(action.key)" class="remove-task-btn">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-400 hover:text-gray-500">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                       </svg>
                     </button>
+                    <span x-show="action.passive" title="Auto-added milestone" class="text-xs text-gray-400 select-none">auto</span>
                   </div>
                   <div x-show="action.selected">
                     <p>Total Points</p><p x-text="action.cumulativePoints"></p>
@@ -214,6 +215,7 @@
     mapStartX: 1680,
     mapStartY: 3107,
     mapStartZoom: -2,
+    baseXpMultiplier: {{ plan.base_xp_multiplier }},
   };
 </script>
 {% endblock content %}

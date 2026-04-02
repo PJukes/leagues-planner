@@ -51,6 +51,10 @@ export function taskManager() {
             this.showModal = false;
         },
 
+        currentExpModifier() {
+            return getXpMultiplier(this.totalPoints) || 5;
+        },
+
         filteredTasks() {
             const actionKeys = new Set(this.actions.map(a => a.key));
             return this.taskList.filter(task => !actionKeys.has(task.key));

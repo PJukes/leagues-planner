@@ -84,6 +84,30 @@ export function taskManager() {
     }
     const RELIC_POINTS_TIER = [0, 750, 1500, 2500, 3500, 5000, 10000, 15000];
 
+    const BASE_XP_MULTIPLIER = 5.0;
+    const DEFAULT_LEAGUE_TIERS = [
+        { pointsRequired: 500, xpMultiplier: 5.0 },
+        { pointsRequired: 1800, xpMultiplier: 5.0 },
+        { pointsRequired: 5000, xpMultiplier: 8.0 },
+        { pointsRequired: 12000, xpMultiplier: 12.0 },
+        { pointsRequired: 21000, xpMultiplier: 16.0 },
+        { pointsRequired: 37000, xpMultiplier: 24.0 },
+        { pointsRequired: 60000, xpMultiplier: 32.0 },
+        { pointsRequired: 80000, xpMultiplier: 48.0 },
+        { pointsRequired: 104000, xpMultiplier: 64.0 },
+        { pointsRequired: 136000, xpMultiplier: 80.0 },
+    ];
+
+    const getXpMultiplier = (points, tiers = DEFAULT_LEAGUE_TIERS) => {
+        let multiplier = BASE_XP_MULTIPLIER;
+        for (const tier of tiers) {
+            if (points >= tier.pointsRequired) {
+                multiplier = tier.xpMultiplier;
+            }
+        }
+        return multiplier;
+    };
+
     const experienceToLevel = (experience) => {
         const safeExperience = Math.max(0, Number(experience) || 0);
         let points = 0;
@@ -314,12 +338,15 @@ export function taskManager() {
             console.log("Syncing passive tasks...");
             const manualActions = this.actions.filter(action => !action.isPassiveAward);
             const runningBySkill = emptySkillExperience();
+            let runningPoints = 0;
 
             manualActions.forEach(action => {
-                if (action.skillKey && SKILLS.includes(action.skillKey)) {
-                    const gain = (Number(action.quantity) || 0) * (Number(action.xpPerAction || action.base_xp_per_action) || 0);
-                    runningBySkill[action.skillKey] += gain;
+                if (action.skill && SKILLS.includes(action.skill)) {
+                    const multiplier = getXpMultiplier(runningPoints);
+                    const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0);
+                    runningBySkill[action.skill] += baseXp * multiplier;
                 }
+                runningPoints += Number(action.league_points || 0);
             });
 
             const levelsBySkill = Object.fromEntries(
@@ -362,13 +389,17 @@ export function taskManager() {
             const runningBySkill = emptySkillExperience();
 
             this.actions.forEach(action => {
+                const currentMultiplier = getXpMultiplier(runningPoints);
                 runningPoints += Number(action.league_points || 0);
                 action.cumulativePoints = runningPoints;
 
                 const actionExperienceBySkill = emptySkillExperience();
-                if (action.skillKey && SKILLS.includes(action.skillKey)) {
-                    actionExperienceBySkill[action.skillKey] =
-                        (Number(action.quantity) || 0) * (Number(action.xpPerAction || action.base_xp_per_action) || 0);
+                if (action.skill && SKILLS.includes(action.skill)) {
+                    const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0);
+                    const effectiveXp = baseXp * currentMultiplier;
+                    actionExperienceBySkill[action.skill] = effectiveXp;
+                    action.currentMultiplier = currentMultiplier;
+                    action.effectiveExperience = effectiveXp;
                 }
 
                 Object.entries(actionExperienceBySkill).forEach(([skill, xp]) => {

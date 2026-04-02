@@ -80,8 +80,7 @@ export function taskManager() {
             name: "Abundance",
             tier: 1
         }
-
-    }
+    };
     const RELIC_POINTS_TIER = [0, 750, 1500, 2500, 3500, 5000, 10000, 15000];
 
     const BASE_XP_MULTIPLIER = 5.0;
@@ -120,7 +119,7 @@ export function taskManager() {
         const targetValue = Number(requirement.value) || 0;
         if (requirement.type === "any_skill_level") {
             return Object.entries(skillLevels).some(([skill, level]) => 
-                level >= targetValue
+                level >= targetValue && skill !== undefined
             );
         }
         if (requirement.type === "total_level") {
@@ -281,7 +280,6 @@ export function taskManager() {
                 method,
                 methodLabel: selectedMethod.name,
                 quantity: parsedQuantity,
-                quantityLabel: selectedMethod.actionLabel,
                 xpPerAction: selectedMethod.xpPerAction,
                 experience,
                 type: "skill",
@@ -338,7 +336,7 @@ export function taskManager() {
                 resultActions.push(action);
 
                 if (action.skill && SKILLS.includes(action.skill)) {
-                    const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0);
+                    const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0) * (this.getXpMultiplier(runningPoints) || 5);
                     runningBySkill[action.skill] += baseXp;
                 }
                 runningPoints += Number(action.league_points || 0);
@@ -379,7 +377,7 @@ export function taskManager() {
 
                 const actionExperienceBySkill = Object.fromEntries(SKILLS.map(skill => [skill, 0]));
                 if (action.skill && SKILLS.includes(action.skill)) {
-                    const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0);
+                    const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0) * (this.getXpMultiplier(runningPoints) || 5);
                     actionExperienceBySkill[action.skill] = baseXp;
                     action.currentMultiplier = currentMultiplier;
                     action.effectiveExperience = baseXp * currentMultiplier;
@@ -432,5 +430,5 @@ export function taskManager() {
             }
             return multiplier;
         }
-    }
+    };
 }

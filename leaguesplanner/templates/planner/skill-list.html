@@ -30,7 +30,7 @@
     </div>
 
     <p class="mt-2 text-sm text-gray-600" x-show="getSelectedMethod()">
-      <span x-text="`Total xp: ${(getSelectedMethod()?.xpPerAction || 0) * (skillQuantity || 0)}`"></span>
+      <span x-text="`Total xp: ${(getSelectedMethod()?.xpPerAction || 0) * (skillQuantity || 0) * (getXpMultiplier(totalPoints) || 5)}`"></span>
     </p>
 
     <div class="mt-4 flex items-end">

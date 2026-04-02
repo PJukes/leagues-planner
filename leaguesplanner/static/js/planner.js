@@ -214,7 +214,8 @@ function initMapContextMenu() {
   menu.style.display = "none";
   menu.innerHTML = `
     <button type="button" data-map-action="complete_task">Complete Task</button>
-    <button type="button" data-map-action="add_action">Add Action</button>
+    <button type="button" data-map-action="add_action">Add Actions</button>
+    <button type="button" data-map-action="add_action">Buy Items</button>
     <button type="button" data-map-action="set_path">Set Destination</button>
   `;
   container.appendChild(menu);

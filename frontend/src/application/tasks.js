@@ -98,16 +98,6 @@ export function taskManager() {
         { pointsRequired: 136000, xpMultiplier: 80.0 },
     ];
 
-    const getXpMultiplier = (points, tiers = DEFAULT_LEAGUE_TIERS) => {
-        let multiplier = BASE_XP_MULTIPLIER;
-        for (const tier of tiers) {
-            if (points >= tier.pointsRequired) {
-                multiplier = tier.xpMultiplier;
-            }
-        }
-        return multiplier;
-    };
-
     const experienceToLevel = (experience) => {
         const safeExperience = Math.max(0, Number(experience) || 0);
         let points = 0;
@@ -283,7 +273,7 @@ export function taskManager() {
             }
 
             const skillLabel = this.skillOptions.find((opt) => opt.key === skill)?.label || skill;
-            const experience = selectedMethod.xpPerAction * parsedQuantity;
+            const experience = selectedMethod.xpPerAction * parsedQuantity * (this.getXpMultiplier(this.totalPoints) || 5);
             const skillAction = {
                 key: `${skill}-${method}-${Date.now()}`,
                 skill,
@@ -383,7 +373,7 @@ export function taskManager() {
             const runningBySkill = emptySkillExperience();
 
             this.actions.forEach(action => {
-                const currentMultiplier = getXpMultiplier(runningPoints);
+                const currentMultiplier = this.getXpMultiplier(runningPoints);
                 runningPoints += Number(action.league_points || 0);
                 action.cumulativePoints = runningPoints;
 
@@ -432,7 +422,15 @@ export function taskManager() {
 
             // Show skill details in a modal 
             this.openModal('stats-template');
+        },
+        getXpMultiplier(points, tiers=DEFAULT_LEAGUE_TIERS) {
+            let multiplier = BASE_XP_MULTIPLIER;
+            for (const tier of tiers) {
+                if (points >= tier.pointsRequired) {
+                    multiplier = tier.xpMultiplier;
+                }
+            }
+            return multiplier;
         }
-
-    };
+    }
 }

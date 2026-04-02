@@ -339,7 +339,7 @@ export function taskManager() {
             const manualActions = this.actions.filter(action => !action.isPassiveAward);
             const passiveTemplates = this.taskList.filter(task => task.is_passive && task.passive_requirement);
 
-            const runningBySkill = emptySkillExperience();
+            const runningBySkill = Object.fromEntries(SKILLS.map(skill => [skill, 0]));
             let runningPoints = 0;
             const unlockedPassiveKeys = new Set();
             const resultActions = [];

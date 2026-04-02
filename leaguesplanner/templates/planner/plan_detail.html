@@ -47,8 +47,8 @@
     </div>
 
     <!-- Task Pane -->
-    <div class="xl:grid xl:grid-cols-2 gap-x-4 p-4">
-      <div id="task-pane" class="p-4 rounded-lg bg-white shadow flex flex-col h-full">
+    <div class="xl:grid xl:grid-cols-2 gap-x-4">
+      <div id="task-pane" class="rounded-lg bg-white p-4 shadow flex flex-col h-screen">
         <div id="task-pane-header mb-4">
           <div class="flex justify-between items-center pb-2">
             <h3>Task List</h3>
@@ -58,7 +58,7 @@
           </div>
         </div>
   
-        <div id="task-list-wrap" class="flex-1 overflow-y-scroll no-scrollbar p-2 bg-blue-50 rounded-lg">
+        <div id="task-list-wrap" class="flex-1 overflow-y-scroll no-scrollbar p-2 bg-blue-50 rounded-lg border border-gray-300">
           <ul id="task-list" class="space-y-2">
             <template x-for="action in actions" :key="action.key">
               <div :data-action-key="action.key">

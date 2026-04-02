@@ -60,13 +60,28 @@ export function taskManager() {
 
     const RELIC_LIST = [
         ["Endless Harvest", "Barbarian Gathering", "Abundance"],
-        ["Woodsman",],
+        ["Woodsman"],
         ["Evil Eye"],
         ["Conniving Clues"],
         ["Nature's Accord"],
         ["Culling Spree"],
         ["Minion", "Flask of Fervour"],
     ];
+    const RELICS = {
+        "endless_harvest": {
+            name: "Endless Harvest",
+            tier: 1
+        },
+        "barbarian_gathering": {
+            name: "Barbarian Gathering",
+            tier: 1
+        },
+        "abundance": {
+            name: "Abundance",
+            tier: 1
+        }
+
+    }
     const RELIC_POINTS_TIER = [0, 750, 1500, 2500, 3500, 5000, 10000, 15000];
 
     const experienceToLevel = (experience) => {
@@ -192,7 +207,7 @@ export function taskManager() {
             console.log("Adding relic", relicKey);
             const relic = {
                 key: relicKey,
-                name: relicKey,
+                name: RELICS[relicKey].name,
                 type: "relic",
                 currentStats: this.calculateStats()
             };

@@ -4,6 +4,8 @@
 
 "use strict";
 
+const cfg = window.PLANNER_CONFIG;
+
 /** Starting XP (level 1 for all except Hitpoints which starts at level 10). */
 function baseStats() {
   const s = {};
@@ -119,23 +121,6 @@ function attachTileLayer(sourceIdx) {
       "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=",
   });
 
-  // layer.getTileUrl = function (coords) {
-  //   const z = coords.z;
-  //   const x = coords.x + TILE_X_OFFSET;  
-  //   const MAX_Y_AT_Z0 = 100; // example, adjust to your tile set
-  //   // flip Y
-  //   const y = MAX_Y_AT_Z0 - coords.y;
-
-  //   if (
-  //     x < MIN_TILE_X || x > MAX_TILE_X ||
-  //     y < MIN_TILE_Y || y > MAX_TILE_Y
-  //   ) {
-  //     return this.options.errorTileUrl;
-  //   }
-
-  //   return `https://maps.runescape.wiki/osrs/versions/2026-03-04_a/tiles/rendered/0/2/${z}_${x}_${y}.png`;
-  // };
-
   layer.getTileUrl = function (coords) {
     const z = coords.z;
     const x = coords.x;
@@ -148,163 +133,6 @@ function attachTileLayer(sourceIdx) {
   layer.addTo(osrsMap);
 }
 
-// function attachTileLayer(sourceIdx) {
-//   if (sourceIdx >= OSRS_TILE_SOURCES.length) {
-//     console.error("All OSRS tile sources failed.");
-//     mapDebugState.lastErrorUrl = "all tile sources failed";
-//     updateMapDebugPanel();
-//     return;
-//   }
-
-//   const source = OSRS_TILE_SOURCES[sourceIdx];
-//   activeTileSource = source;
-//   mapDebugState = { loaded: 0, errors: 0, lastErrorUrl: "" };
-//   updateMapDebugPanel();
-
-//   const OsrsTileLayer = L.TileLayer.extend({
-//     getTileUrl(coords) {
-//       // adjust these rules to match the server
-//       const z = Math.max(0, Math.min(2, coords.z));
-//       const x = coords.x;
-//       const y = coords.y; // or flip if needed
-//       return `https://maps.runescape.wiki/osrs/tiles/0_2019-10-31_1/3/${z}_${x}_${y}.png`;
-//     }
-//   });
-
-//   const layer = new OsrsTileLayer("", {
-//     attribution: source.attribution,
-//     tileSize: 256,
-//     noWrap: true,
-//   });
-
-//   activeTileLayer = layer;
-//   layer.addTo(osrsMap);
-
-//   let switchedSource = false;
-//   layer.on("tileload", () => {
-//     mapDebugState.loaded += 1;
-//     updateMapDebugPanel();
-//   });
-
-//   layer.on("tileerror", (evt) => {
-//     console.log("tileerror url:", evt.tile?.src || evt.tile?.currentSrc);
-//     console.log("tile coords:", evt.coords);
-//   });
-
-//   layer.on("tileloadstart", (evt) => {
-//     console.log("tileloadstart url:", evt.tile?.src || evt.tile?.currentSrc);
-//     console.log("tile coords:", evt.coords);
-//   });
-
-//   layer.on("tileload", (evt) => {
-//     console.log("tileload url:", evt.tile?.src || evt.tile?.currentSrc);
-//     console.log("tile coords:", evt.coords);
-//   });
-
-//   console.log(
-//     activeTileLayer.getTileUrl({ z: 0, x: 100, y: 100 })
-//   );
-
-//   layer.on("tileerror", (evt) => {
-//     mapDebugState.errors += 1;
-//     mapDebugState.lastErrorUrl = evt?.tile?.currentSrc || source.url;
-//     updateMapDebugPanel();
-//     if (!switchedSource && mapDebugState.loaded === 0 && mapDebugState.errors >= 6) {
-//       switchedSource = true;
-//       console.warn(`Switching tile source after repeated failures: ${source.name}`);
-//       osrsMap.removeLayer(layer);
-//       attachTileLayer(sourceIdx + 1);
-//     }
-//   });
-// }
-
-
-// ---------------------------------------------------------------------------
-// API helpers
-// ---------------------------------------------------------------------------
-
-const cfg = window.PLANNER_CONFIG;
-
-async function apiFetch(url, method = "GET", body = null) {
-  const opts = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": cfg.csrfToken,
-    },
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(url, opts);
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("API error", res.status, text);
-    return null;
-  }
-  if (res.status === 204) return {};
-  return res.json();
-}
-
-// ---------------------------------------------------------------------------
-// Computed state helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Walk through all tasks in order and compute:
- *  - cumulative league points after each task
- *  - current XP multiplier at each task
- *  - skill XP totals at each task
- *  - which tiers become available (milestone notifications)
- *
- * Returns an array of state snapshots, one per task.
- */
-function computeTaskStates() {
-  let cumPoints = 0;
-  let currentMult = plan.base_xp_multiplier;
-  const skillXp = baseStats();
-  const states = [];
-  const tiersById = Object.fromEntries(plan.tiers.map(t => [t.id, t]));
-
-  for (const task of plan.tasks) {
-    // --- Apply task effects ---
-    if (task.task_type === "league_task") {
-      cumPoints += task.league_points;
-    } else if (task.task_type === "generic_action") {
-      if (task.skill) {
-        const totalXp = task.base_xp_per_action * task.quantity * currentMult;
-        skillXp[task.skill] = (skillXp[task.skill] || 0) + totalXp;
-      }
-    } else if (task.task_type === "tier_unlock") {
-      if (task.tier_id && tiersById[task.tier_id]) {
-        currentMult = tiersById[task.tier_id].xp_multiplier;
-      }
-    }
-
-    // --- Check if this task tips us over a tier threshold ---
-    // (only for league tasks – these are what accumulate points)
-    let unlockedTier = null;
-    if (task.task_type === "league_task") {
-      for (const tier of plan.tiers) {
-        const prevPoints = cumPoints - task.league_points;
-        if (prevPoints < tier.points_required && cumPoints >= tier.points_required) {
-          unlockedTier = tier;
-        }
-      }
-    }
-
-    states.push({
-      taskId: task.id,
-      cumPoints,
-      multiplier: currentMult,
-      skillXp: { ...skillXp },
-      skillLevels: Object.fromEntries(
-        SKILLS.map(sk => [sk, levelForXp(skillXp[sk] || 0)])
-      ),
-      unlockedTier,
-    });
-  }
-
-  return states;
-}
 
 // ---------------------------------------------------------------------------
 // Map initialisation

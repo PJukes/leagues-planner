@@ -2,10 +2,10 @@
   <form>
     <h5 class="text-gray-700 font-medium text-lg mb-4">Select a Skill to Train</h5>
     <p class="text-gray-600 mb-2">Choose a skill activity and quantity.</p>
-    <div class="flex items-end gap-2">
-      <div>
-        <label for="skillSelection" class="text-sm text-gray-600">Skill</label>
-        <select name="skillSelection" id="skillSelection" x-model="skillSelection" class="ml-1">
+    <div class="flex justify-between gap-2">
+      <div class="flex-1">
+        <div><label for="skillSelection" class="text-sm text-gray-600">Skill</label></div>
+        <select name="skillSelection" id="skillSelection" x-model="skillSelection" class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
           <option value="">Select skill</option>
           <template x-for="s in skillOptions" :key="s.key">
             <option :value="s.key" x-text="s.label"></option>
@@ -13,9 +13,9 @@
         </select>
       </div>
 
-      <div>
-        <label for="skillMethod" class="text-sm text-gray-600">Method</label>
-        <select name="skillMethod" id="skillMethod" x-model="methodSelection" class="ml-1" :disabled="!skillSelection">
+      <div class="flex-1">
+        <div><label for="skillMethod" class="text-sm text-gray-600">Method</label></div>
+        <select name="skillMethod" id="skillMethod" x-model="methodSelection" class="w-full px-2 py-1 text-sm border border-gray-300 rounded" :disabled="!skillSelection">
           <option value="">Select method</option>
           <template x-for="m in getMethodOptions()" :key="m.key">
             <option :value="m.key" x-text="`${m.name} (${m.xpPerAction} xp)`"></option>
@@ -23,17 +23,18 @@
         </select>
       </div>
 
-      <div>
-        <label for="id_quantity" class="text-sm text-gray-600">Quantity</label>
-        <input type="number" name="quantity" id="id_quantity" x-model.number="skillQuantity" placeholder="Quantity" min="1" class="ml-1 p-1 border border-gray-300 rounded">
+      <div class="flex-1">
+        <div><label for="id_quantity" class="text-sm text-gray-600">Quantity</label></div>
+        <input type="number" name="quantity" id="id_quantity" x-model.number="skillQuantity" placeholder="Quantity" min="1" class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
       </div>
     </div>
 
-    <p class="mt-2 text-sm text-gray-600" x-show="getSelectedMethod()">
-      <span x-text="`Total xp: ${(getSelectedMethod()?.xpPerAction || 0) * (skillQuantity || 0) * (getXpMultiplier(totalPoints) || 5)}`"></span>
-    </p>
+    
+    <div class="mt-4 flex justify-between">
+      <p class="mt-2 text-sm text-gray-600">
+        <span x-text="`Total xp: ${(getSelectedMethod()?.xpPerAction || 0) * (skillQuantity || 0) * (getXpMultiplier(totalPoints) || 5)}`"></span>
+      </p>
 
-    <div class="mt-4 flex items-end">
       <button type="button"
         @click="addSkillAction(skillSelection, methodSelection, skillQuantity)"
         :disabled="!canAddSkillAction()"

@@ -112,27 +112,6 @@ export function taskManager() {
         return Math.max(1, output);
     };
 
-    const evaluatePassiveRequirement = (requirement, skillLevels, totalLevel, actionQuantities = {}) => {
-        if (!requirement || !requirement.type) {
-            return false;
-        }
-        const targetValue = Number(requirement.value) || 0;
-        if (requirement.type === "any_skill_level") {
-            return Object.entries(skillLevels).some(([skill, level]) =>
-                level >= targetValue && skill !== undefined
-            );
-        }
-        if (requirement.type === "total_level") {
-            return totalLevel >= targetValue;
-        }
-        if (requirement.type === "skill_action_quantity") {
-            const { skill, method, quantity } = requirement;
-            const key = `${skill}-${method}`;
-            return (actionQuantities[key] || 0) >= Number(quantity || 0);
-        }
-        return false;
-    };
-
     return {
         showModal: false,
         actions: [],
@@ -185,6 +164,10 @@ export function taskManager() {
         closeModal() {
             this.showModal = false;
         },
+        filteredTasks() {
+            const actionKeys = new Set(this.actions.map(a => a.key));
+            return this.taskList.filter(task => !actionKeys.has(task.key));
+        },
         addTask(taskKey) {
             console.log("Adding task", taskKey);
             const taskTemplate = this.taskList.find(task => task.key === taskKey);
@@ -194,7 +177,8 @@ export function taskManager() {
                     ...taskTemplate,
                     type: "task",
                     selected: false,
-                    currentStats: this.calculateStats()
+                    currentStats: this.calculateStats(),
+                    totalGold: 0,
                 };
                 this.actions.push(task);
                 this.totalTasks += 1;
@@ -287,8 +271,10 @@ export function taskManager() {
                 methodLabel: selectedMethod.name,
                 quantity: parsedQuantity,
                 xpPerAction: selectedMethod.xpPerAction,
+                bonusExp: this.getBonusExp(skill, parsedQuantity, experience),
                 experience,
                 type: "skill",
+                totalGold: ((selectedMethod.gold || 0) * parsedQuantity) + this.getGold(experience, quantity),
             };
             skillAction.currentStats = this.calculateStats(skillAction);
 
@@ -301,13 +287,79 @@ export function taskManager() {
             this.recalculateActionState();
             this.closeModal();
         },
+        getBonusExp(skill, quantity, experience) {
+            // If the user has chosen the barbarian gathering relic then they get
+            // 10% extra exp in strength and agility every time they gain mining, 
+            // fishing, or woodcutting exp
+            if (this.relicSelection.includes("barbarian_gathering")) {
+                if (["mining", "fishing", "woodcutting"].includes(skill)) {
+                    return [
+                        {
+                            key: `agility-bonusexp-${Date.now()}`,
+                            skill: "agility",
+                            amount: experience * 0.1
+                        },
+                        {
+                            key: `strength-bonus-${Date.now()}`,
+                            skill: "strength",
+                            amount: experience * 0.1
+                        },
+                    ];
+                }
+            }
+            if (this.relicSelection.includes("abundance")) {   
+                return [{
+                    key: `${skill}-bonusexp-${Date.now()}`,
+                    skill: skill,
+                    amount: quantity * 2 * this.getXpMultiplier(this.totalPoints)
+                }];
+            }
+            return 0;
+        },
+        getGold(experience, quantity=1) {
+            if (this.relicSelection.includes("abundance")) {
+                const goldMultiplier = 2;
+                const bonusExp = quantity * 2 * this.getXpMultiplier(this.totalPoints);
+                console.log("Input vars", { experience, quantity, goldMultiplier, bonusExp });
+                console.log("Returning gold:", (experience + bonusExp) * goldMultiplier);
+                return (experience + bonusExp) * goldMultiplier;
+            }
+            return 0;
+        },
         calculateStats(action=null) {
             const stats = {};
-            const runningBySkill = { ...this.skillExperience };
+            const runningBySkill = { ...emptySkillExperience() };
 
-            // If we have an action, add its experience to the running totals
+            // Calculate cumulative experience including all actions up to this point
+            for (const existingAction of this.actions) {
+                // Add main skill experience
+                if (existingAction.skill && SKILLS.includes(existingAction.skill)) {
+                    runningBySkill[existingAction.skill] += existingAction.experience || 0;
+                }
+
+                // Add bonus experience from existing actions
+                if (existingAction.bonusExp) {
+                    for (const bonus of existingAction.bonusExp) {
+                        runningBySkill[bonus.skill] += bonus.amount || 0;
+                    }
+                }
+
+                // Stop if we've reached the current action
+                if (action && existingAction.key === action.key) {
+                    break;
+                }
+            }
+
+            // If we have a new action, add its experience to the running totals
             if (action && action.skill && SKILLS.includes(action.skill)) {
                 runningBySkill[action.skill] += action.experience || 0;
+
+                // Loop through action bonus experience
+                if (action.bonusExp) {
+                    for (const bonus of action.bonusExp) {
+                        runningBySkill[bonus.skill] += bonus.amount || 0;
+                    }
+                }
             }
 
             // Calculate stats for all 23 skills
@@ -328,70 +380,30 @@ export function taskManager() {
 
             return stats;
         },
-        syncPassiveTasks() {
-            console.log("Syncing passive tasks...");
-            const manualActions = this.actions.filter(action => !action.isPassiveAward);
+        checkPassiveTasks() {
             const passiveTemplates = this.taskList.filter(task => task.is_passive && task.passive_requirement);
 
-            // Track which task keys are already manually added (selectable passive tasks may be added by the user)
-            const manualTaskKeys = new Set(
-                manualActions.filter(a => a.type === "task").map(a => a.key)
-            );
-
-            const runningBySkill = Object.fromEntries(SKILLS.map(skill => [skill, 0]));
-            let runningPoints = 0;
-            const unlockedPassiveKeys = new Set();
-            // Track cumulative skill+method quantities for skill_action_quantity requirements
-            const actionQuantities = {};
-            const resultActions = [];
-
-            manualActions.forEach(action => {
-                resultActions.push(action);
-
-                if (action.skill && SKILLS.includes(action.skill)) {
-                    const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0) * (this.getXpMultiplier(runningPoints) || 5);
-                    runningBySkill[action.skill] += baseXp;
+            // key: `agility-bonusexp-${Date.now()}`,
+            // skill: "agility",
+            // amount: experience * 0.1
+            
+            const unlockedKeys = this.actions.filter(a => a.type === "task").map(a => a.key);
+            passiveTemplates.forEach(task => {
+                // Don't auto-add if already manually added or already awarded
+                if (!unlockedKeys.includes(task.key) &&
+                    this.evaluatePassiveRequirement(task.passive_requirement)) {
+                    console.log("Unlocking passive task:", task.key);
+                    this.actions.push({
+                        ...task,
+                        type: "task",
+                        selected: false,
+                        isPassiveAward: true,
+                    });
                 }
-
-                // Accumulate xp_reward for task-type actions (e.g. a league task that grants XP)
-                if (action.xp_reward && action.xp_reward.skill && SKILLS.includes(action.xp_reward.skill)) {
-                    const xp = Number(action.xp_reward.amount || 0) * (this.getXpMultiplier(runningPoints) || 5);
-                    runningBySkill[action.xp_reward.skill] += xp;
-                }
-
-                // Track cumulative quantities for skill actions (used by skill_action_quantity requirements)
-                if (action.type === "skill" && action.skill && action.method) {
-                    const key = `${action.skill}-${action.method}`;
-                    actionQuantities[key] = (actionQuantities[key] || 0) + Number(action.quantity || 0);
-                }
-
-                runningPoints += Number(action.league_points || 0);
-
-                const levelsBySkill = Object.fromEntries(
-                    Object.entries(runningBySkill).map(([skill, xp]) => [skill, experienceToLevel(xp)]),
-                );
-                const totalLevel = Object.values(levelsBySkill).reduce((sum, lvl) => sum + lvl, 0);
-
-                passiveTemplates.forEach(task => {
-                    // Don't auto-add if already manually added or already awarded
-                    if (!unlockedPassiveKeys.has(task.key) && !manualTaskKeys.has(task.key) &&
-                        evaluatePassiveRequirement(task.passive_requirement, levelsBySkill, totalLevel, actionQuantities)) {
-                        unlockedPassiveKeys.add(task.key);
-                        resultActions.push({
-                            ...task,
-                            type: "task",
-                            selected: false,
-                            isPassiveAward: true,
-                        });
-                    }
-                });
             });
-
-            this.actions = resultActions;
         },
         recalculateActionState() {
-            console.log("Recalculating action state...");
-            this.syncPassiveTasks();
+            this.checkPassiveTasks();
 
             let runningPoints = 0;
             let runningExperience = 0;
@@ -434,6 +446,7 @@ export function taskManager() {
             );
             this.totalLevel = Object.values(this.skillLevels).reduce((sum, lvl) => sum + lvl, 0);
             this.totalTasks = this.actions.filter(action => action.type === "task").length;
+            this.checkPassiveTasks();
         },
         addDestination(destination) {
             this.closeModal();
@@ -462,6 +475,32 @@ export function taskManager() {
                 }
             }
             return multiplier;
-        }
+        },
+        totalGold() {
+            return this.actions.reduce((total, action) => total + (action.totalGold || 0), 0);
+        },
+        evaluatePassiveRequirement(requirement) {
+            const levelsBySkill = this.skillLevels;
+            const totalLevel = Object.values(levelsBySkill).reduce((sum, lvl) => sum + lvl, 0);
+            if (!requirement || !requirement.type) {
+                return false;
+            }
+            const targetValue = Number(requirement.value) || 0;
+            if (requirement.type === "any_skill_level") {
+                return Object.entries(levelsBySkill).some(([skill, level]) =>
+                    level >= targetValue && skill !== undefined && skill !== "hitpoints"
+                );
+            }
+            if (requirement.type === "total_level") {
+                return totalLevel >= targetValue;
+            }
+            if (requirement.type === "skill_action_quantity") {
+                const actionQuantities = this.actions.filter(
+                    a => a.type === "skill" && a.method === requirement.method
+                ).map(a => a.quantity);
+                return (actionQuantities || 0) >= Number(requirement.quantity || 0);
+            }
+            return false;
+        },
     };
 }

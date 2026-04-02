@@ -21,6 +21,14 @@ export const SKILL_METHODS = {
 
         ],
     },
+    fishing: {
+        label: "Fishing",
+        methods: [
+            { key: "shrimp", name: "Shrimp", xpPerAction: 20, actionLabel: "fish" },
+            { key: "anchovies", name: "Anchovies", xpPerAction: 30, actionLabel: "fish" },
+            { key: "trout", name: "Trout", xpPerAction: 50, actionLabel: "fish" },
+        ],
+    },
     fletching: {
         label: "Fletching",
         methods: [
@@ -32,9 +40,8 @@ export const SKILL_METHODS = {
     thieving: {
         label: "Thieving",
         methods: [
-            { key: "pickpocket_men", name: "Pickpocket Men", xpPerAction: 8, actionLabel: "pickpocket" },
-            { key: "pickpocket_citizen", name: "Pickpocket Citizen", xpPerAction: 50, actionLabel: "pickpocket" },
-            { key: "pickpocket_guard", name: "Pickpocket Guard", xpPerAction: 46.8, actionLabel: "pickpocket" },
+            { key: "pickpocket_men", name: "Pickpocket Men", xpPerAction: 8, actionLabel: "pickpocket", gold: 3 },
+            { key: "pickpocket_guard", name: "Pickpocket Guard", xpPerAction: 46.8, actionLabel: "pickpocket", gold: 30 },
             { key: "vegetable_stall", name: "Steal from Vegetable stall", level: 2, xpPerAction: 10,	loot: "Onion, cabbage, potato, tomato, or garlic" },
             { key: "bakery_stall", name: "Steal from Bakery stall", level: 5, xpPerAction: 16,	loot: "Cake, chocolate slice or bread" },
             { key: "tea_stall", name: "Steal from Tea stall", level: 5, xpPerAction: 16,	loot: "Cup of tea" },

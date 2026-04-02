@@ -229,6 +229,7 @@ function initMapContextMenu() {
 }
 
 let lastClickEvent = null;
+let lastPoint = null;
 
 function onMapContextMenu(e) {
   L.DomEvent.preventDefault(e.originalEvent);
@@ -257,16 +258,16 @@ function hideMapContextMenu() {
 function handleMapContextAction(action) {
   hideMapContextMenu();
 
-  console.log("Last click event:", lastClickEvent);
-  if (!lastClickEvent) return;
-  
-  const { x: osrsX, y: osrsY } = mapLatLngToGame(lastClickEvent.latlng);
+  // console.log("Last click event:", lastClickEvent);
+  // if (!lastClickEvent) return;
 
+  // const { x: osrsX, y: osrsY } = mapLatLngToGame(lastClickEvent.latlng);
+  let marker = null;
   console.log("Handling action", action)
   if (action === "complete_task") {
     window.dispatchEvent(new CustomEvent("add-task", {detail: { id: 123 }}));
     // Add a marker for completed task
-    const marker = L.marker(lastClickEvent.latlng, {
+    marker = L.marker(lastClickEvent.latlng, {
       icon: taskMarkerIcon("league_task"),
       title: "Completed Task"
     });
@@ -276,11 +277,10 @@ function handleMapContextAction(action) {
         <span style="color:#666;font-size:.72rem">league task</span>
       </div>
     `);
-    marker.addTo(osrsMap);
   } else if (action === "add_action") {
     window.dispatchEvent(new CustomEvent("add-skill", {detail: { id: 123 }}));
     // Add a marker for generic action
-    const marker = L.marker(lastClickEvent.latlng, {
+    marker = L.marker(lastClickEvent.latlng, {
       icon: taskMarkerIcon("generic_action"),
       title: "Skilling Action"
     });
@@ -290,11 +290,10 @@ function handleMapContextAction(action) {
         <span style="color:#666;font-size:.72rem">generic action</span>
       </div>
     `);
-    marker.addTo(osrsMap);
   } else if (action === "set_path") {
     window.dispatchEvent(new CustomEvent("add-destination", {detail: { id: 123 }}));
     // Add a marker for destination
-    const marker = L.marker(lastClickEvent.latlng, {
+    marker = L.marker(lastClickEvent.latlng, {
       icon: taskMarkerIcon("note"),
       title: "Destination"
     });
@@ -304,8 +303,15 @@ function handleMapContextAction(action) {
         <span style="color:#666;font-size:.72rem">note</span>
       </div>
     `);
-    marker.addTo(osrsMap);
   }
+  marker.addTo(osrsMap);
+  if (lastPoint !== null) {
+    // Draw a line from the last point to the new point
+    const latlngs = [lastPoint, marker.getLatLng()];
+    const polyline = L.polyline(latlngs, { color: 'orange', weight: 2 });
+    polyline.addTo(osrsMap);
+  }
+  lastPoint = marker.getLatLng();
 }
 
 function startPathDrawingMode() {

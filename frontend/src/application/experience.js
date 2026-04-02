@@ -50,3 +50,36 @@ export function getXpMultiplier(points, tiers = DEFAULT_LEAGUE_TIERS) {
     }
     return multiplier;
 }
+
+export function getCombatLevel(skillLevels) {
+    const prayer = skillLevels.prayer.level || 1;
+    const hitpoints = skillLevels.hitpoints.level || 1;
+    const defence = skillLevels.defence.level || 1;
+    const strength = skillLevels.strength.level || 1;
+    const attack = skillLevels.attack.level || 1;
+    const magic = skillLevels.magic.level || 1;
+    const ranged = skillLevels.ranged.level || 1;
+
+    // Step 1: Prayer level divided by 2, rounded down
+    const prayerBonus = Math.floor(prayer / 2);
+
+    // Step 2: Base combat level
+    const baseCombatLevel = (hitpoints + defence + prayerBonus) / 4;
+
+    // Step 3: Determine which combat style to use
+    const meleeTotal = strength + attack;
+    const highestRangedMagic = Math.max(magic, ranged);
+    const rangedMagicThreshold = highestRangedMagic * 1.5;
+
+    let combatStyleValue;
+    if (meleeTotal >= rangedMagicThreshold) {
+        combatStyleValue = meleeTotal;
+    } else {
+        combatStyleValue = Math.floor(highestRangedMagic * 1.5);
+    }
+
+    // Step 4: Calculate final combat level
+    const totalCombatLevel = baseCombatLevel + (combatStyleValue * 0.325);
+
+    return Math.floor(totalCombatLevel);
+}

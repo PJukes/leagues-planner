@@ -13,11 +13,11 @@ export const SKILL_METHODS = {
     firemaking: {
         label: "Firemaking",
         methods: [
-            { key: "normal_logs", name: "Normal Logs", xpPerAction: 40, actionLabel: "log" },
-            { key: "oak_logs", name: "Oak Logs", xpPerAction: 60, actionLabel: "log" },
-            { key: "willow_logs", name: "Willow Logs", xpPerAction: 90, actionLabel: "log" },
-            { key: "maple_logs", name: "Maple Logs", xpPerAction: 135, actionLabel: "log" },
-            { key: "yew_logs", name: "Yew Logs", xpPerAction: 202.5, actionLabel: "log" },
+            { key: "burn_normal_logs", name: "Normal Logs", xpPerAction: 40, actionLabel: "log" },
+            { key: "burn_oak_logs", name: "Oak Logs", xpPerAction: 60, actionLabel: "log" },
+            { key: "burn_willow_logs", name: "Willow Logs", xpPerAction: 90, actionLabel: "log" },
+            { key: "burn_maple_logs", name: "Maple Logs", xpPerAction: 135, actionLabel: "log" },
+            { key: "burn_yew_logs", name: "Yew Logs", xpPerAction: 202.5, actionLabel: "log" },
 
         ],
     },
@@ -119,6 +119,30 @@ export const SKILL_METHODS = {
             { key: "cannonball_stall", name: "Steal from Cannonball stall", level: 8, xpPerAction: 223,loot: "" },
         ],
     },
+    mining: {
+        label: "Mining",
+        methods: [
+            { key: "mine_rune_essence", name: "Mine Rune essence", xpPerAction: 5, actionLabel: "cook" },
+            { key: "mine_copper", name: "Mine Copper", xpPerAction: 17.5, actionLabel: "cook" },
+            { key: "mine_tin", name: "Mine Tin", xpPerAction: 17.5, actionLabel: "cook" },
+            { key: "mine_limestone", name: "Mine Limestone", xpPerAction: 26.5, actionLabel: "cook" },
+            { key: "mine_blurite", name: "Mine Blurite", xpPerAction: 17.5, actionLabel: "cook" },
+            { key: "mine_iron", name: "Mine Iron", xpPerAction: 35, actionLabel: "cook" },
+            { key: "mine_silver", name: "Mine Silver", xpPerAction: 40, actionLabel: "cook" },
+            { key: "mine_volcanic_ash", name: "Mine Volcanic ash", xpPerAction: 10, actionLabel: "cook" },
+            { key: "mine_pure_essence", name: "Mine Pure essence", xpPerAction: 5, actionLabel: "cook" },
+            { key: "mine_coal", name: "Mine Coal", xpPerAction: 50, actionLabel: "cook" },
+            { key: "mine_sandstone", name: "Mine Sandstone", xpPerAction: 30, actionLabel: "cook" },
+            { key: "mine_gem_rocks", name: "Mine Gem rocks", xpPerAction: 65, actionLabel: "cook" },
+            { key: "mine_gold", name: "Mine Gold", xpPerAction: 65, actionLabel: "cook" },
+            { key: "mine_calcified_rocks", name: "Mine Calcified rocks", xpPerAction: 33, actionLabel: "cook" },
+            { key: "mine_granite", name: "Mine Granite", xpPerAction: 50, actionLabel: "cook" },
+            { key: "mine_mithril", name: "Mine Mithril", xpPerAction: 80, actionLabel: "cook" },
+            { key: "mine_adamantite", name: "Mine Adamantite", xpPerAction: 95, actionLabel: "cook" },
+            { key: "mine_ancient_essence", name: "Mine Ancient essence", xpPerAction: 13.5, actionLabel: "cook" },
+            { key: "mine_runite", name: "Mine Runite", xpPerAction: 125, actionLabel: "cook" },
+        ]
+    }
 };
 
 export function getSkillOptions() {

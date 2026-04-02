@@ -5,6 +5,7 @@ import {
     emptySkillExperience,
     emptySkillLevels,
     getXpMultiplier,
+    getCombatLevel
 } from "./experience.js";
 
 export function taskManager() {
@@ -349,6 +350,10 @@ export function taskManager() {
             if (requirement.type === "total_level") {
                 return totalLevel >= targetValue;
             }
+            if (requirement.type === "combat_level") {
+                console.log("Checking combat level", this.getCurrentCombatLevel());
+                return this.getCurrentCombatLevel() >= targetValue;
+            }
             if (requirement.type === "skill_action_quantity") {
                 const totalQuantity = this.actions
                     .filter(a => a.type === "skill" && a.method === requirement.method)
@@ -357,5 +362,9 @@ export function taskManager() {
             }
             return false;
         },
+        getCurrentCombatLevel() {
+            const currentStats = this.calculateStats();
+            return getCombatLevel(currentStats);
+        }
     };
 }

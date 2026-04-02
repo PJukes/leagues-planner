@@ -12,6 +12,8 @@
           </div>
         </div>
       </template>
+      <p x-text="`Total: ${totalLevel || 34}`"></p>
+      <p x-text="`Cmb Lvl: ${getCurrentCombatLevel() || 3}`"></p>
     </div>
   </div>
 </template>

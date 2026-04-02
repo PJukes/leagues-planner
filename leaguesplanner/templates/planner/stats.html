@@ -1,1 +1,17 @@
-<template></template>
+<template id="stats-template">
+  <div>
+    <h5 class="text-gray-700 font-medium text-lg mb-4">Current Stats</h5>
+
+    <div class="grid grid-cols-3 gap-4">
+      <template x-for="(level, skill) in viewStats.currentStats" :key="skill">
+        <div class="border p-2 rounded flex justify-between">
+          <p x-text="skill"></p>
+          <div>
+            <p class="font-medium text-lg" x-text="`${level.level}/${level.level}`"></p>
+            <p class="text-xs text-gray-600" x-text="level.cumulativeExperience.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></p>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+</template>

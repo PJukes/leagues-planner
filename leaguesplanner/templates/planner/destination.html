@@ -1,0 +1,18 @@
+<template id="destination-template">
+  <form>
+    <h5 class="text-gray-700 font-medium text-lg mb-4">Specify a Destination</h5>
+
+    <div>
+      <label for="destination" class="text-sm text-gray-600">Destination</label>
+      <input type="text" id="destination" x-model="destination" class="ml-1 p-1 border border-gray-300 rounded w-full">
+    </div>
+
+    <div class="mt-4 flex items-end">
+      <button type="button"
+        @click="addDestination(destination)"
+        class="relative flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent bg-gray-800 px-4 py-2 text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:bg-gray-400">
+        Confirm
+      </button>
+    </div>
+  </form>
+</template>

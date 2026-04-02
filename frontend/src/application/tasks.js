@@ -7,10 +7,56 @@ export function taskManager() {
         "prayer", "crafting", "firemaking", "magic", "fletching", "woodcutting",
         "runecraft", "slayer", "farming", "construction", "hunter",
     ];
+    // const SKILL_LABELS = {
+    //     attack: "Attack", hitpoints: "Hitpoints", mining: "Mining",
+    //     strength: "Strength", agility: "Agility", smithing: "Smithing",
+    //     defence: "Defence", herblore: "Herblore", fishing: "Fishing",
+    //     ranged: "Ranged", thieving: "Thieving", cooking: "Cooking",
+    //     prayer: "Prayer", crafting: "Crafting", firemaking: "Firemaking",
+    //     magic: "Magic", fletching: "Fletching", woodcutting: "Woodcutting",
+    //     runecraft: "Runecraft", slayer: "Slayer", farming: "Farming",
+    //     construction: "Construction", hunter: "Hunter",
+    // };
+
+    /** Pre-compute the XP required for each level 1-99 using the OSRS formula. */
+    // const XP_TABLE = (() => {
+    //     const table = [0]; // index 0 unused; index 1 = XP for level 1 = 0
+    //     for (let lvl = 1; lvl <= 99; lvl++) {
+    //         let total = 0;
+    //         for (let i = 1; i < lvl; i++) {
+    //         total += Math.floor(i + 300 * Math.pow(2, i / 7));
+    //         }
+    //         table[lvl] = Math.floor(total / 4);
+    //     }
+    //     return table;
+    // })();
+
+    // function levelForXp(xp) {
+    //     for (let lvl = 99; lvl >= 1; lvl--) {
+    //         if (xp >= XP_TABLE[lvl]) return lvl;
+    //     }
+    //     return 1;
+    // }
+
+    // function xpForLevel(lvl) {
+    //     return XP_TABLE[Math.max(1, Math.min(99, lvl))];
+    // }
 
     const STARTING_LEVEL = 1;
-    const emptySkillExperience = () => Object.fromEntries(SKILLS.map(skill => [skill, 0]));
-    const emptySkillLevels = () => Object.fromEntries(SKILLS.map(skill => [skill, STARTING_LEVEL]));
+    const HITPOINTS_STARTING_LEVEL = 10;
+    const HITPOINTS_STARTING_XP = 1154;
+
+    const emptySkillExperience = () => {
+        const experience = Object.fromEntries(SKILLS.map(skill => [skill, 0]));
+        experience.hitpoints = HITPOINTS_STARTING_XP;
+        return experience;
+    };
+
+    const emptySkillLevels = () => {
+        const levels = Object.fromEntries(SKILLS.map(skill => [skill, STARTING_LEVEL]));
+        levels.hitpoints = HITPOINTS_STARTING_LEVEL;
+        return levels;
+    };
 
     const RELIC_LIST = [
         ["Endless Harvest", "Barbarian Gathering", "Abundance"],
@@ -44,7 +90,9 @@ export function taskManager() {
         }
         const targetValue = Number(requirement.value) || 0;
         if (requirement.type === "any_skill_level") {
-            return Object.values(skillLevels).some(level => level >= targetValue);
+            return Object.entries(skillLevels).some(([skill, level]) => 
+                level >= targetValue
+            );
         }
         if (requirement.type === "total_level") {
             return totalLevel >= targetValue;
@@ -68,6 +116,7 @@ export function taskManager() {
         skillOptions: getSkillOptions(),
         skillExperience: emptySkillExperience(),
         skillLevels: emptySkillLevels(),
+        viewStats: null,
         totalLevel: SKILLS.length,
         init() {
             window.addEventListener("add-task", (event) => {
@@ -78,11 +127,14 @@ export function taskManager() {
                 console.log("Adding skill", event);
                 this.openModal("skill-list-template");
             });
+            window.addEventListener("add-destination", (event) => {
+                console.log("Adding destination", event);
+                this.openModal("destination-template");
+            });
             fetch("http://127.0.0.1:8002/planner/task-list/")
                 .then(res => res.json())
                 .then(data => {
                     this.taskList = data.tasks || [];
-                    console.log(this.taskList);
                 });
         },
         openModal(content = "task-list-template") {
@@ -108,6 +160,7 @@ export function taskManager() {
                     ...taskTemplate,
                     type: "task",
                     selected: false,
+                    currentStats: this.calculateStats()
                 };
                 this.actions.push(task);
                 this.totalTasks += 1;
@@ -141,6 +194,7 @@ export function taskManager() {
                 key: relicKey,
                 name: relicKey,
                 type: "relic",
+                currentStats: this.calculateStats()
             };
             this.actions.push(relic);
             this.relicSelection.push(relicKey);
@@ -201,15 +255,48 @@ export function taskManager() {
                 quantityLabel: selectedMethod.actionLabel,
                 xpPerAction: selectedMethod.xpPerAction,
                 experience,
-                type: "skill"
+                type: "skill",
             };
+            skillAction.currentStats = this.calculateStats(skillAction);
+
+            // Calculate current stats after the skillAction object is created
+            console.log("Current skill stats:", skillAction.currentStats);
             this.actions.push(skillAction);
             this.skillSelection = "";
             this.methodSelection = "";
             this.skillQuantity = 1;
+            this.recalculateActionState();
             this.closeModal();
         },
+        calculateStats(action=null) {
+            const stats = {};
+            const runningBySkill = { ...this.skillExperience };
+
+            // If we have an action, add its experience to the running totals
+            if (action && action.skill && SKILLS.includes(action.skill)) {
+                runningBySkill[action.skill] += action.experience || 0;
+            }
+
+            // Calculate stats for all 23 skills
+            for (const skill of SKILLS) {
+                const cumulativeExperience = runningBySkill[skill] || 0;
+                const currentLevel = this.skillLevels[skill] || 1;
+                const newLevel = experienceToLevel(cumulativeExperience);
+                const levelGain = newLevel - currentLevel;
+                const experienceGain = action && action.skill === skill ? (action.experience || 0) : 0;
+
+                stats[skill] = {
+                    cumulativeExperience: cumulativeExperience,
+                    experienceGain: experienceGain,
+                    level: newLevel,
+                    levelGain: levelGain,
+                };
+            }
+
+            return stats;
+        },
         syncPassiveTasks() {
+            console.log("Syncing passive tasks...");
             const manualActions = this.actions.filter(action => !action.isPassiveAward);
             const runningBySkill = emptySkillExperience();
 
@@ -252,6 +339,7 @@ export function taskManager() {
             ];
         },
         recalculateActionState() {
+            console.log("Recalculating action state...");
             this.syncPassiveTasks();
 
             let runningPoints = 0;
@@ -287,6 +375,25 @@ export function taskManager() {
             this.totalLevel = Object.values(this.skillLevels).reduce((sum, lvl) => sum + lvl, 0);
             this.totalTasks = this.actions.filter(action => action.type === "task").length;
         },
+        addDestination(destination) {
+            this.closeModal();
+            if (!destination) return;
+    
+            this.actions.push({
+                key: `destination_${this.actions.length}`,
+                type: "destination",
+                description: destination,
+            });
+        },
+        showStats(skillKey) {
+            console.log("Showing stats for skill:", skillKey);
+            this.viewStats = this.actions.find(action => action.key === skillKey);
+            console.log("Current skill stats:", this.viewStats.currentStats);
+            if (!this.viewStats) return;
+
+            // Show skill details in a modal 
+            this.openModal('stats-template');
+        }
 
     };
 }

@@ -4,52 +4,6 @@
 
 "use strict";
 
-// ---------------------------------------------------------------------------
-// OSRS XP / level utilities
-// ---------------------------------------------------------------------------
-
-/** Pre-compute the XP required for each level 1-99 using the OSRS formula. */
-const XP_TABLE = (() => {
-  const table = [0]; // index 0 unused; index 1 = XP for level 1 = 0
-  for (let lvl = 1; lvl <= 99; lvl++) {
-    let total = 0;
-    for (let i = 1; i < lvl; i++) {
-      total += Math.floor(i + 300 * Math.pow(2, i / 7));
-    }
-    table[lvl] = Math.floor(total / 4);
-  }
-  return table;
-})();
-
-function levelForXp(xp) {
-  for (let lvl = 99; lvl >= 1; lvl--) {
-    if (xp >= XP_TABLE[lvl]) return lvl;
-  }
-  return 1;
-}
-
-function xpForLevel(lvl) {
-  return XP_TABLE[Math.max(1, Math.min(99, lvl))];
-}
-
-const SKILLS = [
-  "attack", "hitpoints", "mining", "strength", "agility", "smithing",
-  "defence", "herblore", "fishing", "ranged", "thieving", "cooking",
-  "prayer", "crafting", "firemaking", "magic", "fletching", "woodcutting",
-  "runecraft", "slayer", "farming", "construction", "hunter",
-];
-
-const SKILL_LABELS = {
-  attack: "Attack", hitpoints: "Hitpoints", mining: "Mining",
-  strength: "Strength", agility: "Agility", smithing: "Smithing",
-  defence: "Defence", herblore: "Herblore", fishing: "Fishing",
-  ranged: "Ranged", thieving: "Thieving", cooking: "Cooking",
-  prayer: "Prayer", crafting: "Crafting", firemaking: "Firemaking",
-  magic: "Magic", fletching: "Fletching", woodcutting: "Woodcutting",
-  runecraft: "Runecraft", slayer: "Slayer", farming: "Farming",
-  construction: "Construction", hunter: "Hunter",
-};
-
 /** Starting XP (level 1 for all except Hitpoints which starts at level 10). */
 function baseStats() {
   const s = {};
@@ -433,7 +387,7 @@ function initMapContextMenu() {
   menu.innerHTML = `
     <button type="button" data-map-action="complete_task">Complete Task</button>
     <button type="button" data-map-action="add_action">Add Action</button>
-    <button type="button" data-map-action="set_path">Set Path</button>
+    <button type="button" data-map-action="set_path">Set Destination</button>
   `;
   container.appendChild(menu);
   mapContextMenuEl = menu;
@@ -445,8 +399,11 @@ function initMapContextMenu() {
   });
 }
 
+let lastClickEvent = null;
+
 function onMapContextMenu(e) {
   L.DomEvent.preventDefault(e.originalEvent);
+  lastClickEvent = e; // Store the click event
   const point = osrsMap.latLngToContainerPoint(e.latlng);
   showMapContextMenu(point.x, point.y);
 }
@@ -470,16 +427,55 @@ function hideMapContextMenu() {
 
 function handleMapContextAction(action) {
   hideMapContextMenu();
+
+  console.log("Last click event:", lastClickEvent);
+  if (!lastClickEvent) return;
+  
+  const { x: osrsX, y: osrsY } = mapLatLngToGame(lastClickEvent.latlng);
+
+  console.log("Handling action", action)
   if (action === "complete_task") {
-    window.dispatchEvent(new CustomEvent("add-task", {
-      detail: { id: 123 }
-    }));
+    window.dispatchEvent(new CustomEvent("add-task", {detail: { id: 123 }}));
+    // Add a marker for completed task
+    const marker = L.marker(lastClickEvent.latlng, {
+      icon: taskMarkerIcon("league_task"),
+      title: "Completed Task"
+    });
+    marker.bindPopup(`
+      <div class="task-popup">
+        <strong>Completed Task</strong>
+        <span style="color:#666;font-size:.72rem">league task</span>
+      </div>
+    `);
+    marker.addTo(osrsMap);
   } else if (action === "add_action") {
-    window.dispatchEvent(new CustomEvent("add-skill", {
-      detail: { id: 123 }
-    }));
+    window.dispatchEvent(new CustomEvent("add-skill", {detail: { id: 123 }}));
+    // Add a marker for generic action
+    const marker = L.marker(lastClickEvent.latlng, {
+      icon: taskMarkerIcon("generic_action"),
+      title: "Skilling Action"
+    });
+    marker.bindPopup(`
+      <div class="task-popup">
+        <strong>Skilling Action</strong>
+        <span style="color:#666;font-size:.72rem">generic action</span>
+      </div>
+    `);
+    marker.addTo(osrsMap);
   } else if (action === "set_path") {
-    startPathDrawingMode();
+    window.dispatchEvent(new CustomEvent("add-destination", {detail: { id: 123 }}));
+    // Add a marker for destination
+    const marker = L.marker(lastClickEvent.latlng, {
+      icon: taskMarkerIcon("note"),
+      title: "Destination"
+    });
+    marker.bindPopup(`
+      <div class="task-popup">
+        <strong>Destination</strong>
+        <span style="color:#666;font-size:.72rem">note</span>
+      </div>
+    `);
+    marker.addTo(osrsMap);
   }
 }
 
@@ -550,272 +546,7 @@ function refreshMarkers() {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Task Modal
-// ---------------------------------------------------------------------------
-
-function updateTaskTypeFields() {
-  const type = document.querySelector('input[name="taskType"]:checked').value;
-  document.getElementById("fields-league").style.display = (type === "league_task") ? "" : "none";
-  document.getElementById("fields-action").style.display = (type === "generic_action") ? "" : "none";
-  document.getElementById("fields-tier").style.display = (type === "tier_unlock") ? "" : "none";
-}
-
-function updateXpPreview() {
-  const preview = document.getElementById("xp-preview");
-  const type = document.querySelector('input[name="taskType"]:checked').value;
-  if (type !== "generic_action") { preview.style.display = "none"; return; }
-
-  const xp = parseFloat(document.getElementById("task-xp").value) || 0;
-  const qty = parseInt(document.getElementById("task-qty").value) || 1;
-  const states = computeTaskStates();
-  const mult = states.length > 0 ? states[states.length - 1].multiplier : plan.base_xp_multiplier;
-  const total = xp * qty * mult;
-  const skill = document.getElementById("task-skill").value;
-  if (skill) {
-    preview.style.display = "";
-    preview.textContent = `Total XP: ${fmtNum(total)} (${fmtNum(xp)} × ${qty} × ${mult}x multiplier)`;
-  } else {
-    preview.style.display = "none";
-  }
-}
-
-async function saveTask() {
-  const type = document.querySelector('input[name="taskType"]:checked').value;
-  const name = document.getElementById("task-name").value.trim();
-  if (!name) { alert("Please enter a task name."); return; }
-
-  const mapX = document.getElementById("task-map-x").value;
-  const mapY = document.getElementById("task-map-y").value;
-
-  const body = {
-    template_key: document.getElementById("task-template-select").value || null,
-    task_type: type,
-    name,
-    notes: document.getElementById("task-notes").value.trim(),
-    league_points: parseInt(document.getElementById("task-points").value) || 0,
-    skill: document.getElementById("task-skill").value,
-    base_xp_per_action: parseFloat(document.getElementById("task-xp").value) || 0,
-    quantity: parseInt(document.getElementById("task-qty").value) || 1,
-    tier_id: document.getElementById("task-tier-select").value || null,
-    map_x: mapX !== "" ? parseInt(mapX) : null,
-    map_y: mapY !== "" ? parseInt(mapY) : null,
-    map_plane: 0,
-  };
-
-  let result;
-  if (editingTaskId) {
-    result = await apiFetch(`/planner/${plan.id}/tasks/${editingTaskId}/`, "PUT", body);
-    if (result) {
-      const idx = plan.tasks.findIndex(t => t.id === editingTaskId);
-      if (idx !== -1) plan.tasks[idx] = { ...plan.tasks[idx], ...result };
-    }
-  } else {
-    result = await apiFetch(cfg.createTaskUrl, "POST", body);
-    if (result) plan.tasks.push(result);
-  }
-
-  if (!result) {
-    alert("Could not save task. Please check required fields and try again.");
-    return;
-  }
-
-  hideModal("taskModal");
-  renderTaskList();
-  checkMilestones();
-}
-
-async function deleteTask(taskId) {
-  if (!confirm("Delete this task?")) return;
-  await apiFetch(`/planner/${plan.id}/tasks/${taskId}/`, "DELETE");
-  plan.tasks = plan.tasks.filter(t => t.id !== taskId);
-  renderTaskList();
-}
-
-// ---------------------------------------------------------------------------
-// Milestone notifications
-// ---------------------------------------------------------------------------
-
-let shownMilestones = new Set();
-
-function checkMilestones() {
-  const states = computeTaskStates();
-  for (const state of states) {
-    if (state.unlockedTier && !shownMilestones.has(state.unlockedTier.id)) {
-      shownMilestones.add(state.unlockedTier.id);
-      showMilestoneToast(state.unlockedTier, state.cumPoints);
-    }
-  }
-}
-
-function showMilestoneToast(tier, points) {
-  const toast = document.getElementById("milestone-toast");
-  toast.innerHTML = `
-    <div style="font-size:.75rem;color:#e8b84b;font-weight:700;margin-bottom:.25rem">🏆 TIER MILESTONE</div>
-    <div style="font-weight:700">${escHtml(tier.name)}</div>
-    <div style="font-size:.8rem;margin-top:.2rem">${points.toLocaleString()} pts — now available to unlock!</div>
-    <div style="font-size:.75rem;color:#aaa;margin-top:.15rem">New multiplier on unlock: ${tier.xp_multiplier}x</div>
-  `;
-  toast.style.display = "";
-  clearTimeout(toast._timeout);
-  toast._timeout = setTimeout(() => { toast.style.display = "none"; }, 6000);
-}
-
-// ---------------------------------------------------------------------------
-// Tier management
-// ---------------------------------------------------------------------------
-
-async function deleteTier(tierId) {
-  if (!confirm("Delete this tier?")) return;
-  await apiFetch(`/planner/${plan.id}/tiers/${tierId}/`, "DELETE");
-  plan.tiers = plan.tiers.filter(t => t.id !== tierId);
-  // Remove any references from tasks
-  plan.tasks.forEach(t => { if (t.tier_id === tierId) t.tier_id = null; });
-  renderTiersTable();
-  renderTaskList();
-}
-
-// ---------------------------------------------------------------------------
-// Drag-and-drop reorder
-// ---------------------------------------------------------------------------
-
-function initSortable() {
-  Sortable.create(document.getElementById("task-list"), {
-    animation: 150,
-    ghostClass: "sortable-ghost",
-    onEnd: async () => {
-      const cards = document.querySelectorAll(".task-card");
-      const newOrder = Array.from(cards).map(c => parseInt(c.dataset.id));
-
-      // Reorder local state
-      const taskMap = Object.fromEntries(plan.tasks.map(t => [t.id, t]));
-      plan.tasks = newOrder.map((id, idx) => {
-        const t = { ...taskMap[id], order: idx };
-        return t;
-      });
-
-      renderTaskList();
-
-      // Persist
-      await apiFetch(cfg.reorderUrl, "POST", { order: newOrder });
-    },
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Stats modal
-// ---------------------------------------------------------------------------
-
-function openStatsModal(atTaskIndex = null) {
-  const states = computeTaskStates();
-  const state = atTaskIndex !== null ? states[atTaskIndex] : (states.length ? states[states.length - 1] : null);
-
-  const title = atTaskIndex !== null
-    ? `Stats after step ${atTaskIndex + 1}: ${escHtml(plan.tasks[atTaskIndex]?.name || "")}`
-    : "Stats (end of plan)";
-  document.getElementById("statsModalTitle").textContent = title;
-
-  const grid = document.getElementById("stats-grid");
-  if (!state) {
-    grid.innerHTML = `<p class="text-muted">No tasks yet.</p>`;
-  } else {
-    const total = SKILLS.reduce((s, sk) => s + (state.skillLevels[sk] || 1), 0);
-    grid.innerHTML = `
-      <p class="mb-2"><strong>Total level:</strong> ${total} &nbsp;|&nbsp;
-         <strong>League Points:</strong> ${state.cumPoints.toLocaleString()} &nbsp;|&nbsp;
-         <strong>Multiplier:</strong> ${state.multiplier}x</p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.4rem">
-        ${SKILLS.map(sk => `
-          <div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;padding:.35rem .6rem;display:flex;justify-content:space-between">
-            <span style="font-size:.8rem">${SKILL_LABELS[sk]}</span>
-            <strong style="color:#1a1a2e;font-size:.85rem">${state.skillLevels[sk] || 1}</strong>
-          </div>
-        `).join("")}
-      </div>
-    `;
-  }
-
-  showModal("statsModal");
-}
-
-// ---------------------------------------------------------------------------
 // Initialise
-// ---------------------------------------------------------------------------
-
-async function loadPlanData() {
-  const data = await apiFetch(cfg.dataUrl);
-  if (!data) return;
-  plan.name = data.name;
-  plan.base_xp_multiplier = data.base_xp_multiplier;
-  plan.tiers = data.tiers;
-  plan.tasks = data.tasks;
-}
-
-async function loadTaskLibrary() {
-  const data = await apiFetch(cfg.taskLibraryUrl);
-  if (!data || !Array.isArray(data.tasks)) return;
-  taskLibrary = data.tasks;
-  const sel = document.getElementById("task-template-select");
-  sel.innerHTML = `<option value="">— start from scratch —</option>`;
-  taskLibrary.forEach(task => {
-    const opt = document.createElement("option");
-    opt.value = task.key;
-    opt.textContent = `${task.name} (${task.task_type.replace("_", " ")})`;
-    sel.appendChild(opt);
-  });
-}
-
-function applyTaskTemplate(templateKey) {
-  if (!templateKey) return;
-  const template = taskLibrary.find(item => item.key === templateKey);
-  if (!template) return;
-
-  const taskTypeRadio = document.querySelector(`input[name="taskType"][value="${template.task_type}"]`);
-  if (taskTypeRadio) taskTypeRadio.checked = true;
-  document.getElementById("task-name").value = template.name || "";
-  document.getElementById("task-points").value = template.league_points || 0;
-  document.getElementById("task-skill").value = template.skill || "";
-  document.getElementById("task-xp").value = template.base_xp_per_action || 0;
-  document.getElementById("task-qty").value = template.quantity || 1;
-  document.getElementById("task-notes").value = template.notes || "";
-  document.getElementById("task-map-x").value = template.map_x ?? "";
-  document.getElementById("task-map-y").value = template.map_y ?? "";
-  updateTaskTypeFields();
-  updateXpPreview();
-}
-
-function renderTaskLibraryList(filterText = "") {
-  const list = document.getElementById("task-template-list");
-  const count = document.getElementById("task-template-count");
-  if (!list) return;
-
-  const filter = filterText.trim().toLowerCase();
-  const items = taskLibrary.filter(item => !filter || item.name.toLowerCase().includes(filter));
-
-  list.innerHTML = "";
-  if (items.length === 0) {
-    list.innerHTML = `<div class="list-group-item text-muted">No templates match your search.</div>`;
-  } else {
-    items.forEach(item => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "list-group-item list-group-item-action d-flex justify-content-between align-items-center";
-      btn.dataset.templateKey = item.key;
-      btn.innerHTML = `
-        <span>${escHtml(item.name)}</span>
-        <span class="badge text-bg-light">${escHtml(item.task_type.replace("_", " "))}</span>
-      `;
-      btn.addEventListener("click", () => {
-        document.getElementById("task-template-select").value = item.key;
-        applyTaskTemplate(item.key);
-      });
-      list.appendChild(btn);
-    });
-  }
-
-  if (count) count.textContent = `${items.length} of ${taskLibrary.length} templates shown. Click one to prefill the task form.`;
-}
-
 document.addEventListener("DOMContentLoaded", async () => {
   initMap();
 });

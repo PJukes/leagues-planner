@@ -45,6 +45,11 @@ let pathDraftPoints = [];
 let pathDraftPolyline = null;
 const pathCommittedPolylines = [];
 
+// Action marker tracking for ordered polyline connections
+const actionLatLngs = {}; // actionKey → L.LatLng
+let connectionPolylines = []; // polylines connecting sequential action markers
+window._pendingActionLatlng = null; // set when a context-menu action places a marker
+
 const TILE_X_OFFSET = 100;
 const TILE_Y_OFFSET = 100;
 
@@ -229,7 +234,6 @@ function initMapContextMenu() {
 }
 
 let lastClickEvent = null;
-let lastPoint = null;
 
 function onMapContextMenu(e) {
   L.DomEvent.preventDefault(e.originalEvent);
@@ -305,14 +309,43 @@ function handleMapContextAction(action) {
     `);
   }
   marker.addTo(osrsMap);
-  if (lastPoint !== null) {
-    // Draw a line from the last point to the new point
-    const latlngs = [lastPoint, marker.getLatLng()];
-    const polyline = L.polyline(latlngs, { color: 'orange', weight: 2 });
-    polyline.addTo(osrsMap);
-  }
-  lastPoint = marker.getLatLng();
+  // Store latlng so the Alpine.js action can register it after creation
+  window._pendingActionLatlng = marker.getLatLng();
 }
+
+// ---------------------------------------------------------------------------
+// Action-marker helpers (called from Alpine.js tasks.js)
+// ---------------------------------------------------------------------------
+
+window.registerActionLatLng = function(key, latlng) {
+  if (!latlng) return;
+  actionLatLngs[key] = latlng;
+};
+
+window.removeActionLatLng = function(key) {
+  delete actionLatLngs[key];
+};
+
+window.refreshMapPolylines = function(actions) {
+  // Clear old connection lines
+  connectionPolylines.forEach(p => osrsMap && osrsMap.removeLayer(p));
+  connectionPolylines = [];
+
+  if (!osrsMap) return;
+
+  let prevLatlng = null;
+  for (const action of actions) {
+    const latlng = actionLatLngs[action.key];
+    if (latlng) {
+      if (prevLatlng) {
+        const poly = L.polyline([prevLatlng, latlng], { color: 'orange', weight: 2 });
+        poly.addTo(osrsMap);
+        connectionPolylines.push(poly);
+      }
+      prevLatlng = latlng;
+    }
+  }
+};
 
 function startPathDrawingMode() {
   pathDrawingEnabled = true;

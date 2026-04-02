@@ -64,13 +64,18 @@ export function taskManager() {
             const taskTemplate = this.taskList.find(task => task.key === taskKey);
             const canAdd = taskTemplate && (!taskTemplate.is_passive || taskTemplate.selectable);
             if (canAdd) {
-                this.actions.push({
+                const action = {
                     ...taskTemplate,
                     type: "task",
                     selected: false,
                     currentStats: this.calculateStats(),
                     totalGold: 0,
-                });
+                };
+                this.actions.push(action);
+                if (window._pendingActionLatlng && window.registerActionLatLng) {
+                    window.registerActionLatLng(action.key, window._pendingActionLatlng);
+                    window._pendingActionLatlng = null;
+                }
                 this.recalculateActionState();
             }
             this.closeModal();
@@ -91,6 +96,7 @@ export function taskManager() {
 
         removeTask(taskKey) {
             this.actions = this.actions.filter(task => task.key !== taskKey);
+            if (window.removeActionLatLng) window.removeActionLatLng(taskKey);
             this.recalculateActionState();
         },
 
@@ -102,6 +108,10 @@ export function taskManager() {
                 currentStats: this.calculateStats(),
             });
             this.relicSelection.push(relicKey);
+            if (window._pendingActionLatlng && window.registerActionLatLng) {
+                window.registerActionLatLng(relicKey, window._pendingActionLatlng);
+                window._pendingActionLatlng = null;
+            }
             this.recalculateActionState();
             this.closeModal();
         },
@@ -160,6 +170,10 @@ export function taskManager() {
             skillAction.currentStats = this.calculateStats(skillAction);
 
             this.actions.push(skillAction);
+            if (window._pendingActionLatlng && window.registerActionLatLng) {
+                window.registerActionLatLng(skillAction.key, window._pendingActionLatlng);
+                window._pendingActionLatlng = null;
+            }
             this.skillSelection = "";
             this.methodSelection = "";
             this.skillQuantity = 1;
@@ -291,16 +305,23 @@ export function taskManager() {
             this.totalLevel = Object.values(this.skillLevels).reduce((sum, lvl) => sum + lvl, 0);
             this.totalTasks = this.actions.filter(action => action.type === "task").length;
             this.checkPassiveTasks();
+            if (window.refreshMapPolylines) window.refreshMapPolylines(this.actions);
         },
 
         addDestination(destination) {
             this.closeModal();
             if (!destination) return;
-            this.actions.push({
+            const action = {
                 key: `destination_${this.actions.length}`,
                 type: "destination",
                 description: destination,
-            });
+            };
+            this.actions.push(action);
+            if (window._pendingActionLatlng && window.registerActionLatLng) {
+                window.registerActionLatLng(action.key, window._pendingActionLatlng);
+                window._pendingActionLatlng = null;
+            }
+            this.recalculateActionState();
         },
 
         showStats(skillKey) {

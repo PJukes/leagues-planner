@@ -58,6 +58,7 @@ def _library_task_to_dict(task_template):
         "is_passive": bool(task_template.get("is_passive", False)),
         "selectable": bool(task_template.get("selectable", True)),
         "passive_requirement": task_template.get("passive_requirement"),
+        "xp_reward": task_template.get("xp_reward"),
     }
 
 

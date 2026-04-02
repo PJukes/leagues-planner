@@ -112,18 +112,23 @@ export function taskManager() {
         return Math.max(1, output);
     };
 
-    const evaluatePassiveRequirement = (requirement, skillLevels, totalLevel) => {
+    const evaluatePassiveRequirement = (requirement, skillLevels, totalLevel, actionQuantities = {}) => {
         if (!requirement || !requirement.type) {
             return false;
         }
         const targetValue = Number(requirement.value) || 0;
         if (requirement.type === "any_skill_level") {
-            return Object.entries(skillLevels).some(([skill, level]) => 
+            return Object.entries(skillLevels).some(([skill, level]) =>
                 level >= targetValue && skill !== undefined
             );
         }
         if (requirement.type === "total_level") {
             return totalLevel >= targetValue;
+        }
+        if (requirement.type === "skill_action_quantity") {
+            const { skill, method, quantity } = requirement;
+            const key = `${skill}-${method}`;
+            return (actionQuantities[key] || 0) >= Number(quantity || 0);
         }
         return false;
     };
@@ -183,7 +188,8 @@ export function taskManager() {
         addTask(taskKey) {
             console.log("Adding task", taskKey);
             const taskTemplate = this.taskList.find(task => task.key === taskKey);
-            if (taskTemplate && !taskTemplate.is_passive) {
+            const canAdd = taskTemplate && (!taskTemplate.is_passive || taskTemplate.selectable);
+            if (canAdd) {
                 const task = {
                     ...taskTemplate,
                     type: "task",
@@ -327,9 +333,16 @@ export function taskManager() {
             const manualActions = this.actions.filter(action => !action.isPassiveAward);
             const passiveTemplates = this.taskList.filter(task => task.is_passive && task.passive_requirement);
 
+            // Track which task keys are already manually added (selectable passive tasks may be added by the user)
+            const manualTaskKeys = new Set(
+                manualActions.filter(a => a.type === "task").map(a => a.key)
+            );
+
             const runningBySkill = Object.fromEntries(SKILLS.map(skill => [skill, 0]));
             let runningPoints = 0;
             const unlockedPassiveKeys = new Set();
+            // Track cumulative skill+method quantities for skill_action_quantity requirements
+            const actionQuantities = {};
             const resultActions = [];
 
             manualActions.forEach(action => {
@@ -339,6 +352,19 @@ export function taskManager() {
                     const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0) * (this.getXpMultiplier(runningPoints) || 5);
                     runningBySkill[action.skill] += baseXp;
                 }
+
+                // Accumulate xp_reward for task-type actions (e.g. a league task that grants XP)
+                if (action.xp_reward && action.xp_reward.skill && SKILLS.includes(action.xp_reward.skill)) {
+                    const xp = Number(action.xp_reward.amount || 0) * (this.getXpMultiplier(runningPoints) || 5);
+                    runningBySkill[action.xp_reward.skill] += xp;
+                }
+
+                // Track cumulative quantities for skill actions (used by skill_action_quantity requirements)
+                if (action.type === "skill" && action.skill && action.method) {
+                    const key = `${action.skill}-${action.method}`;
+                    actionQuantities[key] = (actionQuantities[key] || 0) + Number(action.quantity || 0);
+                }
+
                 runningPoints += Number(action.league_points || 0);
 
                 const levelsBySkill = Object.fromEntries(
@@ -347,8 +373,9 @@ export function taskManager() {
                 const totalLevel = Object.values(levelsBySkill).reduce((sum, lvl) => sum + lvl, 0);
 
                 passiveTemplates.forEach(task => {
-                    if (!unlockedPassiveKeys.has(task.key) &&
-                        evaluatePassiveRequirement(task.passive_requirement, levelsBySkill, totalLevel)) {
+                    // Don't auto-add if already manually added or already awarded
+                    if (!unlockedPassiveKeys.has(task.key) && !manualTaskKeys.has(task.key) &&
+                        evaluatePassiveRequirement(task.passive_requirement, levelsBySkill, totalLevel, actionQuantities)) {
                         unlockedPassiveKeys.add(task.key);
                         resultActions.push({
                             ...task,
@@ -381,6 +408,12 @@ export function taskManager() {
                     actionExperienceBySkill[action.skill] = baseXp;
                     action.currentMultiplier = currentMultiplier;
                     action.effectiveExperience = baseXp * currentMultiplier;
+                }
+                // Handle xp_reward for task-type actions (e.g. a league task that grants XP on completion)
+                if (action.xp_reward && action.xp_reward.skill && SKILLS.includes(action.xp_reward.skill)) {
+                    const xp = Number(action.xp_reward.amount || 0) * currentMultiplier;
+                    actionExperienceBySkill[action.xp_reward.skill] += xp;
+                    action.currentMultiplier = currentMultiplier;
                 }
 
                 Object.entries(actionExperienceBySkill).forEach(([skill, xp]) => {

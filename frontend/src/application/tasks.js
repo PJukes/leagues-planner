@@ -27,6 +27,8 @@ export function taskManager() {
         skillLevels: emptySkillLevels(),
         viewStats: null,
         totalLevel: SKILLS.length,
+        editingAction: null,
+        editFormData: {},
 
         init() {
             window.addEventListener("add-task", () => this.openModal());
@@ -115,8 +117,23 @@ export function taskManager() {
         },
 
         removeTask(taskKey) {
-            this.actions = this.actions.filter(task => task.key !== taskKey);
-            if (window.removeActionLatLng) window.removeActionLatLng(taskKey);
+            // Collect all keys to remove (action + any descendants)
+            const keysToRemove = new Set([taskKey]);
+            let changed = true;
+            while (changed) {
+                changed = false;
+                for (const action of this.actions) {
+                    if (action.parentKey && keysToRemove.has(action.parentKey) && !keysToRemove.has(action.key)) {
+                        keysToRemove.add(action.key);
+                        changed = true;
+                    }
+                }
+            }
+
+            for (const key of keysToRemove) {
+                if (window.removeActionLatLng) window.removeActionLatLng(key);
+            }
+            this.actions = this.actions.filter(task => !keysToRemove.has(task.key));
             this.recalculateActionState();
         },
 
@@ -269,13 +286,129 @@ export function taskManager() {
             return stats;
         },
 
+        // Evaluate a passive requirement using pre-computed running XP and action counts
+        evaluateRequirementAtPoint(requirement, runningXpBySkill, actionCounts) {
+            if (!requirement || !requirement.type) return false;
+
+            const levelsBySkill = Object.fromEntries(
+                Object.entries(runningXpBySkill).map(([skill, xp]) => [skill, experienceToLevel(xp)])
+            );
+            const totalLevel = Object.values(levelsBySkill).reduce((sum, lvl) => sum + lvl, 0);
+            const targetValue = Number(requirement.value) || 0;
+
+            if (requirement.type === "any_skill_level") {
+                return Object.entries(levelsBySkill).some(([skill, level]) =>
+                    level >= targetValue && skill !== "hitpoints"
+                );
+            }
+            if (requirement.type === "total_level") {
+                return totalLevel >= targetValue;
+            }
+            if (requirement.type === "combat_level") {
+                const statsForCombat = Object.fromEntries(
+                    SKILLS.map(skill => [skill, { level: levelsBySkill[skill] || 1 }])
+                );
+                return getCombatLevel(statsForCombat) >= targetValue;
+            }
+            if (requirement.type === "skill_action_quantity") {
+                const totalQty = actionCounts[requirement.method] || 0;
+                return totalQty >= Number(requirement.quantity || 0);
+            }
+            return false;
+        },
+
+        // Find the first action that causes a passive requirement to be satisfied
+        findPassiveParentKey(task) {
+            const req = task.passive_requirement;
+            if (!req) return null;
+
+            const runningXpBySkill = { ...emptySkillExperience() };
+            const actionCounts = {};
+            let prevMet = false;
+
+            for (const action of this.actions) {
+                if (action.key === task.key) continue;
+
+                if (action.skill && SKILLS.includes(action.skill)) {
+                    runningXpBySkill[action.skill] += action.experience || 0;
+                }
+                if (action.bonusExp && Array.isArray(action.bonusExp)) {
+                    for (const bonus of action.bonusExp) {
+                        if (SKILLS.includes(bonus.skill)) {
+                            runningXpBySkill[bonus.skill] += bonus.amount || 0;
+                        }
+                    }
+                }
+                if (action.xp_reward && action.xp_reward.skill && SKILLS.includes(action.xp_reward.skill)) {
+                    runningXpBySkill[action.xp_reward.skill] += Number(action.xp_reward.amount || 0);
+                }
+                if (action.type === "skill" && action.method) {
+                    actionCounts[action.method] = (actionCounts[action.method] || 0) + (action.quantity || 0);
+                }
+
+                const met = this.evaluateRequirementAtPoint(req, runningXpBySkill, actionCounts);
+                if (met && !prevMet) {
+                    return action.key;
+                }
+                prevMet = met;
+            }
+            return null;
+        },
+
+        // Returns true if a child (passive) action's requirement is not met at its current position
+        isOutOfSync(action) {
+            if (!action.isPassiveAward || !action.passive_requirement) return false;
+
+            const index = this.actions.findIndex(a => a.key === action.key);
+            if (index <= 0) return true;
+
+            // Use cumulativeExperienceBySkill from the action just before this one
+            const prevAction = this.actions[index - 1];
+            const prevXpBySkill = prevAction.cumulativeExperienceBySkill || emptySkillExperience();
+
+            // Count action quantities up to (but not including) this action
+            const actionCounts = {};
+            for (let i = 0; i < index; i++) {
+                const a = this.actions[i];
+                if (a.type === "skill" && a.method) {
+                    actionCounts[a.method] = (actionCounts[a.method] || 0) + (a.quantity || 0);
+                }
+            }
+
+            return !this.evaluateRequirementAtPoint(action.passive_requirement, prevXpBySkill, actionCounts);
+        },
+
         checkPassiveTasks() {
             const passiveTemplates = this.taskList.filter(task => task.is_passive && task.passive_requirement);
             const unlockedKeys = new Set(this.actions.filter(a => a.type === "task").map(a => a.key));
 
             for (const task of passiveTemplates) {
                 if (!unlockedKeys.has(task.key) && this.evaluatePassiveRequirement(task.passive_requirement)) {
-                    this.actions.push({ ...task, type: "task", selected: false, isPassiveAward: true });
+                    const parentKey = this.findPassiveParentKey(task);
+                    const newAction = {
+                        ...task,
+                        type: "task",
+                        selected: false,
+                        isPassiveAward: true,
+                        parentKey: parentKey || null,
+                    };
+
+                    if (parentKey) {
+                        const parentIndex = this.actions.findIndex(a => a.key === parentKey);
+                        if (parentIndex !== -1) {
+                            // Insert after parent and any existing children of that parent
+                            let insertIndex = parentIndex + 1;
+                            while (
+                                insertIndex < this.actions.length &&
+                                this.actions[insertIndex].parentKey === parentKey
+                            ) {
+                                insertIndex++;
+                            }
+                            this.actions.splice(insertIndex, 0, newAction);
+                            continue;
+                        }
+                    }
+                    this.actions.push(newAction);
                 }
             }
         },
@@ -385,9 +518,65 @@ export function taskManager() {
             }
             return false;
         },
+
         getCurrentCombatLevel() {
             const currentStats = this.calculateStats();
             return getCombatLevel(currentStats);
-        }
+        },
+
+        // Edit action methods
+        startEdit(actionKey) {
+            const action = this.actions.find(a => a.key === actionKey);
+            if (!action) return;
+            this.editingAction = actionKey;
+            this.editFormData = {
+                skill: action.skill || "",
+                method: action.method || "",
+                quantity: action.quantity || 1,
+                description: action.description || "",
+            };
+        },
+
+        cancelEdit() {
+            this.editingAction = null;
+            this.editFormData = {};
+        },
+
+        getEditMethodOptions() {
+            return getMethodsForSkill(this.editFormData.skill || "");
+        },
+
+        saveEdit() {
+            const action = this.actions.find(a => a.key === this.editingAction);
+            if (!action) { this.cancelEdit(); return; }
+
+            if (action.type === "skill") {
+                const selectedMethod = getMethod(this.editFormData.skill, this.editFormData.method);
+                if (!selectedMethod || Number(this.editFormData.quantity) <= 0) {
+                    this.cancelEdit();
+                    return;
+                }
+                const parsedQuantity = Number(this.editFormData.quantity);
+                const experience = selectedMethod.xpPerAction * parsedQuantity * (getXpMultiplier(this.totalPoints) || 5);
+
+                action.skill = this.editFormData.skill;
+                action.skillLabel = this.skillOptions.find(opt => opt.key === this.editFormData.skill)?.label || this.editFormData.skill;
+                action.method = this.editFormData.method;
+                action.methodLabel = selectedMethod.name;
+                action.quantity = parsedQuantity;
+                action.xpPerAction = selectedMethod.xpPerAction;
+                action.experience = experience;
+                action.bonusExp = this.getBonusExp(this.editFormData.skill, parsedQuantity, experience);
+                action.totalGold = ((selectedMethod.gold || 0) * parsedQuantity) + this.getGold(experience, parsedQuantity);
+            }
+
+            if (action.type === "destination") {
+                action.description = this.editFormData.description;
+            }
+
+            this.editingAction = null;
+            this.editFormData = {};
+            this.recalculateActionState();
+        },
     };
 }

@@ -142,6 +142,27 @@ export const SKILL_METHODS = {
             { key: "mine_ancient_essence", name: "Mine Ancient essence", xpPerAction: 13.5, actionLabel: "cook" },
             { key: "mine_runite", name: "Mine Runite", xpPerAction: 125, actionLabel: "cook" },
         ]
+    },
+    smithing: {
+        label: "Smithing",
+        methods: [
+            { key: "smelt_bronze", name: "Smelt Bronze", xpPerAction: 6.2, actionLabel: "smelt" },
+            { key: "smith_bronze", name: "Smith Bronze", xpPerAction: 12.5, actionLabel: "smith" },
+            { key: "smelt_iron", name: "Smelt Iron", xpPerAction: 12.5, actionLabel: "smelt" },
+            { key: "smith_iron", name: "Smith Iron", xpPerAction: 25, actionLabel: "smith" },
+            { key: "smelt_silver", name: "Smelt Silver", xpPerAction: 13.7, actionLabel: "smelt" },
+            { key: "smelt_elemental", name: "Smelt Elemental", xpPerAction: 7.5, actionLabel: "smelt" },
+            { key: "smelt_steel", name: "Smelt Steel", xpPerAction: 17.5, actionLabel: "smelt" },
+            { key: "smith_steel", name: "Smith Steel", xpPerAction: 37.5, actionLabel: "smith" },
+            { key: "smelt_gold", name: "Smelt Gold", xpPerAction: 22.5, actionLabel: "smelt" },
+            { key: "smelt_lovakite", name: "Smelt Lovakite", xpPerAction: 20, actionLabel: "smelt" },
+            { key: "smelt_mithril", name: "Smelt Mithril", xpPerAction: 30, actionLabel: "smelt" },
+            { key: "smith_mithril", name: "Smith Mithril", xpPerAction: 50, actionLabel: "smith" },
+            { key: "smelt_adamantite", name: "Smelt Adamantite", xpPerAction: 37.5, actionLabel: "smelt" },
+            { key: "smith_adamantite", name: "Smith Adamantite", xpPerAction: 62.5, actionLabel: "smith" },
+            { key: "smelt_runite", name: "Smelt Runite", xpPerAction: 50, actionLabel: "smelt" },
+            { key: "smith_runite", name: "Smith Runite", xpPerAction: 75, actionLabel: "smith" },
+        ]
     }
 };
 

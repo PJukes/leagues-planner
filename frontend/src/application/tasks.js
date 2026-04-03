@@ -1,4 +1,5 @@
 import { getMethod, getMethodsForSkill, getSkillOptions } from "./skill-methods.js";
+import { ITEMS } from "./items.js";
 import { CREATURES } from "./creatures.js";
 import { SKILLS, RELIC_LIST, RELICS, RELIC_POINTS_TIER } from "./constants.js";
 import {
@@ -29,6 +30,7 @@ export function taskManager() {
         skillOptions: getSkillOptions(),
         skillExperience: emptySkillExperience(),
         skillLevels: emptySkillLevels(),
+        itemRepository: {},
         viewStats: null,
         totalLevel: SKILLS.length,
         editingAction: null,
@@ -461,12 +463,36 @@ export function taskManager() {
             }
         },
 
+        // Returns display-friendly item deltas for an action (positive = yield, negative = cost)
+        getActionItemDeltas(action) {
+            if (!action.itemDeltas) return [];
+            return Object.entries(action.itemDeltas)
+                .filter(([, qty]) => qty !== 0)
+                .map(([key, qty]) => ({
+                    item: key,
+                    name: ITEMS[key]?.name || key,
+                    quantity: qty,
+                }));
+        },
+
+        // Returns all items in the repository with non-zero counts
+        totalItemRepository() {
+            return Object.entries(this.itemRepository)
+                .filter(([, qty]) => qty !== 0)
+                .map(([key, qty]) => ({
+                    key,
+                    name: ITEMS[key]?.name || key,
+                    quantity: qty,
+                }));
+        },
+
         recalculateActionState() {
             this.checkPassiveTasks();
 
             let runningPoints = 0;
             let runningExperience = 0;
             const runningBySkill = emptySkillExperience();
+            const runningItems = {};
 
             this.actions.forEach(action => {
                 const currentMultiplier = getXpMultiplier(runningPoints);
@@ -497,6 +523,48 @@ export function taskManager() {
                 runningExperience += action.totalExperienceGain;
                 action.cumulativeExperience = runningExperience;
                 action.cumulativeExperienceBySkill = { ...runningBySkill };
+
+                // Item repository tracking
+                const actionItemDeltas = {};
+                const itemWarnings = [];
+
+                if (action.type === "skill") {
+                    const method = getMethod(action.skill, action.method);
+                    if (method) {
+                        const qty = Number(action.quantity) || 0;
+
+                        if (method.itemYields) {
+                            for (const yieldDef of method.itemYields) {
+                                const total = yieldDef.quantity * qty;
+                                actionItemDeltas[yieldDef.item] = (actionItemDeltas[yieldDef.item] || 0) + total;
+                            }
+                        }
+
+                        if (method.itemCosts) {
+                            for (const costDef of method.itemCosts) {
+                                const total = costDef.quantity * qty;
+                                const available = (runningItems[costDef.item] || 0) + (actionItemDeltas[costDef.item] || 0);
+                                if (total > available) {
+                                    itemWarnings.push({
+                                        item: costDef.item,
+                                        name: ITEMS[costDef.item]?.name || costDef.item,
+                                        needed: total,
+                                        available: Math.max(0, available),
+                                    });
+                                }
+                                actionItemDeltas[costDef.item] = (actionItemDeltas[costDef.item] || 0) - total;
+                            }
+                        }
+                    }
+                }
+
+                for (const [item, delta] of Object.entries(actionItemDeltas)) {
+                    runningItems[item] = (runningItems[item] || 0) + delta;
+                }
+
+                action.itemDeltas = actionItemDeltas;
+                action.cumulativeItems = { ...runningItems };
+                action.itemWarnings = itemWarnings;
             });
 
             this.totalPoints = runningPoints;
@@ -506,6 +574,7 @@ export function taskManager() {
             );
             this.totalLevel = Object.values(this.skillLevels).reduce((sum, lvl) => sum + lvl, 0);
             this.totalTasks = this.actions.filter(action => action.type === "task").length;
+            this.itemRepository = { ...runningItems };
             this.checkPassiveTasks();
             if (window.refreshMapPolylines) window.refreshMapPolylines(this.actions);
         },

@@ -287,10 +287,8 @@
                         <p x-text="action.totalGold"></p>
                       </div>
                       <div>
-                        <p class="text-xs font-medium text-gray-500">Bonus Exp</p>
-                        <template x-if="action.bonusExp && action.bonusExp.length">
-                          <p x-text="action.bonusExp.map(bonus => `+${bonus.amount} ${bonus.skill}`).join(', ')"></p>
-                        </template>
+                        <p class="text-xs font-medium text-gray-500">HP Bonus</p>
+                        <p x-text="`+${action.hitpointsExperience || 0} xp`" class="text-xs text-orange-700"></p>
                       </div>
                       <div>
                         <button @click="showStats(action.key)" type="button" class="text-xs font-medium text-gray-700/60">Show Stats</button>

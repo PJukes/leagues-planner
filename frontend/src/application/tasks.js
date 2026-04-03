@@ -240,6 +240,7 @@ export function taskManager() {
 
             const skillLabel = this.skillOptions.find(opt => opt.key === skill)?.label || skill;
             const experience = selectedCreature.hitpoints * 4 * parsedQuantity * (getXpMultiplier(this.totalPoints) || 5);
+            const hitpointsExperience = experience / 4;
             const skillAction = {
                 key: `${skill}-${creature}-${Date.now()}`,
                 skill,
@@ -248,6 +249,8 @@ export function taskManager() {
                 creatureName: selectedCreature.name,
                 quantity: parsedQuantity,
                 xpPerAction: selectedCreature.hitpoints * 4,
+                hitpointsXpPerAction: selectedCreature.hitpoints,
+                hitpointsExperience,
                 bonusExp: this.getBonusExp(skill, parsedQuantity, experience),
                 experience,
                 type: "combat",
@@ -302,6 +305,9 @@ export function taskManager() {
                 if (existingAction.skill && SKILLS.includes(existingAction.skill)) {
                     runningBySkill[existingAction.skill] += existingAction.experience || 0;
                 }
+                if (existingAction.type === "combat" && existingAction.hitpointsExperience) {
+                    runningBySkill["hitpoints"] += existingAction.hitpointsExperience;
+                }
                 if (existingAction.bonusExp) {
                     for (const bonus of existingAction.bonusExp) {
                         runningBySkill[bonus.skill] += bonus.amount || 0;
@@ -312,6 +318,9 @@ export function taskManager() {
 
             if (action && action.skill && SKILLS.includes(action.skill)) {
                 runningBySkill[action.skill] += action.experience || 0;
+                if (action.type === "combat" && action.hitpointsExperience) {
+                    runningBySkill["hitpoints"] += action.hitpointsExperience;
+                }
                 if (action.bonusExp) {
                     for (const bonus of action.bonusExp) {
                         runningBySkill[bonus.skill] += bonus.amount || 0;
@@ -492,6 +501,11 @@ export function taskManager() {
                     actionExperienceBySkill[action.skill] = baseXp;
                     action.currentMultiplier = currentMultiplier;
                     action.effectiveExperience = baseXp * currentMultiplier;
+                }
+
+                if (action.type === "combat" && action.hitpointsXpPerAction) {
+                    const hpXp = (Number(action.quantity) || 0) * (Number(action.hitpointsXpPerAction) || 0) * (getXpMultiplier(runningPoints) || 5);
+                    actionExperienceBySkill["hitpoints"] += hpXp;
                 }
 
                 if (action.xp_reward && action.xp_reward.skill && SKILLS.includes(action.xp_reward.skill)) {

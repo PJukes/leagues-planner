@@ -2,11 +2,11 @@ export const SKILL_METHODS = {
     woodcutting: {
         label: "Woodcutting",
         methods: [
-            { key: "regular_trees", name: "Regular Trees", xpPerAction: 25, actionLabel: "log" },
-            { key: "oak_trees", name: "Oak Trees", xpPerAction: 37.5, actionLabel: "log" },
-            { key: "willow_trees", name: "Willow Trees", xpPerAction: 67.5, actionLabel: "log" },
-            { key: "maple_trees", name: "Maple Trees", xpPerAction: 100, actionLabel: "log" },
-            { key: "yew_trees", name: "Yew Trees", xpPerAction: 175, actionLabel: "log" },
+            { key: "chop_regular_trees", name: "Regular Trees", xpPerAction: 25, actionLabel: "log" },
+            { key: "chop_oak_trees", name: "Oak Trees", xpPerAction: 37.5, actionLabel: "log" },
+            { key: "chop_willow_trees", name: "Willow Trees", xpPerAction: 67.5, actionLabel: "log" },
+            { key: "chop_maple_trees", name: "Maple Trees", xpPerAction: 100, actionLabel: "log" },
+            { key: "chop_yew_trees", name: "Yew Trees", xpPerAction: 175, actionLabel: "log" },
 
         ],
     },

@@ -36,7 +36,6 @@ export function taskManager() {
         totalLevel: SKILLS.length,
         editingAction: null,
         editFormData: {},
-        showRouteModal: false,
         savedRoutes: [],
         newRouteName: '',
 
@@ -684,9 +683,9 @@ export function taskManager() {
         // Route management
         // -----------------------------------------------------------------------
 
-        openRouteModal() {
+        openRouteManagerModal() {
             this.savedRoutes = this._listRoutes();
-            this.showRouteModal = true;
+            this.openModal("route-manager-template");
         },
 
         saveRoute() {
@@ -697,6 +696,9 @@ export function taskManager() {
                 routes[name] = {
                     name,
                     savedAt: Date.now(),
+                    totalTasks: this.totalTasks,
+                    totalPoints: this.totalPoints,
+                    totalLevel: this.totalLevel,
                     actions: this.actions,
                     relicSelection: this.relicSelection,
                     actionLatLngs: window.getActionLatLngs ? window.getActionLatLngs() : {},
@@ -718,7 +720,7 @@ export function taskManager() {
             } catch (e) {
                 console.warn('Could not load route', e);
             }
-            this.showRouteModal = false;
+            this.closeModal();
         },
 
         deleteRoute(name) {

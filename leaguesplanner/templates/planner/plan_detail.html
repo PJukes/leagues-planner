@@ -52,9 +52,15 @@
         <div id="task-pane-header mb-4">
           <div class="flex justify-between items-center pb-2">
             <h3>Task List</h3>
-            <div class="d-flex gap-2">
-              <button type="button" @click="openModal();">+ Task</button>
+            <div class="flex gap-2 items-center">
+              <button type="button" @click="openModal();" class="text-sm px-2 py-1 rounded border border-gray-300 hover:bg-gray-50">+ Task</button>
+              <button type="button" @click="openRouteModal()" class="text-sm px-2 py-1 rounded border border-blue-300 text-blue-700 hover:bg-blue-50">Routes</button>
+              <button type="button" @click="clearPlan()" class="text-sm px-2 py-1 rounded border border-red-300 text-red-600 hover:bg-red-50">Clear</button>
             </div>
+          </div>
+          <div class="flex gap-2 items-center pb-2 border-b border-gray-200">
+            <input type="text" x-model="newRouteName" placeholder="Route name to save..." class="flex-1 text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-blue-400" @keyup.enter="saveRoute()">
+            <button type="button" @click="saveRoute()" :disabled="!newRouteName.trim()" class="text-sm px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">Save</button>
           </div>
         </div>
 
@@ -392,6 +398,43 @@
   {% include 'planner/relic-list.html' %}
 
   {% include 'planner/stats.html' %}
+</div>
+
+<!-- Route Manager Modal -->
+<div x-show="showRouteModal"
+     x-on:keyup.escape.window="showRouteModal = false"
+     class="fixed inset-0 z-[150] overflow-y-auto"
+     style="display:none;">
+  <div @click="showRouteModal = false" class="fixed inset-0 bg-black/50"></div>
+  <div class="relative flex min-h-screen items-center justify-center p-4">
+    <div @click.stop class="relative w-full max-w-lg rounded-lg bg-white shadow-xl p-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Saved Routes</h3>
+
+      <template x-if="savedRoutes.length === 0">
+        <p class="text-sm text-gray-500">No saved routes yet. Type a name in the route field and click Save.</p>
+      </template>
+
+      <ul class="space-y-2 max-h-80 overflow-y-auto">
+        <template x-for="route in savedRoutes" :key="route.name">
+          <li class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 bg-gray-50">
+            <div>
+              <p class="text-sm font-medium text-gray-900" x-text="route.name"></p>
+              <p class="text-xs text-gray-400" x-text="formatSavedAt(route.savedAt)"></p>
+              <p class="text-xs text-gray-500" x-text="`${(route.actions || []).length} action(s)`"></p>
+            </div>
+            <div class="flex gap-2">
+              <button @click="loadRoute(route.name)" class="text-sm px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700">Load</button>
+              <button @click="deleteRoute(route.name)" class="text-sm px-3 py-1 rounded border border-red-300 text-red-600 hover:bg-red-50">Delete</button>
+            </div>
+          </li>
+        </template>
+      </ul>
+
+      <div class="mt-4 flex justify-end">
+        <button @click="showRouteModal = false" class="text-sm px-4 py-2 rounded border border-gray-300 hover:bg-gray-50">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Leaflet JS -->

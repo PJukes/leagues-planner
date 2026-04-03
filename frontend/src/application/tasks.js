@@ -9,6 +9,9 @@ import {
     getCombatLevel
 } from "./experience.js";
 
+const STORAGE_KEY_CURRENT = 'leagues_planner_current';
+const STORAGE_KEY_ROUTES = 'leagues_planner_routes';
+
 export function taskManager() {
     return {
         showModal: false,
@@ -33,6 +36,9 @@ export function taskManager() {
         totalLevel: SKILLS.length,
         editingAction: null,
         editFormData: {},
+        showRouteModal: false,
+        savedRoutes: [],
+        newRouteName: '',
 
         init() {
             window.addEventListener("add-task", () => this.openModal());
@@ -43,6 +49,7 @@ export function taskManager() {
                 .then(res => res.json())
                 .then(data => {
                     this.taskList = data.tasks || [];
+                    this._restoreFromLocalStorage();
                 });
         },
 
@@ -508,6 +515,7 @@ export function taskManager() {
             this.totalTasks = this.actions.filter(action => action.type === "task").length;
             this.checkPassiveTasks();
             if (window.refreshMapPolylines) window.refreshMapPolylines(this.actions);
+            this._saveState();
         },
 
         addDestination(destination) {
@@ -625,6 +633,129 @@ export function taskManager() {
             this.editingAction = null;
             this.editFormData = {};
             this.recalculateActionState();
+        },
+
+        // -----------------------------------------------------------------------
+        // Persistence helpers
+        // -----------------------------------------------------------------------
+
+        _saveState() {
+            try {
+                const state = {
+                    actions: this.actions,
+                    relicSelection: this.relicSelection,
+                    actionLatLngs: window.getActionLatLngs ? window.getActionLatLngs() : {},
+                };
+                localStorage.setItem(STORAGE_KEY_CURRENT, JSON.stringify(state));
+            } catch (e) {
+                console.warn('Could not auto-save state', e);
+            }
+        },
+
+        _restoreFromLocalStorage() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_CURRENT);
+                if (!raw) return;
+                const state = JSON.parse(raw);
+                if (!state.actions || !Array.isArray(state.actions) || state.actions.length === 0) return;
+                this._applyState(state);
+            } catch (e) {
+                console.warn('Could not restore session state', e);
+            }
+        },
+
+        _applyState(state) {
+            this.actions = state.actions || [];
+            this.relicSelection = state.relicSelection || [];
+            const savedLatLngs = state.actionLatLngs || {};
+            const actions = this.actions;
+            const doRestore = () => {
+                if (window.restoreActionLatLngs) {
+                    window.restoreActionLatLngs(savedLatLngs, actions);
+                    this.recalculateActionState();
+                } else {
+                    setTimeout(doRestore, 50);
+                }
+            };
+            setTimeout(doRestore, 0);
+        },
+
+        // -----------------------------------------------------------------------
+        // Route management
+        // -----------------------------------------------------------------------
+
+        openRouteModal() {
+            this.savedRoutes = this._listRoutes();
+            this.showRouteModal = true;
+        },
+
+        saveRoute() {
+            const name = (this.newRouteName || '').trim();
+            if (!name) return;
+            try {
+                const routes = this._loadRoutesStore();
+                routes[name] = {
+                    name,
+                    savedAt: Date.now(),
+                    actions: this.actions,
+                    relicSelection: this.relicSelection,
+                    actionLatLngs: window.getActionLatLngs ? window.getActionLatLngs() : {},
+                };
+                localStorage.setItem(STORAGE_KEY_ROUTES, JSON.stringify(routes));
+                this.savedRoutes = this._listRoutes();
+                this.newRouteName = '';
+            } catch (e) {
+                console.warn('Could not save route', e);
+            }
+        },
+
+        loadRoute(name) {
+            try {
+                const routes = this._loadRoutesStore();
+                const route = routes[name];
+                if (!route) return;
+                this._applyState(route);
+            } catch (e) {
+                console.warn('Could not load route', e);
+            }
+            this.showRouteModal = false;
+        },
+
+        deleteRoute(name) {
+            try {
+                const routes = this._loadRoutesStore();
+                delete routes[name];
+                localStorage.setItem(STORAGE_KEY_ROUTES, JSON.stringify(routes));
+                this.savedRoutes = this._listRoutes();
+            } catch (e) {
+                console.warn('Could not delete route', e);
+            }
+        },
+
+        clearPlan() {
+            if (!confirm('Clear the current plan? This cannot be undone.')) return;
+            this.actions = [];
+            this.relicSelection = [];
+            if (window.restoreActionLatLngs) window.restoreActionLatLngs({}, []);
+            this.recalculateActionState();
+        },
+
+        _listRoutes() {
+            const routes = this._loadRoutesStore();
+            return Object.values(routes).sort((a, b) => b.savedAt - a.savedAt);
+        },
+
+        _loadRoutesStore() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_ROUTES);
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                return {};
+            }
+        },
+
+        formatSavedAt(ts) {
+            return new Date(ts).toLocaleString();
         },
     };
 }

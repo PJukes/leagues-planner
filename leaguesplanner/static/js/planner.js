@@ -221,6 +221,7 @@ function initMapContextMenu() {
   menu.innerHTML = `
     <button type="button" data-map-action="complete_task">Complete Task</button>
     <button type="button" data-map-action="add_action">Add Actions</button>
+    <button type="button" data-map-action="add_combat">Add Combat</button>
     <button type="button" data-map-action="add_action">Buy Items</button>
     <button type="button" data-map-action="set_path">Set Destination</button>
   `;
@@ -269,6 +270,8 @@ function handleMapContextAction(action) {
 
   if (action === "complete_task") {
     window.dispatchEvent(new CustomEvent("add-task", {detail: { id: 123 }}));
+  } else if (action === "add_combat") {
+    window.dispatchEvent(new CustomEvent("add-combat", {detail: { id: 123 }}));
   } else if (action === "add_action") {
     window.dispatchEvent(new CustomEvent("add-skill", {detail: { id: 123 }}));
   } else if (action === "set_path") {

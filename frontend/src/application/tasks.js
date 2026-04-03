@@ -1,4 +1,5 @@
 import { getMethod, getMethodsForSkill, getSkillOptions } from "./skill-methods.js";
+import { CREATURES } from "./creatures.js";
 import { SKILLS, RELIC_LIST, RELICS, RELIC_POINTS_TIER } from "./constants.js";
 import {
     experienceToLevel,
@@ -22,6 +23,9 @@ export function taskManager() {
         skillSelection: "",
         methodSelection: "",
         skillQuantity: 1,
+        combatStyle: "",
+        combatCreature: "",
+        combatQuantity: 1,
         skillOptions: getSkillOptions(),
         skillExperience: emptySkillExperience(),
         skillLevels: emptySkillLevels(),
@@ -33,6 +37,7 @@ export function taskManager() {
         init() {
             window.addEventListener("add-task", () => this.openModal());
             window.addEventListener("add-skill", () => this.openModal("skill-list-template"));
+            window.addEventListener("add-combat", () => this.openModal("combat-template"));
             window.addEventListener("add-destination", () => this.openModal("destination-template"));
             fetch("http://127.0.0.1:8002/planner/task-list/")
                 .then(res => res.json())
@@ -77,7 +82,7 @@ export function taskManager() {
 
         filteredTasks() {
             const actionKeys = new Set(this.actions.map(a => a.key));
-            return this.taskList.filter(task => !actionKeys.has(task.key));
+            return this.taskList.filter(task => !actionKeys.has(task.key) && task.selectable);
         },
 
         addTask(taskKey) {
@@ -107,7 +112,7 @@ export function taskManager() {
             if (this.selectedTask != null) {
                 this.selectedTask.selected = false;
             }
-            if (this.selectedTask === taskKey) {
+            if (this.selectedTask && this.selectedTask.key === taskKey) {
                 this.selectedTask.selected = false;
                 this.selectedTask = null;
                 return;
@@ -152,6 +157,15 @@ export function taskManager() {
             }
             this.recalculateActionState();
             this.closeModal();
+        },
+
+        getCreature() {
+            return CREATURES[this.combatCreature] || null;
+        },
+
+        getCreatureOptions() {
+            console.log(CREATURES);
+            return CREATURES;
         },
 
         getMethodOptions() {
@@ -215,6 +229,40 @@ export function taskManager() {
             this.skillSelection = "";
             this.methodSelection = "";
             this.skillQuantity = 1;
+            this.recalculateActionState();
+            this.closeModal();
+        },
+
+        addCombatAction(skill, creature, quantity) {
+            const parsedQuantity = Number(quantity);
+            const selectedCreature = this.getCreatureOptions[creature];
+            if (!selectedCreature || parsedQuantity <= 0) return;
+
+            const skillLabel = this.skillOptions.find(opt => opt.key === skill)?.label || skill;
+            const experience = selectedCreature.hitpoints * 4 * parsedQuantity * (getXpMultiplier(this.totalPoints) || 5);
+            const skillAction = {
+                key: `${skill}-${creature}-${Date.now()}`,
+                skill,
+                skillLabel,
+                creature,
+                creatureName: selectedCreature.name,
+                quantity: parsedQuantity,
+                xpPerAction: selectedCreature.hitpoints * 4,
+                bonusExp: this.getBonusExp(skill, parsedQuantity, experience),
+                experience,
+                type: "combat",
+                totalGold: this.getGold(experience, quantity),
+            };
+            skillAction.currentStats = this.calculateStats(skillAction);
+
+            this._insertAction(skillAction);
+            if (window._pendingActionLatlng && window.registerActionLatLng) {
+                window.registerActionLatLng(skillAction.key, window._pendingActionLatlng, "generic_action");
+                window._pendingActionLatlng = null;
+            }
+            this.combatStyle = "";
+            this.combatCreature = "";
+            this.combatQuantity = 1;
             this.recalculateActionState();
             this.closeModal();
         },

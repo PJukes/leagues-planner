@@ -52,6 +52,23 @@ export function taskManager() {
             this.showModal = false;
         },
 
+        cancelModal() {
+            this.showModal = false;
+            window._pendingActionLatlng = null;
+        },
+
+        // Insert action after the currently-selected action, or append to end
+        _insertAction(action) {
+            if (this.selectedTask) {
+                const idx = this.actions.findIndex(a => a.key === this.selectedTask.key);
+                if (idx !== -1) {
+                    this.actions.splice(idx + 1, 0, action);
+                    return;
+                }
+            }
+            this.actions.push(action);
+        },
+
         currentExpModifier() {
             return getXpMultiplier(this.totalPoints) || 5;
         },
@@ -72,12 +89,14 @@ export function taskManager() {
                     currentStats: this.calculateStats(),
                     totalGold: 0,
                 };
-                this.actions.push(action);
+                this._insertAction(action);
                 if (window._pendingActionLatlng && window.registerActionLatLng) {
-                    window.registerActionLatLng(action.key, window._pendingActionLatlng);
+                    window.registerActionLatLng(action.key, window._pendingActionLatlng, "league_task");
                     window._pendingActionLatlng = null;
                 }
                 this.recalculateActionState();
+            } else {
+                window._pendingActionLatlng = null;
             }
             this.closeModal();
         },
@@ -102,15 +121,16 @@ export function taskManager() {
         },
 
         addRelic(relicKey) {
-            this.actions.push({
+            const action = {
                 key: relicKey,
                 name: RELICS[relicKey].name,
                 type: "relic",
                 currentStats: this.calculateStats(),
-            });
+            };
+            this._insertAction(action);
             this.relicSelection.push(relicKey);
             if (window._pendingActionLatlng && window.registerActionLatLng) {
-                window.registerActionLatLng(relicKey, window._pendingActionLatlng);
+                window.registerActionLatLng(relicKey, window._pendingActionLatlng, "tier_unlock");
                 window._pendingActionLatlng = null;
             }
             this.recalculateActionState();
@@ -170,9 +190,9 @@ export function taskManager() {
             };
             skillAction.currentStats = this.calculateStats(skillAction);
 
-            this.actions.push(skillAction);
+            this._insertAction(skillAction);
             if (window._pendingActionLatlng && window.registerActionLatLng) {
-                window.registerActionLatLng(skillAction.key, window._pendingActionLatlng);
+                window.registerActionLatLng(skillAction.key, window._pendingActionLatlng, "generic_action");
                 window._pendingActionLatlng = null;
             }
             this.skillSelection = "";
@@ -310,19 +330,22 @@ export function taskManager() {
         },
 
         addDestination(destination) {
-            this.closeModal();
-            if (!destination) return;
+            if (!destination) {
+                this.closeModal();
+                return;
+            }
             const action = {
                 key: `destination_${this.actions.length}`,
                 type: "destination",
                 description: destination,
             };
-            this.actions.push(action);
+            this._insertAction(action);
             if (window._pendingActionLatlng && window.registerActionLatLng) {
-                window.registerActionLatLng(action.key, window._pendingActionLatlng);
+                window.registerActionLatLng(action.key, window._pendingActionLatlng, "note");
                 window._pendingActionLatlng = null;
             }
             this.recalculateActionState();
+            this.closeModal();
         },
 
         showStats(skillKey) {

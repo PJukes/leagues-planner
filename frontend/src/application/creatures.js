@@ -4,11 +4,16 @@ export const CREATURES = {
         name: "Buffalo",
         hitpoints: 20,
     },
+    frost_crab: {
+        key: "frost_crab",
+        name: "Frost Crab",
+        hitpoints: 25,
+    },
 };
 
 export function getCreatureOptions() {
     return Object.entries(CREATURES).map(([key, value]) => ({
         key,
-        label: value.label,
+        label: value.name,
     }));
 }

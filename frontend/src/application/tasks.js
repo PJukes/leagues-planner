@@ -235,7 +235,7 @@ export function taskManager() {
 
         addCombatAction(skill, creature, quantity) {
             const parsedQuantity = Number(quantity);
-            const selectedCreature = this.getCreatureOptions[creature];
+            const selectedCreature = CREATURES[creature];
             if (!selectedCreature || parsedQuantity <= 0) return;
 
             const skillLabel = this.skillOptions.find(opt => opt.key === skill)?.label || skill;
@@ -362,6 +362,10 @@ export function taskManager() {
                 const totalQty = actionCounts[requirement.method] || 0;
                 return totalQty >= Number(requirement.quantity || 0);
             }
+            if (requirement.type === "kill_creature_quantity") {
+                const totalKilled = actionCounts[`combat_${requirement.method}`] || 0;
+                return totalKilled >= Number(requirement.quantity || 0);
+            }
             return false;
         },
 
@@ -393,6 +397,10 @@ export function taskManager() {
                 if (action.type === "skill" && action.method) {
                     actionCounts[action.method] = (actionCounts[action.method] || 0) + (action.quantity || 0);
                 }
+                if (action.type === "combat" && action.creature) {
+                    const ck = `combat_${action.creature}`;
+                    actionCounts[ck] = (actionCounts[ck] || 0) + (action.quantity || 0);
+                }
 
                 const met = this.evaluateRequirementAtPoint(req, runningXpBySkill, actionCounts);
                 if (met && !prevMet) {
@@ -420,6 +428,10 @@ export function taskManager() {
                 const a = this.actions[i];
                 if (a.type === "skill" && a.method) {
                     actionCounts[a.method] = (actionCounts[a.method] || 0) + (a.quantity || 0);
+                }
+                if (a.type === "combat" && a.creature) {
+                    const ck = `combat_${a.creature}`;
+                    actionCounts[ck] = (actionCounts[ck] || 0) + (a.quantity || 0);
                 }
             }
 
@@ -563,6 +575,12 @@ export function taskManager() {
                     .filter(a => a.type === "skill" && a.method === requirement.method)
                     .reduce((sum, a) => sum + (a.quantity || 0), 0);
                 return totalQuantity >= Number(requirement.quantity || 0);
+            }
+            if (requirement.type === "kill_creature_quantity") {
+                const totalKilled = this.actions
+                    .filter(a => a.type === "combat" && a.creature === requirement.method)
+                    .reduce((sum, a) => sum + (a.quantity || 0), 0);
+                return totalKilled >= Number(requirement.quantity || 0);
             }
             return false;
         },

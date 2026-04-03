@@ -47,6 +47,7 @@ const pathCommittedPolylines = [];
 
 // Action marker tracking for ordered polyline connections
 const actionLatLngs = {}; // actionKey → L.LatLng
+const actionMarkers = {}; // actionKey → L.Marker (draggable map markers)
 let connectionPolylines = []; // polylines connecting sequential action markers
 window._pendingActionLatlng = null; // set when a context-menu action places a marker
 
@@ -261,69 +262,59 @@ function hideMapContextMenu() {
 
 function handleMapContextAction(action) {
   hideMapContextMenu();
+  if (!lastClickEvent) return;
 
-  // console.log("Last click event:", lastClickEvent);
-  // if (!lastClickEvent) return;
+  // Store the latlng — the actual marker is only created once the action is confirmed
+  window._pendingActionLatlng = lastClickEvent.latlng;
 
-  // const { x: osrsX, y: osrsY } = mapLatLngToGame(lastClickEvent.latlng);
-  let marker = null;
-  console.log("Handling action", action)
   if (action === "complete_task") {
     window.dispatchEvent(new CustomEvent("add-task", {detail: { id: 123 }}));
-    // Add a marker for completed task
-    marker = L.marker(lastClickEvent.latlng, {
-      icon: taskMarkerIcon("league_task"),
-      title: "Completed Task"
-    });
-    marker.bindPopup(`
-      <div class="task-popup">
-        <strong>Completed Task</strong>
-        <span style="color:#666;font-size:.72rem">league task</span>
-      </div>
-    `);
   } else if (action === "add_action") {
     window.dispatchEvent(new CustomEvent("add-skill", {detail: { id: 123 }}));
-    // Add a marker for generic action
-    marker = L.marker(lastClickEvent.latlng, {
-      icon: taskMarkerIcon("generic_action"),
-      title: "Skilling Action"
-    });
-    marker.bindPopup(`
-      <div class="task-popup">
-        <strong>Skilling Action</strong>
-        <span style="color:#666;font-size:.72rem">generic action</span>
-      </div>
-    `);
   } else if (action === "set_path") {
     window.dispatchEvent(new CustomEvent("add-destination", {detail: { id: 123 }}));
-    // Add a marker for destination
-    marker = L.marker(lastClickEvent.latlng, {
-      icon: taskMarkerIcon("note"),
-      title: "Destination"
-    });
-    marker.bindPopup(`
-      <div class="task-popup">
-        <strong>Destination</strong>
-        <span style="color:#666;font-size:.72rem">note</span>
-      </div>
-    `);
   }
-  marker.addTo(osrsMap);
-  // Store latlng so the Alpine.js action can register it after creation
-  window._pendingActionLatlng = marker.getLatLng();
 }
 
 // ---------------------------------------------------------------------------
 // Action-marker helpers (called from Alpine.js tasks.js)
 // ---------------------------------------------------------------------------
 
-window.registerActionLatLng = function(key, latlng) {
-  if (!latlng) return;
+window.registerActionLatLng = function(key, latlng, actionType) {
+  if (!latlng || !osrsMap) return;
   actionLatLngs[key] = latlng;
+
+  // Remove any existing marker for this key
+  if (actionMarkers[key]) {
+    osrsMap.removeLayer(actionMarkers[key]);
+  }
+
+  const marker = L.marker(latlng, {
+    icon: taskMarkerIcon(actionType || "generic_action"),
+    draggable: true,
+  });
+
+  marker.on("drag", function () {
+    actionLatLngs[key] = marker.getLatLng();
+    const alpineEl = document.querySelector("[x-data]");
+    if (alpineEl && window.Alpine) {
+      const alpineData = window.Alpine.$data(alpineEl);
+      if (alpineData && alpineData.actions) {
+        window.refreshMapPolylines(alpineData.actions);
+      }
+    }
+  });
+
+  marker.addTo(osrsMap);
+  actionMarkers[key] = marker;
 };
 
 window.removeActionLatLng = function(key) {
   delete actionLatLngs[key];
+  if (actionMarkers[key] && osrsMap) {
+    osrsMap.removeLayer(actionMarkers[key]);
+    delete actionMarkers[key];
+  }
 };
 
 window.refreshMapPolylines = function(actions) {

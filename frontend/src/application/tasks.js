@@ -1,6 +1,7 @@
 import { getMethod, getMethodsForSkill, getSkillOptions } from "./skill-methods.js";
 import { ITEMS } from "./items.js";
 import { SHOPS, SHOP_LIST } from "./shops.js";
+import { QUESTS, QUEST_LIST } from "./quests.js";
 import { CREATURES } from "./creatures.js";
 import { SKILLS, RELIC_LIST, RELICS, RELIC_POINTS_TIER } from "./constants.js";
 import {
@@ -35,6 +36,11 @@ export function taskManager() {
         shopList: SHOP_LIST,
         shopSelection: "",
         shopCart: {},
+        questList: QUEST_LIST.map(q => ({
+            ...q,
+            itemRewards: q.itemRewards.map(ir => ({ ...ir, name: ITEMS[ir.item]?.name || ir.item })),
+        })),
+        questSearch: "",
         viewStats: null,
         totalLevel: SKILLS.length,
         editingAction: null,
@@ -46,6 +52,7 @@ export function taskManager() {
             window.addEventListener("add-combat", () => this.openModal("combat-template"));
             window.addEventListener("add-destination", () => this.openModal("destination-template"));
             window.addEventListener("add-shop", () => { this.shopSelection = ""; this.shopCart = {}; this.openModal("shop-template"); });
+            window.addEventListener("add-quest", () => { this.questSearch = ""; this.openModal("quest-list-template"); });
             fetch("http://127.0.0.1:8002/planner/task-list/")
                 .then(res => res.json())
                 .then(data => {
@@ -369,6 +376,9 @@ export function taskManager() {
                 const totalQty = actionCounts[requirement.method] || 0;
                 return totalQty >= Number(requirement.quantity || 0);
             }
+            if (requirement.type === "quest_completed") {
+                return (actionCounts[`quest:${requirement.method}`] || 0) > 0;
+            }
             return false;
         },
 
@@ -400,6 +410,9 @@ export function taskManager() {
                 if (action.type === "skill" && action.method) {
                     actionCounts[action.method] = (actionCounts[action.method] || 0) + (action.quantity || 0);
                 }
+                if (action.type === "quest" && action.questKey) {
+                    actionCounts[`quest:${action.questKey}`] = 1;
+                }
 
                 const met = this.evaluateRequirementAtPoint(req, runningXpBySkill, actionCounts);
                 if (met && !prevMet) {
@@ -428,6 +441,9 @@ export function taskManager() {
                 if (a.type === "skill" && a.method) {
                     actionCounts[a.method] = (actionCounts[a.method] || 0) + (a.quantity || 0);
                 }
+                if (a.type === "quest" && a.questKey) {
+                    actionCounts[`quest:${a.questKey}`] = 1;
+                }
             }
 
             return !this.evaluateRequirementAtPoint(action.passive_requirement, prevXpBySkill, actionCounts);
@@ -435,6 +451,7 @@ export function taskManager() {
 
         checkPassiveTasks() {
             const passiveTemplates = this.taskList.filter(task => task.is_passive && task.passive_requirement);
+            // Include league tasks AND quest-triggered passive tasks already in the plan
             const unlockedKeys = new Set(this.actions.filter(a => a.type === "task").map(a => a.key));
 
             for (const task of passiveTemplates) {
@@ -529,6 +546,48 @@ export function taskManager() {
             this._insertAction(action);
             this.shopSelection = "";
             this.shopCart = {};
+            this.recalculateActionState();
+            this.closeModal();
+        },
+
+        // Returns true if the given quest is already anywhere in the plan
+        isQuestInPlan(questKey) {
+            return this.actions.some(a => a.type === "quest" && a.questKey === questKey);
+        },
+
+        // Returns quest requirements with a `met` flag based on current end-of-plan skill levels
+        getQuestRequirements(quest) {
+            return Object.entries(quest.requirements || {}).map(([skill, level]) => ({
+                skill,
+                level,
+                met: (this.skillLevels[skill] || 1) >= level,
+            }));
+        },
+
+        // Filtered quest list for the modal search box
+        filteredQuestList() {
+            const search = (this.questSearch || "").toLowerCase();
+            if (!search) return this.questList;
+            return this.questList.filter(q => q.name.toLowerCase().includes(search));
+        },
+
+        addQuest(questKey) {
+            const quest = QUESTS[questKey];
+            if (!quest || this.isQuestInPlan(questKey)) return;
+            const action = {
+                key: `quest-${questKey}-${Date.now()}`,
+                type: "quest",
+                questKey,
+                name: quest.name,
+                requirements: quest.requirements || {},
+                xpRewards: quest.xpRewards || [],
+                itemRewards: (quest.itemRewards || []).map(ir => ({
+                    ...ir,
+                    name: ITEMS[ir.item]?.name || ir.item,
+                })),
+            };
+            this._insertAction(action);
+            this.questSearch = "";
             this.recalculateActionState();
             this.closeModal();
         },
@@ -635,6 +694,30 @@ export function taskManager() {
                     }
                 }
 
+                if (action.type === "quest") {
+                    // Apply XP rewards (multiplier-boosted, like task xp_reward)
+                    for (const reward of (action.xpRewards || [])) {
+                        if (SKILLS.includes(reward.skill)) {
+                            const xp = Number(reward.amount || 0) * currentMultiplier;
+                            actionExperienceBySkill[reward.skill] = (actionExperienceBySkill[reward.skill] || 0) + xp;
+                            action.currentMultiplier = currentMultiplier;
+                        }
+                    }
+                    // Apply item rewards
+                    for (const ir of (action.itemRewards || [])) {
+                        actionItemDeltas[ir.item] = (actionItemDeltas[ir.item] || 0) + ir.quantity;
+                    }
+                    // Check skill level requirements against XP accumulated BEFORE this quest
+                    const requirementWarnings = [];
+                    for (const [skill, requiredLevel] of Object.entries(action.requirements || {})) {
+                        const currentLevel = experienceToLevel(runningBySkill[skill] || 0);
+                        if (currentLevel < requiredLevel) {
+                            requirementWarnings.push({ skill, required: requiredLevel, current: currentLevel });
+                        }
+                    }
+                    action.requirementWarnings = requirementWarnings;
+                }
+
                 for (const [item, delta] of Object.entries(actionItemDeltas)) {
                     runningItems[item] = (runningItems[item] || 0) + delta;
                 }
@@ -721,6 +804,9 @@ export function taskManager() {
                     .filter(a => a.type === "skill" && a.method === requirement.method)
                     .reduce((sum, a) => sum + (a.quantity || 0), 0);
                 return totalQuantity >= Number(requirement.quantity || 0);
+            }
+            if (requirement.type === "quest_completed") {
+                return this.actions.some(a => a.type === "quest" && a.questKey === requirement.method);
             }
             return false;
         },

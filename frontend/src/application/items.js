@@ -41,6 +41,10 @@ export const ITEMS = {
     mithril_pickaxe: { name: "Mithril Pickaxe" },
     adamant_pickaxe: { name: "Adamant Pickaxe" },
 
+    // Quest rewards
+    silverlight: { name: "Silverlight" },
+    amulet_of_accuracy: { name: "Amulet of Accuracy" },
+
     // Raw fish
     raw_shrimp: { name: "Raw Shrimp" },
     raw_sardine: { name: "Raw Sardine" },

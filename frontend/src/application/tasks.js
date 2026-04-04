@@ -1,5 +1,6 @@
 import { getMethod, getMethodsForSkill, getSkillOptions } from "./skill-methods.js";
 import { ITEMS } from "./items.js";
+import { SHOPS, SHOP_LIST } from "./shops.js";
 import { CREATURES } from "./creatures.js";
 import { SKILLS, RELIC_LIST, RELICS, RELIC_POINTS_TIER } from "./constants.js";
 import {
@@ -31,6 +32,9 @@ export function taskManager() {
         skillExperience: emptySkillExperience(),
         skillLevels: emptySkillLevels(),
         itemRepository: {},
+        shopList: SHOP_LIST,
+        shopSelection: "",
+        shopCart: {},
         viewStats: null,
         totalLevel: SKILLS.length,
         editingAction: null,
@@ -41,6 +45,7 @@ export function taskManager() {
             window.addEventListener("add-skill", () => this.openModal("skill-list-template"));
             window.addEventListener("add-combat", () => this.openModal("combat-template"));
             window.addEventListener("add-destination", () => this.openModal("destination-template"));
+            window.addEventListener("add-shop", () => { this.shopSelection = ""; this.shopCart = {}; this.openModal("shop-template"); });
             fetch("http://127.0.0.1:8002/planner/task-list/")
                 .then(res => res.json())
                 .then(data => {
@@ -463,6 +468,71 @@ export function taskManager() {
             }
         },
 
+        // Returns the inventory of the selected shop with resolved item names
+        getShopInventory() {
+            if (!this.shopSelection || !SHOPS[this.shopSelection]) return [];
+            return SHOPS[this.shopSelection].inventory.map(shopItem => ({
+                ...shopItem,
+                name: ITEMS[shopItem.item]?.name || shopItem.item,
+            }));
+        },
+
+        // Running GP available at the current insertion point (after selectedTask, or end of list)
+        getAvailableGoldAtPoint() {
+            if (!this.selectedTask) return this.totalGold();
+            let gold = 0;
+            for (const action of this.actions) {
+                gold += Number(action.totalGold) || 0;
+                if (action.key === this.selectedTask.key) break;
+            }
+            return gold;
+        },
+
+        // Total cost of the current shop cart
+        shopCartTotal() {
+            if (!this.shopSelection || !SHOPS[this.shopSelection]) return 0;
+            return SHOPS[this.shopSelection].inventory.reduce((total, shopItem) => {
+                const qty = Number(this.shopCart[shopItem.item] || 0);
+                return total + qty * shopItem.price;
+            }, 0);
+        },
+
+        // True if the cart has items and the user can afford the total at the insertion point
+        canAffordShopCart() {
+            const total = this.shopCartTotal();
+            return total > 0 && total <= this.getAvailableGoldAtPoint();
+        },
+
+        addShopPurchase() {
+            if (!this.canAffordShopCart()) return;
+            const shop = SHOPS[this.shopSelection];
+            const purchasedItems = shop.inventory
+                .filter(shopItem => Number(this.shopCart[shopItem.item] || 0) > 0)
+                .map(shopItem => ({
+                    item: shopItem.item,
+                    name: ITEMS[shopItem.item]?.name || shopItem.item,
+                    quantity: Number(this.shopCart[shopItem.item]),
+                    priceEach: shopItem.price,
+                    totalPrice: Number(this.shopCart[shopItem.item]) * shopItem.price,
+                }));
+            if (purchasedItems.length === 0) return;
+            const totalCost = purchasedItems.reduce((sum, i) => sum + i.totalPrice, 0);
+            const action = {
+                key: `purchase-${Date.now()}`,
+                type: "purchase",
+                shopKey: this.shopSelection,
+                shopName: shop.name,
+                items: purchasedItems,
+                totalCost,
+                totalGold: -totalCost,
+            };
+            this._insertAction(action);
+            this.shopSelection = "";
+            this.shopCart = {};
+            this.recalculateActionState();
+            this.closeModal();
+        },
+
         // Returns display-friendly item deltas for an action (positive = yield, negative = cost)
         getActionItemDeltas(action) {
             if (!action.itemDeltas) return [];
@@ -491,6 +561,7 @@ export function taskManager() {
 
             let runningPoints = 0;
             let runningExperience = 0;
+            let runningGold = 0;
             const runningBySkill = emptySkillExperience();
             const runningItems = {};
 
@@ -558,6 +629,12 @@ export function taskManager() {
                     }
                 }
 
+                if (action.type === "purchase") {
+                    for (const purchasedItem of (action.items || [])) {
+                        actionItemDeltas[purchasedItem.item] = (actionItemDeltas[purchasedItem.item] || 0) + purchasedItem.quantity;
+                    }
+                }
+
                 for (const [item, delta] of Object.entries(actionItemDeltas)) {
                     runningItems[item] = (runningItems[item] || 0) + delta;
                 }
@@ -565,6 +642,18 @@ export function taskManager() {
                 action.itemDeltas = actionItemDeltas;
                 action.cumulativeItems = { ...runningItems };
                 action.itemWarnings = itemWarnings;
+
+                // GP tracking
+                const goldBeforeAction = runningGold;
+                runningGold += Number(action.totalGold) || 0;
+                action.cumulativeGold = runningGold;
+
+                if (action.type === "purchase") {
+                    const cost = action.totalCost || 0;
+                    action.gpWarning = goldBeforeAction < cost
+                        ? { needed: cost, available: Math.max(0, goldBeforeAction) }
+                        : null;
+                }
             });
 
             this.totalPoints = runningPoints;

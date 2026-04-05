@@ -562,7 +562,6 @@ export function taskManager() {
                 return totalLevel >= targetValue;
             }
             if (requirement.type === "combat_level") {
-                console.log("Checking combat level", this.getCurrentCombatLevel());
                 return this.getCurrentCombatLevel() >= targetValue;
             }
             if (requirement.type === "skill_action_quantity") {
@@ -683,7 +682,8 @@ export function taskManager() {
         // Route management
         // -----------------------------------------------------------------------
 
-        openRouteManagerModal() {
+        openRouteModal() {
+            console.log("Opening route modal");
             this.savedRoutes = this._listRoutes();
             this.openModal("route-manager-template");
         },
@@ -752,6 +752,7 @@ export function taskManager() {
                 const raw = localStorage.getItem(STORAGE_KEY_ROUTES);
                 return raw ? JSON.parse(raw) : {};
             } catch (e) {
+                console.log(e);
                 return {};
             }
         },

@@ -71,6 +71,12 @@
                   <p class="ml-1 text-sm font-medium text-red-900">Pick Relic</p>
                 </div>
               </button>
+
+              <button type="button" @click="openRouteModal()" title="Save / load routes" class="p-1 h-min rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 mt-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
+                  <path fill-rule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 0 0-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 0 0-2.282.819l-.922 1.597a1.875 1.875 0 0 0 .432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 0 0 0 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 0 0-.432 2.385l.922 1.597a1.875 1.875 0 0 0 2.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 0 0 2.28-.819l.923-1.597a1.875 1.875 0 0 0-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 0 0 0-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 0 0-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 0 0-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 0 0-1.85-1.567h-1.843ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z" clip-rule="evenodd" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -349,66 +355,6 @@
             </span>
           </div>
 
-          <!-- Regions panel -->
-          <div class="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
-            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Regions</p>
-            <div class="flex flex-wrap gap-1">
-              <template x-for="region in regions" :key="region.key">
-                <span
-                  :title="isRegionUnlocked(region.key) ? region.name + ' (unlocked)' : region.name + ' — unlock at ' + region.tasks_required + ' tasks'"
-                  :class="isRegionUnlocked(region.key)
-                    ? 'bg-green-100 text-green-800 border-green-300 cursor-pointer hover:bg-green-200'
-                    : 'bg-gray-100 text-gray-400 border-gray-200 cursor-default'"
-                  class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium select-none"
-                >
-                  <template x-if="isRegionUnlocked(region.key)">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3">
-                      <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"/>
-                    </svg>
-                  </template>
-                  <template x-if="!isRegionUnlocked(region.key)">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3">
-                      <path fill-rule="evenodd" d="M8 1a3.5 3.5 0 0 0-3.5 3.5V7A1.5 1.5 0 0 0 3 8.5v5A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 11 7V4.5A3.5 3.5 0 0 0 8 1Zm2 6V4.5a2 2 0 1 0-4 0V7h4Z" clip-rule="evenodd"/>
-                    </svg>
-                  </template>
-                  <span x-text="region.name"></span>
-                  <template x-if="!isRegionUnlocked(region.key)">
-                    <span x-text="'(' + region.tasks_required + ')'"></span>
-                  </template>
-                </span>
-              </template>
-            </div>
-            <template x-if="nextLockedRegion()">
-              <div class="mt-2">
-                <div class="flex justify-between text-xs text-gray-500 mb-0.5">
-                  <span>Next: <span class="font-medium text-gray-700" x-text="nextLockedRegion().name"></span></span>
-                  <span x-text="totalTasks + ' / ' + nextLockedRegion().tasks_required + ' tasks'"></span>
-                </div>
-                <div class="h-1.5 w-full rounded-full bg-gray-200">
-                  <div class="h-1.5 rounded-full bg-green-500 transition-all"
-                       :style="'width: ' + Math.min(100, Math.round(totalTasks / nextLockedRegion().tasks_required * 100)) + '%'">
-                  </div>
-                </div>
-              </div>
-            </template>
-          </div>
-
-          <div id="stats-panel" class="mt-3"></div>
-
-          <!-- Item Repository Summary -->
-          <template x-if="totalItemRepository().length > 0">
-            <div class="mt-2">
-              <p class="text-xs font-medium text-gray-500 mb-1">Item Repository</p>
-              <div class="flex flex-wrap gap-1">
-                <template x-for="item in totalItemRepository()" :key="item.key">
-                  <span :class="item.quantity < 0 ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'"
-                        class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
-                        x-text="item.name + ': ' + item.quantity.toLocaleString()"></span>
-                </template>
-              </div>
-            </div>
-          </template>
-
           <div id="task-pane-footer">
             <small class="text-muted">Drag actions to reorder. Click a task to see its map marker.</small>
           </div>
@@ -419,21 +365,56 @@
       <div class="hidden xl:block p-4 rounded-lg bg-white shadow flex flex-col">
         <h3>Current Stats</h3>
 
-        <div class="grid grid-cols-3 gap-2 mt-2 flex-1 overflow-y-scroll no-scrollbar p-2 bg-blue-50 rounded-lg">
+        <div class="grid grid-cols-3 gap-1 mt-2 flex-1 overflow-y-scroll no-scrollbar p-2 bg-blue-50 rounded-lg">
           <template x-for="(level, skill) in calculateStats" :key="skill">
-            <div class="border p-2 rounded bg-white">
+            <div class="border px-2 py-1 rounded bg-white">
               <div class="flex justify-between">
-                <p x-text="skill" class="text-gray-500 uppercase tracking-wider font-medium text-xs"></p>
-                <div class="text-right">
-                  <p class="text-right font-medium" x-text="`${level.level}`"></p>
-                  <p class="text-right text-xs text-gray-600" x-text="level.cumulativeExperience.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></p>
+                <div>
+                  <p x-text="skill" class="text-gray-600 font-medium text-xs"></p>
+                  <p class="text-left text-xs text-gray-500" x-text="level.cumulativeExperience.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></p>
                 </div>
+                <p class="text-right font-medium" x-text="`${level.level}`"></p>
               </div>
             </div>
           </template>
-          <div></div>
-          <p x-text="`Total: ${totalLevel || 34}`"></p>
-          <p x-text="`Cmb Lvl: ${getCurrentCombatLevel() || 3}`"></p>
+          <div class="text-xs">
+            <p><span class="font-medium">Total: </span><span x-text="`${totalLevel || 34}`"></span></p>
+            <p><span class="font-medium">Combat: </span><span x-text="`${getCurrentCombatLevel() || 3}`"></span></p>
+          </div>
+        </div>
+
+
+      <!-- Regions panel -->
+        <div class="mt-3">
+          <h3>Regions</h3>
+          <div class="flex flex-wrap gap-1 mt-2">
+            <template x-for="region in regions" :key="region.key">
+              <span :title="isRegionUnlocked(region.key) ? region.name + ' (unlocked)' : region.name + ' — unlock at ' + region.tasks_required + ' tasks'"
+                :class="isRegionUnlocked(region.key)
+                  ? 'bg-green-100 text-green-800 border-green-300 cursor-pointer hover:bg-green-200'
+                  : 'bg-gray-100 text-gray-400 border-gray-200 cursor-default'"
+                class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium select-none">
+                <span x-text="region.name"></span>
+                <template x-if="!isRegionUnlocked(region.key)">
+                  <span x-text="'(' + region.tasks_required + ')'"></span>
+                </template>
+              </span>
+            </template>
+          </div>
+        </div>
+
+        <div id="stats-panel" class="mt-3"></div>
+
+        <!-- Item Repository Summary -->
+        <div class="mt-2">
+          <h3>Items Gathered</h3>
+          <div class="flex flex-wrap gap-1 mt-2">
+            <template x-for="item in totalItemRepository()" :key="item.key">
+              <span :class="item.quantity < 0 ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'"
+                    class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
+                    x-text="item.name + ': ' + item.quantity.toLocaleString()"></span>
+            </template>
+          </div>
         </div>
       </div>
     </div>

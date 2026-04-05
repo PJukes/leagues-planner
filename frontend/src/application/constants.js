@@ -42,16 +42,16 @@ export const BASE_XP_MULTIPLIER = 5.0;
 // tasks_required is the number of completed tasks needed to unlock the region.
 // Regions with tasks_required: 0 are available from the start.
 export const REGIONS = [
-    { key: "varlamore",  name: "Varlamore",         tasks_required: 0,   color: "orange" },
-    { key: "misthalin",  name: "Misthalin",          tasks_required: 0,   color: "yellow" },
-    { key: "karamja",    name: "Karamja",             tasks_required: 50,  color: "green"  },
-    { key: "asgarnia",   name: "Asgarnia",            tasks_required: 100, color: "blue"   },
-    { key: "kandarin",   name: "Kandarin",            tasks_required: 150, color: "teal"   },
-    { key: "desert",     name: "Kharidian Desert",    tasks_required: 175, color: "amber"  },
-    { key: "morytania",  name: "Morytania",           tasks_required: 200, color: "purple" },
-    { key: "fremennik",  name: "Fremennik Province",  tasks_required: 225, color: "indigo" },
-    { key: "tirannwn",   name: "Tirannwn",            tasks_required: 250, color: "emerald"},
-    { key: "wilderness", name: "Wilderness",          tasks_required: 275, color: "red"    },
+    { key: "varlamore",  name: "Varlamore", tasks_required: 0,   color: "orange" },
+    { key: "misthalin",  name: "Misthalin", tasks_required: 0,   color: "yellow" },
+    { key: "karamja",    name: "Karamja", tasks_required: 50,  color: "green"  },
+    { key: "asgarnia",   name: "Asgarnia", tasks_required: 100, color: "blue"   },
+    { key: "kandarin",   name: "Kandarin", tasks_required: 150, color: "teal"   },
+    { key: "desert",     name: "Desert", tasks_required: 175, color: "amber"  },
+    { key: "morytania",  name: "Morytania", tasks_required: 200, color: "purple" },
+    { key: "fremennik",  name: "Fremennik", tasks_required: 225, color: "indigo" },
+    { key: "tirannwn",   name: "Tirannwn", tasks_required: 250, color: "emerald"},
+    { key: "wilderness", name: "Wilderness", tasks_required: 275, color: "red"    },
 ];
 
 export const DEFAULT_LEAGUE_TIERS = [

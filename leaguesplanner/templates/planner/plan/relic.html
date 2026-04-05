@@ -1,0 +1,29 @@
+<!-- RELIC type -->
+<template x-if="action.type==='relic'">
+  <li @click="selectTask(action.key)" :class="action.selected ? 'border-indigo-600' : 'border-red-300'" class="relative rounded-lg border bg-red-100 px-4 py-2 shadow-sm focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-indigo-600 cursor-hover">
+    <div class="flex items-center space-x-3">
+      <span class="drag-handle cursor-grab select-none text-gray-300 hover:text-gray-400" @click.stop title="Drag to reorder">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="display:block" class="text-black text-opacity-20">
+          <circle cx="5" cy="4" r="1.4"/><circle cx="11" cy="4" r="1.4"/>
+          <circle cx="5" cy="8" r="1.4"/><circle cx="11" cy="8" r="1.4"/>
+          <circle cx="5" cy="12" r="1.4"/><circle cx="11" cy="12" r="1.4"/>
+        </svg>
+      </span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 text-red-600">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+      </svg>
+
+      <div class="min-w-0 flex-1">
+        <div class="flex justify-between">
+          <p x-text="action.name" class="text-sm font-medium text-red-900"></p>
+        </div>
+      </div>
+
+      <button @click.stop="removeTask(action.key)" class="remove-task-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-400 hover:text-gray-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </li>
+</template>

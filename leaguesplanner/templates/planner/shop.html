@@ -1,0 +1,84 @@
+<template id="shop-template">
+  <div>
+    <h5 class="text-gray-700 font-medium text-lg mb-1">Buy from Shop</h5>
+
+    <!-- Shop selector -->
+    <div class="mb-3">
+      <label class="block text-sm font-medium text-gray-600 mb-1">Shop</label>
+      <select x-model="shopSelection" @change="shopCart = {}" class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+        <option value="">Select a shop...</option>
+        <template x-for="shop in shopList" :key="shop.key">
+          <option :value="shop.key" x-text="shop.name"></option>
+        </template>
+      </select>
+    </div>
+
+    <!-- Available GP -->
+    <div class="mb-3 flex items-center gap-2 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 text-yellow-600 flex-shrink-0">
+        <path d="M12 7.5a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Z" />
+        <path fill-rule="evenodd" d="M1.5 4.875C1.5 3.839 2.34 3 3.375 3h17.25c1.035 0 1.875.84 1.875 1.875v9.75c0 1.036-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 0 1 1.5 14.625v-9.75ZM8.25 9.75a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0ZM18.75 9a.75.75 0 0 0-.75.75v.008c0 .414.336.75.75.75h.008a.75.75 0 0 0 .75-.75V9.75a.75.75 0 0 0-.75-.75h-.008ZM4.5 9.75A.75.75 0 0 1 5.25 9h.008a.75.75 0 0 1 .75.75v.008a.75.75 0 0 1-.75.75H5.25a.75.75 0 0 1-.75-.75V9.75Z" clip-rule="evenodd" />
+        <path d="M2.25 18a.75.75 0 0 0 0 1.5c5.4 0 10.63.722 15.6 2.075 1.19.324 2.4-.558 2.4-1.82V18.75a.75.75 0 0 0-.75-.75H2.25Z" />
+      </svg>
+      <span class="text-yellow-800">Available GP at this point:</span>
+      <span class="font-bold text-yellow-900" x-text="getAvailableGoldAtPoint().toLocaleString() + ' gp'"></span>
+    </div>
+
+    <!-- Inventory table -->
+    <template x-if="shopSelection">
+      <div>
+        <table class="w-full text-sm mb-3">
+          <thead>
+            <tr class="text-left text-xs text-gray-500 uppercase border-b border-gray-200">
+              <th class="pb-2 font-medium">Item</th>
+              <th class="pb-2 font-medium text-right pr-4">Price ea.</th>
+              <th class="pb-2 font-medium text-right pr-4">Qty</th>
+              <th class="pb-2 font-medium text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <template x-for="item in getShopInventory()" :key="item.item">
+              <tr class="hover:bg-gray-50">
+                <td class="py-1.5 text-gray-800" x-text="item.name"></td>
+                <td class="py-1.5 text-right pr-4 text-gray-600" x-text="item.price.toLocaleString() + ' gp'"></td>
+                <td class="py-1.5 text-right pr-4">
+                  <input
+                    type="number"
+                    min="0"
+                    :value="shopCart[item.item] || 0"
+                    @input="shopCart[item.item] = Math.max(0, parseInt($event.target.value) || 0)"
+                    class="w-20 text-right px-2 py-0.5 text-sm border border-gray-300 rounded"
+                  >
+                </td>
+                <td class="py-1.5 text-right font-medium text-gray-800"
+                    x-text="((shopCart[item.item] || 0) * item.price).toLocaleString() + ' gp'"></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+
+        <!-- Cart total & affordability -->
+        <div class="flex items-center justify-between border-t border-gray-200 pt-3">
+          <div class="text-sm">
+            <span class="text-gray-500">Total cost: </span>
+            <span class="font-bold text-gray-900" x-text="shopCartTotal().toLocaleString() + ' gp'"></span>
+            <template x-if="shopCartTotal() > 0 && !canAffordShopCart()">
+              <span class="ml-2 text-xs text-red-600 font-medium">
+                Not enough GP (need
+                <span x-text="(shopCartTotal() - getAvailableGoldAtPoint()).toLocaleString()"></span>
+                more)
+              </span>
+            </template>
+          </div>
+          <button
+            type="button"
+            @click="addShopPurchase()"
+            :disabled="!canAffordShopCart()"
+            class="relative flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent bg-teal-700 px-4 py-2 text-sm text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-gray-400">
+            Add to Plan
+          </button>
+        </div>
+      </div>
+    </template>
+  </div>
+</template>

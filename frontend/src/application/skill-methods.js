@@ -2,11 +2,11 @@ export const SKILL_METHODS = {
     woodcutting: {
         label: "Woodcutting",
         methods: [
-            { key: "chop_regular_trees", name: "Regular Trees", xpPerAction: 25, actionLabel: "log" },
-            { key: "chop_oak_trees", name: "Oak Trees", xpPerAction: 37.5, actionLabel: "log" },
-            { key: "chop_willow_trees", name: "Willow Trees", xpPerAction: 67.5, actionLabel: "log" },
-            { key: "chop_maple_trees", name: "Maple Trees", xpPerAction: 100, actionLabel: "log" },
-            { key: "chop_yew_trees", name: "Yew Trees", xpPerAction: 175, actionLabel: "log" },
+            { key: "chop_regular_trees", name: "Regular Trees", xpPerAction: 25, actionLabel: "log", itemYields: [{ item: "normal_logs", quantity: 1 }]},
+            { key: "chop_oak_trees", name: "Oak Trees", xpPerAction: 37.5, actionLabel: "log", itemYields: [{ item: "oak_logs", quantity: 1 }]},
+            { key: "chop_willow_trees", name: "Willow Trees", xpPerAction: 67.5, actionLabel: "log", itemYields: [{ item: "willow_logs", quantity: 1 }]},
+            { key: "chop_maple_trees", name: "Maple Trees", xpPerAction: 100, actionLabel: "log", itemYields: [{ item: "maple_logs", quantity: 1 }]},
+            { key: "chop_yew_trees", name: "Yew Trees", xpPerAction: 175, actionLabel: "log", itemYields: [{ item: "yew_logs", quantity: 1 }]},
 
         ],
     },
@@ -93,7 +93,7 @@ export const SKILL_METHODS = {
     thieving: {
         label: "Thieving",
         methods: [
-            { key: "pickpocket_men", name: "Pickpocket Men", xpPerAction: 8, actionLabel: "pickpocket" },
+            { key: "pickpocket_men", name: "Pickpocket Men", xpPerAction: 8, actionLabel: "pickpocket", itemYields: [{ item: "GP", quantity: 3 }] },
             { key: "pickpocket_guard", name: "Pickpocket Guard", xpPerAction: 46.8, actionLabel: "pickpocket" },
             { key: "steal_from_vegetable_stall", name: "Steal From Vegetable stall", xpPerAction: 10, actionLabel: "steal from" },
             { key: "steal_from_bakery_stall", name: "Steal From Bakery stall", xpPerAction: 16, actionLabel: "steal from" },

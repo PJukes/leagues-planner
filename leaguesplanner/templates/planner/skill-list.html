@@ -31,9 +31,15 @@
 
     
     <div class="mt-4 flex justify-between">
-      <p class="mt-2 text-sm text-gray-600">
-        <span x-text="`Total xp: ${(getSelectedMethod()?.xpPerAction || 0) * (skillQuantity || 0) * (currentExpModifier() || 5)}`"></span>
-      </p>
+      <div class="flex gap-x-4">
+        <p class="mt-2 text-sm text-gray-600">
+          <span x-text="`Total xp: ${(getSelectedMethod()?.xpPerAction || 0) * (skillQuantity || 0) * (currentExpModifier() || 5)}`"></span>
+        </p>
+  
+        <p class="mt-2 text-sm text-gray-600">
+          <span x-text="`Items: ${(getSelectedMethod()?.itemYields || []).map(y => `${skillQuantity * y.quantity} ${getItemName(y.item)}`).join(', ') || 'None'}`"></span>
+        </p>
+      </div>
 
       <button type="button"
         @click="addSkillAction(skillSelection, methodSelection, skillQuantity)"

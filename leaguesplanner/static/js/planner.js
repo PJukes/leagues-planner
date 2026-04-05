@@ -222,7 +222,7 @@ function initMapContextMenu() {
     <button type="button" data-map-action="complete_task">Complete Task</button>
     <button type="button" data-map-action="add_action">Add Actions</button>
     <button type="button" data-map-action="add_combat">Add Combat</button>
-    <button type="button" data-map-action="add_action">Buy Items</button>
+    <button type="button" data-map-action="buy_items">Buy Items</button>
     <button type="button" data-map-action="complete_quest">Complete Quest</button>
     <button type="button" data-map-action="set_path">Set Destination</button>
   `;

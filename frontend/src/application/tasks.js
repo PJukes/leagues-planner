@@ -1068,5 +1068,10 @@ export function taskManager() {
         formatSavedAt(ts) {
             return new Date(ts).toLocaleString();
         },
+
+        getItemName(item) {
+            const itemData = ITEMS[item];
+            return itemData ? itemData.name : item;
+        }
     };
 }

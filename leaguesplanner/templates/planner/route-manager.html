@@ -1,0 +1,43 @@
+<template id="route-manager-template">
+  <div>
+    <h5 class="text-gray-700 font-medium text-lg mb-1">Route Manager</h5>
+    <p class="text-xs text-gray-400 mb-4">Save the current plan or load a previously saved route.</p>
+
+    <!-- Save section -->
+    <div class="mb-4 pb-4 border-b border-gray-200">
+      <p class="text-sm font-medium text-gray-600 mb-2">Save current route</p>
+      <div class="flex gap-2">
+        <input type="text" x-model="newRouteName" @keyup.enter="saveRoute()" placeholder="Give this route a name…" class="flex-1 text-sm border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-400">
+        <button type="button" @click="saveRoute()" :disabled="!newRouteName.trim()" class="text-sm px-4 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">Save</button>
+      </div>
+      <p class="mt-1 text-xs text-gray-400" x-text="`Current plan: ${totalTasks} task(s) · ${totalPoints} pts · Total level ${totalLevel}`"></p>
+    </div>
+
+    <!-- Saved routes list -->
+    <p class="text-sm font-medium text-gray-600 mb-2">Saved routes</p>
+
+    <template x-if="savedRoutes.length === 0">
+      <p class="text-sm text-gray-400 italic">No routes saved yet.</p>
+    </template>
+
+    <ul class="space-y-2 max-h-72 overflow-y-auto">
+      <template x-for="route in savedRoutes" :key="route.name">
+        <li class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+          <div class="min-w-0 mr-3">
+            <p class="text-sm font-semibold text-gray-800 truncate" x-text="route.name"></p>
+            <p class="text-xs text-gray-500" x-text="`${route.totalTasks || 0} tasks · ${route.totalPoints || 0} pts · Lvl ${route.totalLevel || 0}`"></p>
+            <p class="text-xs text-gray-400" x-text="formatSavedAt(route.savedAt)"></p>
+          </div>
+          <div class="flex gap-2 flex-shrink-0">
+            <button type="button" @click="loadRoute(route.name)" class="text-sm px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700">Load</button>
+            <button type="button" @click="deleteRoute(route.name)" class="text-sm px-3 py-1 rounded border border-red-300 text-red-500 hover:bg-red-50">Delete</button>
+          </div>
+        </li>
+      </template>
+    </ul>
+
+    <div class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
+      <button type="button" @click="clearPlan()" class="text-xs text-red-500 hover:text-red-700 hover:underline">Clear current plan</button>
+    </div>
+  </div>
+</template>

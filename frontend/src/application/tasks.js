@@ -51,8 +51,8 @@ export function taskManager() {
             window.addEventListener("add-skill", () => this.openModal("skill-list-template"));
             window.addEventListener("add-combat", () => this.openModal("combat-template"));
             window.addEventListener("add-destination", () => this.openModal("destination-template"));
-            window.addEventListener("add-shop", () => { this.shopSelection = ""; this.shopCart = {}; this.openModal("shop-template"); });
-            window.addEventListener("add-quest", () => { this.questSearch = ""; this.openModal("quest-list-template"); });
+            window.addEventListener("buy-items", () => { this.shopSelection = ""; this.shopCart = {}; this.openModal("shop-template"); });
+            window.addEventListener("complete-quest", () => { this.questSearch = ""; this.openModal("quest-list-template"); });
             fetch("http://127.0.0.1:8002/planner/task-list/")
                 .then(res => res.json())
                 .then(data => {

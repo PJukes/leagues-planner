@@ -1,0 +1,58 @@
+<!-- TASK type -->
+<template x-if="action.type==='task'">
+  <li @click="selectTask(action.key)" :class="action.selected ? 'border-indigo-600' : 'border-gray-300'" class="relative rounded-lg border bg-white px-4 py-2 shadow-sm focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-indigo-600 hover:border-gray-400 cursor-hover">
+    <div class="flex items-center space-x-3">
+      <span class="drag-handle cursor-grab select-none text-gray-300 hover:text-gray-400" @click.stop title="Drag to reorder">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="display:block" class="text-black text-opacity-20">
+          <circle cx="5" cy="4" r="1.4"/><circle cx="11" cy="4" r="1.4"/>
+          <circle cx="5" cy="8" r="1.4"/><circle cx="11" cy="8" r="1.4"/>
+          <circle cx="5" cy="12" r="1.4"/><circle cx="11" cy="12" r="1.4"/>
+        </svg>
+      </span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 text-green-600">
+        <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd" />
+      </svg>
+
+      <div class="min-w-0 flex-1">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-1">
+            <p x-text="action.name" class="text-sm font-medium text-gray-900"></p>
+            <!-- Out-of-sync warning for passive tasks -->
+            <template x-if="action.isPassiveAward && isOutOfSync(action)">
+              <span title="This task's unlock condition is not met at this position" class="text-amber-500 flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4">
+                  <path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd" />
+                </svg>
+              </span>
+            </template>
+          </div>
+          <p class="truncate text-sm text-gray-500">
+            <span>+</span>
+            <span x-text="action.league_points"></span>
+            <span>pts </span>
+          </p>
+        </div>
+      </div>
+
+      <button @click.stop="removeTask(action.key)" class="remove-task-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-400 hover:text-gray-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div x-show="action.selected" class="flex gap-x-4 mt-2">
+      <div>
+        <p class="text-xs font-medium text-gray-500">Total Points</p>
+        <p x-text="action.cumulativePoints"></p>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-gray-500">Total XP</p>
+        <p></p>
+      </div>
+      <div>
+        <button @click="showStats(action.key)" type="button" class="text-xs font-medium text-indigo-500 hover:text-indigo-600">Show Stats</button>
+      </div>
+    </div>
+  </li>
+</template>

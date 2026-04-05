@@ -40,6 +40,10 @@ def _parse_row(row: dict) -> dict:
     if xp_skill and xp_amount:
         task["xp_reward"] = {"skill": xp_skill, "amount": float(xp_amount)}
 
+    region = row.get("region", "").strip()
+    if region:
+        task["region"] = region
+
     return task
 
 

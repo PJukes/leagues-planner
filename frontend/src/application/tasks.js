@@ -1,6 +1,6 @@
 import { getMethod, getMethodsForSkill, getSkillOptions } from "./skill-methods.js";
 import { CREATURES } from "./creatures.js";
-import { SKILLS, RELIC_LIST, RELICS, RELIC_POINTS_TIER } from "./constants.js";
+import { SKILLS, RELIC_LIST, RELICS, RELIC_POINTS_TIER, REGIONS } from "./constants.js";
 import {
     experienceToLevel,
     emptySkillExperience,
@@ -33,6 +33,9 @@ export function taskManager() {
         totalLevel: SKILLS.length,
         editingAction: null,
         editFormData: {},
+        regions: REGIONS,
+        unlockedRegions: REGIONS.filter(r => r.tasks_required === 0).map(r => r.key),
+        regionFilter: null,
 
         init() {
             window.addEventListener("add-task", () => this.openModal());
@@ -82,7 +85,33 @@ export function taskManager() {
 
         filteredTasks() {
             const actionKeys = new Set(this.actions.map(a => a.key));
-            return this.taskList.filter(task => !actionKeys.has(task.key) && task.selectable);
+            return this.taskList.filter(task => {
+                if (actionKeys.has(task.key) || !task.selectable) return false;
+                // Tasks with no region are always available (global)
+                if (!task.region) return true;
+                // Region-specific tasks require the region to be unlocked
+                if (!this.unlockedRegions.includes(task.region)) return false;
+                // If a region filter is active, only show tasks from that region
+                if (this.regionFilter && task.region !== this.regionFilter) return false;
+                return true;
+            });
+        },
+
+        setRegionFilter(regionKey) {
+            this.regionFilter = this.regionFilter === regionKey ? null : regionKey;
+        },
+
+        getRegionLabel(regionKey) {
+            const region = REGIONS.find(r => r.key === regionKey);
+            return region ? region.name : regionKey;
+        },
+
+        isRegionUnlocked(regionKey) {
+            return this.unlockedRegions.includes(regionKey);
+        },
+
+        nextLockedRegion() {
+            return REGIONS.find(r => !this.unlockedRegions.includes(r.key)) || null;
         },
 
         addTask(taskKey) {
@@ -506,6 +535,9 @@ export function taskManager() {
             );
             this.totalLevel = Object.values(this.skillLevels).reduce((sum, lvl) => sum + lvl, 0);
             this.totalTasks = this.actions.filter(action => action.type === "task").length;
+            this.unlockedRegions = REGIONS
+                .filter(r => r.tasks_required <= this.totalTasks)
+                .map(r => r.key);
             this.checkPassiveTasks();
             if (window.refreshMapPolylines) window.refreshMapPolylines(this.actions);
         },

@@ -1,22 +1,53 @@
 <template id="task-list-template">
   <div>
-    <h5 class="text-gray-700 font-medium text-lg mb-4">Select a Task</h5>
+    <h5 class="text-gray-700 font-medium text-lg mb-3">Select a Task</h5>
+
+    <!-- Region filter tabs -->
+    <div class="flex flex-wrap gap-1 mb-3">
+      <button
+        @click="setRegionFilter(null)"
+        :class="regionFilter === null ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+        class="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+      >All</button>
+      <template x-for="region in regions.filter(r => isRegionUnlocked(r.key))" :key="region.key">
+        <button
+          @click="setRegionFilter(region.key)"
+          :class="regionFilter === region.key ? 'bg-green-700 text-white' : 'bg-green-100 text-green-800 hover:bg-green-200'"
+          class="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+          x-text="region.name"
+        ></button>
+      </template>
+    </div>
+
     <ul class="space-y-2 max-h-96 overflow-y-scroll bg-gray-100 p-4 rounded-lg">
-      <template x-for="task in filteredTasks" :key="task.key">
+      <template x-for="task in filteredTasks()" :key="task.key">
         <li class="relative flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-4 py-2 shadow-sm hover:border-gray-400 hover:bg-gray-100">
           <div class="min-w-0 flex-1">
-            <button @click="addTask(task.key)" class="w-full">
-              <div class="flex justify-between">
+            <button @click="addTask(task.key)" class="w-full text-left">
+              <div class="flex justify-between items-start gap-2">
                 <span aria-hidden="true" class="absolute inset-0"></span>
-                <p class="text-sm font-medium text-gray-900" x-text="task.name"></p>
-                <p class="truncate text-sm text-gray-500">
-              <span>+</span>
-              <span x-text="task.league_points"></span>
-              <span>pts </span>
+                <div>
+                  <p class="text-sm font-medium text-gray-900" x-text="task.name"></p>
+                  <template x-if="task.region">
+                    <span
+                      class="inline-block rounded-full bg-green-100 text-green-700 text-xs px-1.5 py-0.5 font-medium mt-0.5"
+                      x-text="getRegionLabel(task.region)"
+                    ></span>
+                  </template>
+                </div>
+                <p class="truncate text-sm text-gray-500 whitespace-nowrap">
+                  <span>+</span>
+                  <span x-text="task.league_points"></span>
+                  <span>pts</span>
                 </p>
               </div>
             </button>
           </div>
+        </li>
+      </template>
+      <template x-if="filteredTasks().length === 0">
+        <li class="py-6 text-center text-sm text-gray-500">
+          No tasks available. Add more tasks to your plan to unlock new regions.
         </li>
       </template>
     </ul>

@@ -705,6 +705,17 @@ export function taskManager() {
                     action.currentMultiplier = currentMultiplier;
                 }
 
+                // Quest XP rewards must be accumulated before updating runningBySkill
+                if (action.type === "quest") {
+                    for (const reward of (action.xpRewards || [])) {
+                        if (SKILLS.includes(reward.skill)) {
+                            const xp = Number(reward.amount || 0) * currentMultiplier;
+                            actionExperienceBySkill[reward.skill] = (actionExperienceBySkill[reward.skill] || 0) + xp;
+                            action.currentMultiplier = currentMultiplier;
+                        }
+                    }
+                }
+
                 Object.entries(actionExperienceBySkill).forEach(([skill, xp]) => {
                     runningBySkill[skill] += xp;
                 });
@@ -756,14 +767,6 @@ export function taskManager() {
                 }
 
                 if (action.type === "quest") {
-                    // Apply XP rewards (multiplier-boosted, like task xp_reward)
-                    for (const reward of (action.xpRewards || [])) {
-                        if (SKILLS.includes(reward.skill)) {
-                            const xp = Number(reward.amount || 0) * currentMultiplier;
-                            actionExperienceBySkill[reward.skill] = (actionExperienceBySkill[reward.skill] || 0) + xp;
-                            action.currentMultiplier = currentMultiplier;
-                        }
-                    }
                     // Apply item rewards
                     for (const ir of (action.itemRewards || [])) {
                         actionItemDeltas[ir.item] = (actionItemDeltas[ir.item] || 0) + ir.quantity;
@@ -811,7 +814,17 @@ export function taskManager() {
                 .filter(r => r.tasks_required <= this.totalTasks)
                 .map(r => r.key);
             this.itemRepository = { ...runningItems };
+
+            // Check for newly triggered passive tasks using updated skill levels.
+            // If any were added, recalculate so their xp_reward and league_points
+            // are properly included in the running totals.
+            const prevCount = this.actions.length;
             this.checkPassiveTasks();
+            if (this.actions.length !== prevCount) {
+                this.recalculateActionState();
+                return;
+            }
+
             if (window.refreshMapPolylines) window.refreshMapPolylines(this.actions);
             this._saveState();
         },

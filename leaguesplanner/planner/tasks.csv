@@ -6,14 +6,14 @@ achieve_your_first_level_5,Achieve Your First Level 5,10,true,false,any_skill_le
 achieve_your_first_level_10,Achieve Your First Level 10,10,true,false,any_skill_level,10,,,,,,
 travel_using_the_quetzal_transport_system,Travel using the Quetzal Transport System,10,false,true,,,,,,,,varlamore
 achieve_your_first_level_20,Achieve Your First Level 20,10,true,false,any_skill_level,20,,,,,,
-pickpocket_a_citizen,Pickpocket a Citizen,10,true,true,skill_action_quantity,,,pickpocket_men,1,8,,
+pickpocket_a_citizen,Pickpocket a Citizen,10,true,true,skill_action_quantity,,,pickpocket_men,1,thieving,8,
 bury_some_bones,Bury Some Bones,10,false,true,,,,,,,,
 defeat_a_goblin,Defeat a Goblin,10,false,true,,,,,,,,
 reach_total_level_100,Reach Total Level 100,30,true,false,total_level,100,,,,,,
-chop_some_logs,Chop Some Logs,10,true,true,skill_action_quantity,,,chop_regular_trees,1,25,,
-catch_a_shrimp,Catch a Shrimp,10,true,true,skill_action_quantity,,,fish_shrimp,1,10,,
-burn_some_normal_logs,Burn Some Normal Logs,10,true,true,skill_action_quantity,,,burn_normal_logs,1,40,,
-cook_shrimp,Cook Shrimp,10,true,true,skill_action_quantity,,,cook_shrimp,1,30,,
+chop_some_logs,Chop Some Logs,10,true,true,skill_action_quantity,,,chop_regular_trees,1,woodcutting,25,
+catch_a_shrimp,Catch a Shrimp,10,true,true,skill_action_quantity,,,catch_shrimp,1,fishing,10,
+burn_some_normal_logs,Burn Some Normal Logs,10,true,true,skill_action_quantity,,,burn_normal_logs,1,firemaking,40,
+cook_shrimp,Cook Shrimp,10,true,true,skill_action_quantity,,,cook_shrimp,1,cooking,30,
 achieve_your_first_level_30,Achieve Your First Level 30,30,true,false,any_skill_level,30,,,,,,
 successfully_cook_5_pieces_of_food,Successfully Cook 5 Pieces of Food,30,true,true,skill_action_quantity,,,cook,5,,,
 cast_home_teleport,Cast Home Teleport,10,false,true,,,,,,,,
@@ -21,19 +21,19 @@ pet_renu,Pet Renu,10,false,true,,,,,,,,varlamore
 achieve_your_first_level_40,Achieve Your First Level 40,30,true,false,any_skill_level,40,,,,,,
 steal_a_house_key,Steal a House Key,30,false,true,,,,,,,,varlamore
 reach_combat_level_10,Reach Combat Level 10,10,true,false,combat_level,10,,,,,,
-catch_an_anchovy,Catch an Anchovy,10,true,true,skill_action_quantity,,,fish_anchovies,1,40,,
+catch_an_anchovy,Catch an Anchovy,10,true,true,skill_action_quantity,,,catch_anchovies,1,fishing,40,
 obtain_a_mark_of_grace,Obtain a Mark of Grace,30,false,true,,,,,,,,
-fletch_some_arrow_shafts,Fletch Some Arrow Shafts,10,true,true,skill_action_quantity,,,fletch_fletch_arrow_shafts_logs,1,5,,
-mine_some_copper_ore,Mine some Copper Ore,10,true,true,skill_action_quantity,,,mine_copper,1,17.5,,
+fletch_some_arrow_shafts,Fletch Some Arrow Shafts,10,true,true,skill_action_quantity,,,fletch_fletch_arrow_shafts_logs,1,fletching,5,
+mine_some_copper_ore,Mine some Copper Ore,10,true,true,skill_action_quantity,,,mine_copper,1,mining,17.5,
 achieve_your_first_level_50,Achieve Your First Level 50,30,true,false,any_skill_level,50,,,,,,
 kill_a_buffalo,Kill a Buffalo,10,false,true,,,,,,,,varlamore
 reach_total_level_250,Reach Total Level 250,30,true,false,total_level,250,,,,,,
 make_some_flour,Make some Flour,30,false,true,,,,,,,,
-open_28_coin_pouches_at_once,Open 28 Coin Pouches At Once,30,true,true,skill_action_quantity,,,pickpocket_men,28,224,,
+open_28_coin_pouches_at_once,Open 28 Coin Pouches At Once,30,true,true,skill_action_quantity,,,pickpocket_men,28,thieving,224,
 visit_death's_domain,Visit Death's Domain,10,false,true,,,,,,,,varlamore
-mine_5_tin_ore,Mine 5 Tin Ore,10,true,true,skill_action_quantity,,,mine_tin,5,87.5,,
-smelt_a_bronze_bar,Smelt a Bronze Bar,10,true,true,skill_action_quantity,,,smelt_bronze,1,6.2,,
-burn_some_oak_logs,Burn Some Oak Logs,10,true,true,skill_action_quantity,,,burn_oak_logs,1,60,,
+mine_5_tin_ore,Mine 5 Tin Ore,10,true,true,skill_action_quantity,,,mine_tin,5,mining,87.5,
+smelt_a_bronze_bar,Smelt a Bronze Bar,10,true,true,skill_action_quantity,,,smelt_bronze,1,smithing,6.2,
+burn_some_oak_logs,Burn Some Oak Logs,10,true,true,skill_action_quantity,,,burn_oak_logs,1,firemaking,60,
 equip_an_elemental_staff,Equip an Elemental Staff,10,false,true,,,,,,,,
 chop_some_logs_with_a_steel_axe,Chop Some Logs With a Steel Axe,10,false,true,,,,,,,,
 dance_in_a_graveyard,Dance in a graveyard,10,false,true,,,,,,,,morytania
@@ -76,11 +76,11 @@ equip_some_steel_armour,Equip some Steel armour,30,false,true,,,,,,,,
 equip_a_spiny_helmet,Equip a Spiny Helmet,10,false,true,,,,,,,,
 obtain_a_bird_nest,Obtain a Bird Nest,10,false,true,,,,,,,,
 equip_a_mithril_weapon,Equip a Mithril Weapon,30,false,true,,,,,,,,
-catch_a_herring,Catch a Herring,10,true,true,skill_action_quantity,,,fish_herring,1,30,,
+catch_a_herring,Catch a Herring,10,true,true,skill_action_quantity,,,catch_herring,1,fishing,30,
 pickpocket_a_master_farmer,Pickpocket a Master Farmer,30,false,true,,,,,,,,
 superhuman_strength_and_improved_reflexes,Superhuman Strength and Improved Reflexes,10,false,true,,,,,,,,
 charter_a_ship_from_sunset_coast_to_civitas,Charter a Ship From Sunset Coast to Civitas,10,false,true,,,,,,,,varlamore
-fletch_1000_arrow_shafts,Fletch 1000 arrow shafts,30,true,true,skill_action_quantity,,,fletch_fletch_arrow_shafts_logs,67,335,,
+fletch_1000_arrow_shafts,Fletch 1000 arrow shafts,30,true,true,skill_action_quantity,,,fletch_fletch_arrow_shafts_logs,67,fletching,335,
 steal_100_valuables,Steal 100 Valuables,30,false,true,,,,,,,,varlamore
 cast_high_level_alchemy,Cast High Level Alchemy,30,false,false,,,,,,,,
 fill_a_crate_with_bananas,Fill a Crate With Bananas,10,false,true,,,,,,,,karamja
@@ -92,47 +92,47 @@ complete_1_slayer_task,Complete 1 Slayer Task,30,false,true,,,,,,,,
 equip_an_adamant_weapon,Equip an Adamant Weapon,30,false,true,,,,,,,,
 equip_a_rune_weapon,Equip a Rune Weapon,30,false,true,,,,,,,,
 enter_the_brimhaven_dungeon,Enter the Brimhaven Dungeon,30,false,true,,,,,,,,karamja
-smelt_an_iron_bar,Smelt an Iron Bar,10,true,true,skill_action_quantity,,,smelt_iron,1,12.5,,
+smelt_an_iron_bar,Smelt an Iron Bar,10,true,true,skill_action_quantity,,,smelt_iron,1,smithing,12.5,
 gain_a_unique_item_from_an_easy_clue,Gain a Unique Item From an Easy Clue,30,false,true,,,,,,,,
 use_the_protect_from_melee_prayer,Use the Protect from Melee Prayer,30,false,true,,,,,,,,
-mine_50_iron_ore,Mine 50 Iron Ore,30,true,true,skill_action_quantity,,,mine_iron,50,1750,,
-obtain_800_coins_from_coin_pouches_at_once,Obtain 800 Coins From Coin Pouches At Once,30,true,true,skill_action_quantity,,,pickpocket_guard,27,1263.6,,
+mine_50_iron_ore,Mine 50 Iron Ore,30,true,true,skill_action_quantity,,,mine_iron,50,mining,1750,
+obtain_800_coins_from_coin_pouches_at_once,Obtain 800 Coins From Coin Pouches At Once,30,true,true,skill_action_quantity,,,pickpocket_guard,27,thieving,1263.6,
 light_a_torch,Light a Torch,10,false,true,,,,,,,,
-steal_from_the_fortis_spice_stall,Steal from the Fortis Spice Stall,30,true,true,skill_action_quantity,,,steal_from_spice_stall,1,92,,varlamore
+steal_from_the_fortis_spice_stall,Steal from the Fortis Spice Stall,30,true,true,skill_action_quantity,,,steal_from_spice_stall,1,thieving,92,varlamore
 mine_some_ore_with_a_steel_pickaxe,Mine some Ore With a Steel Pickaxe,10,false,true,,,,,,,,
 15_collection_log_slots,15 Collection log slots,30,false,true,,,,,,,,
 find_the_needle,Find the Needle,30,false,true,,,,,,,,varlamore
 cast_a_blast_spell,Cast a Blast Spell,30,false,true,,,,,,,,
-catch_100_lobsters,Catch 100 Lobsters,30,true,true,skill_action_quantity,,,fish_lobster,100,9000,,
+catch_100_lobsters,Catch 100 Lobsters,30,true,true,skill_action_quantity,,,catch_lobster,100,fishing,9000,
 reach_combat_level_75,Reach Combat Level 75,30,true,false,combat_level,75,,,,,,
 catch_a_salmon_on_karamja,Catch a Salmon on Karamja,30,false,true,,,,,,,,karamja
 achieve_your_first_level_90,Achieve Your First Level 90,200,true,false,any_skill_level,90,,,,,,
 smith_a_bronze_plateskirt,Smith a Bronze plateskirt,10,false,true,,,,,,,,
 shear_an_alpaca,Shear an Alpaca,10,false,true,,,,,,,,varlamore
-catch_50_salmon,Catch 50 Salmon,30,true,true,skill_action_quantity,,,fish_salmon,50,3500,,
-chop_100_willow_logs,Chop 100 Willow Logs,30,true,true,skill_action_quantity,,,chop_willow_trees,100,6700,,
+catch_50_salmon,Catch 50 Salmon,30,true,true,skill_action_quantity,,,catch_salmon,50,fishing,3500,
+chop_100_willow_logs,Chop 100 Willow Logs,30,true,true,skill_action_quantity,,,chop_willow_trees,100,woodcutting,6750,
 defeat_a_tzhaar,Defeat a TzHaar,30,false,true,,,,,,,,karamja
 reach_total_level_1000,Reach Total Level 1000,80,true,false,total_level,1000,,,,,,
 clean_25_grimy_guam_leafs,Clean 25 Grimy Guam Leafs,10,false,true,,,,,,,,
-catch_10_pike,Catch 10 Pike,30,true,true,skill_action_quantity,,,fish_pike,10,600,,
+catch_10_pike,Catch 10 Pike,30,true,true,skill_action_quantity,,,catch_pike,10,fishing,600,
 teleport_using_law_runes,Teleport Using Law Runes,30,false,true,,,,,,,,
 complete_perilous_moons,Complete Perilous Moons,80,false,true,,,,,,,,morytania
 kill_a_guard_in_varlamore_underground,Kill a Guard in Varlamore underground,10,false,true,,,,,,,,varlamore
 build_a_room_in_your_player_owned_house,Build a Room in Your Player Owned House,30,false,true,,,,,,,,
-catch_a_karambwanji,Catch a Karambwanji,10,true,true,skill_action_quantity,,,fish_karambwanji,1,5,,karamja
+catch_a_karambwanji,Catch a Karambwanji,10,true,true,skill_action_quantity,,,catch_karambwanji,1,fishing,5,karamja
 30_collection_log_slots,30 Collection log slots,30,false,true,,,,,,,,
 equip_some_black_armour,Equip some Black armour,30,false,true,,,,,,,,
-smelt_a_steel_bar,Smelt a Steel Bar,30,true,true,skill_action_quantity,,,smelt_steel,1,17.5,,
+smelt_a_steel_bar,Smelt a Steel Bar,30,true,true,skill_action_quantity,,,smelt_steel,1,smithing,17.5,
 achieve_your_first_level_95,Achieve Your First Level 95,200,true,false,any_skill_level,95,,,,,,
 buy_a_candle_in_lumbridge,Buy a candle in Lumbridge,30,false,true,,,,,,,,
-cook_100_lobsters,Cook 100 Lobsters,30,true,true,skill_action_quantity,,,cook_lobster,100,12000,,
-cook_10_sardines,Cook 10 Sardines,30,true,true,skill_action_quantity,,,cook_sardine,10,400,,
-catch_50_swordfish,Catch 50 Swordfish,30,true,true,skill_action_quantity,,,fish_swordfish,50,5000,,
+cook_100_lobsters,Cook 100 Lobsters,30,true,true,skill_action_quantity,,,cook_lobster,100,cooking,12000,
+cook_10_sardines,Cook 10 Sardines,30,true,true,skill_action_quantity,,,cook_sardine,10,cooking,400,
+catch_50_swordfish,Catch 50 Swordfish,30,true,true,skill_action_quantity,,,catch_swordfish,50,fishing,5000,
 obtain_a_gem_while_mining,Obtain a Gem While Mining,30,false,true,,,,,,,,
 subdue_the_moons_of_peril,Subdue the Moons of Peril,30,false,true,,,,,,,,morytania
 fill_5_easy_clue_collection_log_slots,Fill 5 Easy Clue Collection Log Slots,30,false,true,,,,,,,,
 1_medium_clue_scroll,1 Medium Clue Scroll,30,false,true,,,,,,,,
-catch_25_sardines,Catch 25 Sardines,30,true,true,skill_action_quantity,,,fish_sardine,25,500,,
+catch_25_sardines,Catch 25 Sardines,30,true,true,skill_action_quantity,,,catch_sardine,25,fishing,500,
 gain_a_unique_item_from_a_beginner_clue,Gain a Unique Item From a Beginner Clue,30,false,true,,,,,,,,
 gain_a_unique_item_from_a_medium_clue,Gain a Unique Item From a Medium Clue,30,false,true,,,,,,,,
 kill_an_icefiend_in_varlamore,Kill an Icefiend in Varlamore,10,false,true,,,,,,,,varlamore
@@ -142,7 +142,7 @@ fletch_a_willow_shortbow_(u),Fletch a Willow Shortbow (u),30,false,true,,,,,,,,
 50_collection_log_slots,50 Collection log slots,30,false,true,,,,,,,,
 reach_total_level_1250,Reach Total Level 1250,80,true,false,total_level,1250,,,,,,
 reach_base_level_5,Reach Base Level 5,30,false,false,,,,,,,,
-cook_20_pike,Cook 20 Pike,30,true,true,skill_action_quantity,,,cook_pike,20,1600,,
+cook_20_pike,Cook 20 Pike,30,true,true,skill_action_quantity,,,cook_pike,20,cooking,1600,
 chop_some_logs_with_a_rune_axe,Chop Some Logs With a Rune Axe,30,false,true,,,,,,,,
 smith_150_iron_arrowtips,Smith 150 Iron Arrowtips,30,false,true,,,,,,,,
 drink_a_strength_potion,Drink a Strength Potion,10,false,true,,,,,,,,
@@ -151,7 +151,7 @@ gain_10_unique_items_from_easy_clues,Gain 10 Unique Items From Easy Clues,30,fal
 receive_an_agility_arena_ticket,Receive an Agility Arena Ticket,10,false,true,,,,,,,,karamja
 bury_some_wyvern_or_dragon_bones,Bury Some Wyvern or Dragon Bones,30,false,true,,,,,,,,morytania
 locate_a_runecrafting_altar_with_a_talisman,Locate a Runecrafting Altar With a Talisman,10,false,true,,,,,,,,
-mine_15_coal,Mine 15 coal,30,true,true,skill_action_quantity,,,mine_coal,15,750,,
+mine_15_coal,Mine 15 coal,30,true,true,skill_action_quantity,,,mine_coal,15,mining,750,
 use_a_hat_stand,Use a Hat Stand,10,false,true,,,,,,,,
 1_hard_clue_scroll,1 Hard Clue Scroll,30,false,true,,,,,,,,
 eat_some_purple_sweets,Eat some Purple Sweets,30,false,true,,,,,,,,
@@ -159,7 +159,7 @@ gain_a_unique_item_from_a_hard_clue,Gain a Unique Item From a Hard Clue,30,false
 equip_a_dragon_weapon,Equip a Dragon Weapon,80,false,true,,,,,,,,
 fletch_150_iron_arrows,Fletch 150 Iron Arrows,30,false,true,,,,,,,,
 fletch_25_oak_stocks,Fletch 25 Oak Stocks,30,false,true,,,,,,,,
-burn_100_willow_logs,Burn 100 Willow Logs,30,true,true,skill_action_quantity,,,burn_willow_logs,100,9000,,
+burn_100_willow_logs,Burn 100 Willow Logs,30,true,true,skill_action_quantity,,,burn_willow_logs,100,firemaking,9000,
 reach_combat_level_100,Reach Combat Level 100,80,true,false,combat_level,100,,,,,,
 sleep_in_paramaya_inn,Sleep in Paramaya Inn,30,false,true,,,,,,,,karamja
 equip_a_maple_shortbow,Equip a Maple Shortbow,30,false,true,,,,,,,,
@@ -187,7 +187,7 @@ defeat_a_superior_slayer_creature,Defeat a Superior Slayer Creature,30,false,tru
 reach_total_level_1500,Reach Total Level 1500,80,true,false,total_level,1500,,,,,,
 smith_a_steel_platebody,Smith a Steel Platebody,30,false,true,,,,,,,,
 equip_a_full_green_dragonhide_set,Equip a Full Green Dragonhide Set,30,false,true,,,,,,,,
-cut_50_maple_logs,Cut 50 Maple Logs,30,true,true,skill_action_quantity,,,chop_maple_trees,50,5000,,
+cut_50_maple_logs,Cut 50 Maple Logs,30,true,true,skill_action_quantity,,,chop_maple_trees,50,woodcutting,5000,
 100_collection_log_slots,100 Collection log slots,80,false,true,,,,,,,,
 equip_an_obsidian_cape,Equip an Obsidian Cape,30,false,true,,,,,,,,karamja
 burn_some_coloured_logs,Burn Some Coloured Logs,30,false,true,,,,,,,,
@@ -210,7 +210,7 @@ pay_an_urchin_for_information,Pay an Urchin for Information,30,false,true,,,,,,,
 complete_wave_1_of_fortis_colosseum,Complete Wave 1 of Fortis Colosseum,30,false,true,,,,,,,,varlamore
 steal_a_blessed_bone_statuette,Steal a Blessed Bone Statuette,80,false,true,,,,,,,,varlamore
 fill_5_beginner_clue_collection_log_slots,Fill 5 Beginner Clue Collection Log Slots,30,false,true,,,,,,,,
-burn_25_maple_logs,Burn 25 Maple Logs,30,true,true,skill_action_quantity,,,burn_maple_logs,25,3375,,
+burn_25_maple_logs,Burn 25 Maple Logs,30,true,true,skill_action_quantity,,,burn_maple_logs,25,firemaking,3375,
 1_amoxliatl_kill,1 Amoxliatl Kill,30,false,true,,,,,,,,varlamore
 catch_a_baby_impling,Catch a Baby Impling,10,false,true,,,,,,,,
 1_elite_clue_scroll,1 Elite Clue Scroll,30,false,true,,,,,,,,

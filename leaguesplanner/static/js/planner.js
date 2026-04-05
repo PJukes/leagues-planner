@@ -320,6 +320,43 @@ window.removeActionLatLng = function(key) {
   }
 };
 
+window.getActionLatLngs = function() {
+  const result = {};
+  for (const [key, latlng] of Object.entries(actionLatLngs)) {
+    result[key] = { lat: latlng.lat, lng: latlng.lng };
+  }
+  return result;
+};
+
+window.restoreActionLatLngs = function(savedLatLngs, actions) {
+  if (!osrsMap) {
+    window._pendingRestore = { savedLatLngs, actions };
+    return;
+  }
+  // Clear existing action markers
+  for (const key of Object.keys(actionMarkers)) {
+    osrsMap.removeLayer(actionMarkers[key]);
+    delete actionMarkers[key];
+  }
+  for (const key of Object.keys(actionLatLngs)) {
+    delete actionLatLngs[key];
+  }
+  // Build action type lookup
+  const typeMap = {};
+  for (const action of (actions || [])) {
+    typeMap[action.key] = action.type;
+  }
+  // Re-register each saved marker
+  for (const [key, coords] of Object.entries(savedLatLngs || {})) {
+    const t = typeMap[key];
+    const markerType = t === 'task' ? 'league_task'
+                     : t === 'relic' ? 'tier_unlock'
+                     : t === 'destination' ? 'note'
+                     : 'generic_action';
+    window.registerActionLatLng(key, L.latLng(coords.lat, coords.lng), markerType);
+  }
+};
+
 window.refreshMapPolylines = function(actions) {
   // Clear old connection lines
   connectionPolylines.forEach(p => osrsMap && osrsMap.removeLayer(p));
@@ -411,4 +448,12 @@ function refreshMarkers() {
 // Initialise
 document.addEventListener("DOMContentLoaded", async () => {
   initMap();
+  // Apply any markers that were queued before the map was ready
+  if (window._pendingRestore) {
+    window.restoreActionLatLngs(
+      window._pendingRestore.savedLatLngs,
+      window._pendingRestore.actions
+    );
+    window._pendingRestore = null;
+  }
 });

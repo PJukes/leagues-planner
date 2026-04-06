@@ -78,9 +78,42 @@
           </template>
         </select>
         <input type="number" x-model="editFormData.quantity" min="1" class="text-sm border rounded px-2 py-1 bg-white" placeholder="Quantity">
+
+        <!-- Edit preview -->
+        <template x-if="getEditActionPreview()">
+          <div class="p-2 bg-gray-50 border border-gray-200 rounded text-xs space-y-1" x-data="{ ep: null }" x-effect="ep = getEditActionPreview()">
+            <div class="flex gap-x-3 flex-wrap">
+              <span class="text-gray-600">XP: <span class="font-medium text-gray-800" x-text="`+${ep?.xpGain?.toLocaleString() || 0}`"></span></span>
+              <span class="text-gray-600">
+                Level: <span class="font-medium text-gray-800" x-text="ep ? `${ep.currentLevel} → ${ep.newLevel}` : ''"></span>
+                <template x-if="ep?.levelGain > 0">
+                  <span class="text-green-600 font-medium" x-text="`(+${ep.levelGain})`"></span>
+                </template>
+              </span>
+              <template x-if="ep?.gold > 0">
+                <span class="text-yellow-700">Coins: <span class="font-medium" x-text="`+${ep.gold.toLocaleString()}`"></span></span>
+              </template>
+            </div>
+            <template x-if="ep?.itemYields?.length">
+              <div class="text-gray-600">Yields: <span class="font-medium text-gray-800" x-text="ep.itemYields.map(y => `${y.quantity.toLocaleString()} ${y.name}`).join(', ')"></span></div>
+            </template>
+            <template x-if="ep?.itemCosts?.length">
+              <div>
+                <span class="text-gray-600">Consumes: </span>
+                <template x-for="cost in ep.itemCosts" :key="cost.item">
+                  <span :class="cost.sufficient ? 'text-gray-800' : 'text-red-600 font-semibold'">
+                    <span x-text="`${cost.needed.toLocaleString()} ${cost.name} (have ${cost.available.toLocaleString()})`"></span>
+                    <template x-if="!cost.sufficient"><span> — insufficient</span></template>
+                  </span>
+                </template>
+              </div>
+            </template>
+          </div>
+        </template>
+
         <div class="flex gap-2 justify-end">
           <button @click="cancelEdit()" class="text-xs px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">Cancel</button>
-          <button @click="saveEdit()" class="text-xs px-3 py-1 rounded bg-purple-600 text-white hover:bg-purple-700">Save</button>
+          <button @click="saveEdit()" :disabled="getEditActionPreview()?.hasInsufficientItems" class="text-xs px-3 py-1 rounded bg-purple-600 text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-300">Save</button>
         </div>
       </div>
     </div>

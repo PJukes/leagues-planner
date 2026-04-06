@@ -163,10 +163,12 @@ export function taskManager() {
             if (this.selectedTask && this.selectedTask.key === taskKey) {
                 this.selectedTask.selected = false;
                 this.selectedTask = null;
+                if (window.updateActiveMarker) window.updateActiveMarker(null);
                 return;
             }
             this.selectedTask = this.actions.find(task => task.key === taskKey);
             this.selectedTask.selected = true;
+            if (window.updateActiveMarker) window.updateActiveMarker(taskKey);
         },
 
         removeTask(taskKey) {

@@ -50,6 +50,7 @@ const actionLatLngs = {}; // actionKey → L.LatLng
 const actionMarkers = {}; // actionKey → L.Marker (draggable map markers)
 let connectionPolylines = []; // polylines connecting sequential action markers
 window._pendingActionLatlng = null; // set when a context-menu action places a marker
+let activeMarkerKey = null; // key of the currently selected/active action marker
 
 const TILE_X_OFFSET = 100;
 const TILE_Y_OFFSET = 100;
@@ -313,6 +314,19 @@ window.registerActionLatLng = function(key, latlng, actionType) {
     }
   });
 
+  marker.on("click", function () {
+    const alpineEl = document.querySelector("[x-data]");
+    if (alpineEl && window.Alpine) {
+      const alpineData = window.Alpine.$data(alpineEl);
+      if (alpineData && alpineData.selectTask) {
+        alpineData.selectTask(key);
+        // Scroll the action into view in the planner list
+        const actionEl = document.querySelector(`[data-action-key="${key}"]`);
+        if (actionEl) actionEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+  });
+
   marker.addTo(osrsMap);
   actionMarkers[key] = marker;
 };
@@ -407,7 +421,7 @@ function finishPathDrawingMode() {
   osrsMap.getContainer().style.cursor = pickingMapCoord ? "crosshair" : "";
 }
 
-function taskMarkerIcon(taskType) {
+function taskMarkerIcon(taskType, isActive = false) {
   const colors = {
     league_task: "#e8b84b",
     generic_action: "#4caf50",
@@ -415,16 +429,51 @@ function taskMarkerIcon(taskType) {
     note: "#2196f3",
   };
   const color = colors[taskType] || "#aaa";
+  const size = isActive ? 20 : 12;
+  const anchor = isActive ? 10 : 6;
+  const border = isActive ? "3px" : "2px";
   return L.divIcon({
     className: "",
     html: `<div style="
-      width:12px;height:12px;border-radius:50%;
-      background:${color};border:2px solid #fff;
+      width:${size}px;height:${size}px;border-radius:50%;
+      background:${color};border:${border} solid #fff;
       box-shadow:0 1px 4px rgba(0,0,0,.5)
     "></div>`,
-    iconSize: [12, 12],
-    iconAnchor: [6, 6],
+    iconSize: [size, size],
+    iconAnchor: [anchor, anchor],
   });
+}
+
+window.updateActiveMarker = function(key) {
+  // Reset previously active marker to normal size
+  if (activeMarkerKey && actionMarkers[activeMarkerKey]) {
+    const prevMarker = actionMarkers[activeMarkerKey];
+    const prevType = _getMarkerType(activeMarkerKey);
+    prevMarker.setIcon(taskMarkerIcon(prevType, false));
+  }
+  activeMarkerKey = key;
+  // Enlarge newly active marker
+  if (key && actionMarkers[key]) {
+    const type = _getMarkerType(key);
+    actionMarkers[key].setIcon(taskMarkerIcon(type, true));
+  }
+};
+
+function _getMarkerType(key) {
+  const alpineEl = document.querySelector("[x-data]");
+  if (alpineEl && window.Alpine) {
+    const data = window.Alpine.$data(alpineEl);
+    if (data && data.actions) {
+      const action = data.actions.find(a => a.key === key);
+      if (action) {
+        return action.type === 'task' ? 'league_task'
+             : action.type === 'relic' ? 'tier_unlock'
+             : action.type === 'destination' ? 'note'
+             : 'generic_action';
+      }
+    }
+  }
+  return 'generic_action';
 }
 
 function refreshMarkers() {

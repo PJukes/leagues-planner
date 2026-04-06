@@ -9,7 +9,7 @@
         :class="regionFilter === null ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
         class="rounded-full px-3 py-1 text-xs font-medium transition-colors"
       >All</button>
-      <template x-for="region in regions.filter(r => isRegionUnlocked(r.key))" :key="region.key">
+      <template x-for="region in unlockedRegions" :key="region.key"></template>
         <button
           @click="setRegionFilter(region.key)"
           :class="regionFilter === region.key ? 'bg-green-700 text-white' : 'bg-green-100 text-green-800 hover:bg-green-200'"

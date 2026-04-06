@@ -25,6 +25,12 @@ module.exports = merge(common, {
     devMiddleware: {
       writeToDisk: true,
     },
+    watchFiles: [
+      'src/**/*.html',
+      'templates/**/*.html',
+      'templates/**/*.{twig,ejs,hbs,php}',
+      'public/index.html',
+    ],
   },
   plugins: [
     new Webpack.DefinePlugin({

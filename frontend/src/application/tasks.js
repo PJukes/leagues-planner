@@ -49,7 +49,7 @@ export function taskManager() {
         editingAction: null,
         editFormData: {},
         regions: REGIONS,
-        unlockedRegions: REGIONS.filter(r => r.tasks_required === 0).map(r => r.key),
+        unlockedRegions: [],
         regionFilter: null,
         savedRoutes: [],
         newRouteName: '',
@@ -67,6 +67,10 @@ export function taskManager() {
                     this.taskList = data.tasks || [];
                     this._restoreFromLocalStorage();
                 });
+
+            this.unlockedRegions.push(REGIONS.varlamore, REGIONS.karamja);
+            this.addTask("open_the_leagues_menu");
+            this.addTask("complete_the_leagues_tutorial");
         },
 
         openModal(content = "task-list-template") {
@@ -124,14 +128,6 @@ export function taskManager() {
         getRegionLabel(regionKey) {
             const region = REGIONS.find(r => r.key === regionKey);
             return region ? region.name : regionKey;
-        },
-
-        isRegionUnlocked(regionKey) {
-            return this.unlockedRegions.includes(regionKey);
-        },
-
-        nextLockedRegion() {
-            return REGIONS.find(r => !this.unlockedRegions.includes(r.key)) || null;
         },
 
         addTask(taskKey) {
@@ -208,6 +204,12 @@ export function taskManager() {
             this.closeModal();
         },
 
+        removeRelic(relicKey) {
+            console.log(`Removing relic: ${relicKey}`);
+            this.relicSelection = this.relicSelection.filter(key => key !== relicKey);
+            this.removeTask(relicKey);
+        },
+
         getCreature() {
             return CREATURES[this.combatCreature] || null;
         },
@@ -235,7 +237,7 @@ export function taskManager() {
             }
             const totalPoints = this.totalPoints;
             for (let i = 0; i < RELIC_POINTS_TIER.length; i++) {
-                if (totalPoints >= RELIC_POINTS_TIER[i] && this.currentRelicTier < i) {
+                if (totalPoints >= RELIC_POINTS_TIER[i] && this.relicSelection.length < i) {
                     return true;
                 }
             }
@@ -255,6 +257,7 @@ export function taskManager() {
 
             const skillLabel = this.skillOptions.find(opt => opt.key === skill)?.label || skill;
             const experience = selectedMethod.xpPerAction * parsedQuantity * (getXpMultiplier(this.totalPoints) || 5);
+            const calculatedGold = ((selectedMethod.gold || 0) * parsedQuantity) + this.getGold(experience, quantity);
             const skillAction = {
                 key: `${skill}-${method}-${Date.now()}`,
                 skill,
@@ -266,8 +269,10 @@ export function taskManager() {
                 bonusExp: this.getBonusExp(skill, parsedQuantity, experience),
                 experience,
                 type: "skill",
-                totalGold: ((selectedMethod.gold || 0) * parsedQuantity) + this.getGold(experience, quantity),
+                totalGold: calculatedGold,
             };
+            console.log(calculatedGold, this.itemRepository);
+            this.itemRepository.coins = (this.itemRepository.coins || 0) + calculatedGold;
             skillAction.currentStats = this.calculateStats(skillAction);
 
             this._insertAction(skillAction);
@@ -791,6 +796,7 @@ export function taskManager() {
                 const goldBeforeAction = runningGold;
                 runningGold += Number(action.totalGold) || 0;
                 action.cumulativeGold = runningGold;
+                this.itemRepository.coins = runningGold;
 
                 if (action.type === "purchase") {
                     const cost = action.totalCost || 0;
@@ -807,9 +813,6 @@ export function taskManager() {
             );
             this.totalLevel = Object.values(this.skillLevels).reduce((sum, lvl) => sum + lvl, 0);
             this.totalTasks = this.actions.filter(action => action.type === "task").length;
-            this.unlockedRegions = REGIONS
-                .filter(r => r.tasks_required <= this.totalTasks)
-                .map(r => r.key);
             this.itemRepository = { ...runningItems };
             this.checkPassiveTasks();
             if (window.refreshMapPolylines) window.refreshMapPolylines(this.actions);
@@ -842,7 +845,9 @@ export function taskManager() {
         },
 
         totalGold() {
-            return this.actions.reduce((total, action) => total + (action.totalGold || 0), 0);
+            const tg = this.actions.reduce((total, action) => total + (action.totalGold || 0), 0);
+            this.itemRepository.coins = tg;
+            return tg;
         },
 
         evaluatePassiveRequirement(requirement) {
@@ -931,6 +936,7 @@ export function taskManager() {
                 action.bonusExp = this.getBonusExp(this.editFormData.skill, parsedQuantity, experience);
                 action.totalGold = ((selectedMethod.gold || 0) * parsedQuantity) + this.getGold(experience, parsedQuantity);
             }
+            this.itemRepository.coins = (this.itemRepository.coins || 0) + action.totalGold;
 
             if (action.type === "destination") {
                 action.description = this.editFormData.description;
@@ -1072,6 +1078,21 @@ export function taskManager() {
         getItemName(item) {
             const itemData = ITEMS[item];
             return itemData ? itemData.name : item;
+        },
+
+        getItemPicture(item) {
+            const itemName = this.getItemName(item.key).replace(' ', '_');
+            let scale = null;
+            if (item.key == "coins") {
+                scale = [1,2,3,4,5,25,100,250,1000,10000].filter(t => item.quantity >= t).pop();
+            }
+            if (item.key == "arrow_shaft") {
+                scale = [1,2,3,4,5].filter(t => item.quantity >= t).pop();
+            }
+            if(scale == null) {
+                return 'https://oldschool.runescape.wiki/images/' + itemName + '.png?6dc61';
+            }
+            return "https://oldschool.runescape.wiki/images/" + itemName + "_" + scale + ".png?6dc61";
         }
     };
 }

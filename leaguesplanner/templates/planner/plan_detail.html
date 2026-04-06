@@ -151,34 +151,7 @@
                 </template>
 
                 <!-- RELIC type -->
-                <template x-if="action.type==='relic'">
-                  <li @click="selectTask(action.key)" :class="action.selected ? 'border-indigo-600' : 'border-red-300'" class="relative rounded-lg border bg-red-100 px-4 py-2 shadow-sm focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-indigo-600 cursor-hover">
-                    <div class="flex items-center space-x-3">
-                      <span class="drag-handle cursor-grab select-none text-gray-300 hover:text-gray-400" @click.stop title="Drag to reorder">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="display:block" class="text-black text-opacity-20">
-                          <circle cx="5" cy="4" r="1.4"/><circle cx="11" cy="4" r="1.4"/>
-                          <circle cx="5" cy="8" r="1.4"/><circle cx="11" cy="8" r="1.4"/>
-                          <circle cx="5" cy="12" r="1.4"/><circle cx="11" cy="12" r="1.4"/>
-                        </svg>
-                      </span>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 text-red-600">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
-                      </svg>
-
-                      <div class="min-w-0 flex-1">
-                        <div class="flex justify-between">
-                          <p x-text="action.name" class="text-sm font-medium text-red-900"></p>
-                        </div>
-                      </div>
-
-                      <button @click.stop="removeTask(action.key)" class="remove-task-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-400 hover:text-gray-500">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                  </li>
-                </template>
+                 {% include "planner/plan/relic.html" %}
 
                 <!-- SKILL type -->
                 <template x-if="action.type==='skill'">
@@ -385,16 +358,10 @@
         <div class="mt-3">
           <h3>Regions</h3>
           <div class="flex flex-wrap gap-1 mt-2">
-            <template x-for="region in regions" :key="region.key">
-              <span :title="isRegionUnlocked(region.key) ? region.name + ' (unlocked)' : region.name + ' — unlock at ' + region.tasks_required + ' tasks'"
-                :class="isRegionUnlocked(region.key)
-                  ? 'bg-green-100 text-green-800 border-green-300 cursor-pointer hover:bg-green-200'
-                  : 'bg-gray-100 text-gray-400 border-gray-200 cursor-default'"
-                class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium select-none">
+            <template x-for="region in unlockedRegions" :key="region.key">
+              <span :title="region.name"
+                class="bg-green-100 text-green-800 border-green-300 cursor-pointer hover:bg-green-200 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium select-none">
                 <span x-text="region.name"></span>
-                <template x-if="!isRegionUnlocked(region.key)">
-                  <span x-text="'(' + region.tasks_required + ')'"></span>
-                </template>
               </span>
             </template>
           </div>
@@ -404,13 +371,35 @@
 
         <!-- Item Repository Summary -->
         <div class="mt-2">
-          <h3>Items Gathered</h3>
+          <h3>Available Items</h3>
           <div class="flex flex-wrap gap-1 mt-2">
-            <template x-for="item in totalItemRepository()" :key="item.key">
-              <span :class="item.quantity < 0 ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'"
-                    class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
-                    x-text="item.name + ': ' + item.quantity.toLocaleString()"></span>
-            </template>
+            <div class="w-full min-h-64 p-2 h-full border border-gray-300 bg-blue-50 rounded-lg grid grid-cols-8 gap-x-4">
+              <template x-for="item in totalItemRepository()" :key="item.key">
+                <div class="relative h-min w-full" style="height: 32px">
+                  <span :class="item.quantity < 0 ? 'text-red-800' : 'text-amber-800'"
+                        class="absolute inset-top text-xs font-medium"
+                        style="  color: yellow;
+                          font-size: 12px;
+                          line-height: 1;
+                          text-shadow:
+                            -1px -1px 0 #000,
+                            0px -1px 0 #000,
+                            1px -1px 0 #000,
+                            -1px  0px 0 #000,
+                            1px  0px 0 #000,
+                            -1px  1px 0 #000,
+                            0px  1px 0 #000,
+                            1px  1px 0 #000,
+                            2px  2px 0 #000;"
+                        x-text="item.quantity.toLocaleString()"></span>
+                  <span class="sr-only" x-text="item.key"></span>
+                  <div class="flex justify-end items-end h-full">
+                    <div></div>
+                    <img class="m-auto" :src="getItemPicture(item)" :alt="item.key" :title="getItemName(item.key) + ' x ' + item.quantity">
+                  </div>
+                </div>
+              </template>
+            </div>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@ export const SKILL_METHODS = {
     woodcutting: {
         label: "Woodcutting",
         methods: [
-            { key: "chop_regular_trees", name: "Regular Trees", xpPerAction: 25, actionLabel: "log", itemYields: [{ item: "normal_logs", quantity: 1 }]},
+            { key: "chop_regular_trees", name: "Regular Trees", xpPerAction: 25, actionLabel: "log", itemYields: [{ item: "logs", quantity: 1 }]},
             { key: "chop_oak_trees", name: "Oak Trees", xpPerAction: 37.5, actionLabel: "log", itemYields: [{ item: "oak_logs", quantity: 1 }]},
             { key: "chop_willow_trees", name: "Willow Trees", xpPerAction: 67.5, actionLabel: "log", itemYields: [{ item: "willow_logs", quantity: 1 }]},
             { key: "chop_maple_trees", name: "Maple Trees", xpPerAction: 100, actionLabel: "log", itemYields: [{ item: "maple_logs", quantity: 1 }]},
@@ -13,7 +13,7 @@ export const SKILL_METHODS = {
     firemaking: {
         label: "Firemaking",
         methods: [
-            { key: "burn_normal_logs", name: "Normal Logs", xpPerAction: 40, actionLabel: "log", itemCosts: [{ item: "normal_logs", quantity: 1 }] },
+            { key: "burn_logs", name: "Normal Logs", xpPerAction: 40, actionLabel: "log", itemCosts: [{ item: "logs", quantity: 1 }] },
             { key: "burn_oak_logs", name: "Oak Logs", xpPerAction: 60, actionLabel: "log", itemCosts: [{ item: "oak_logs", quantity: 1 }] },
             { key: "burn_willow_logs", name: "Willow Logs", xpPerAction: 90, actionLabel: "log", itemCosts: [{ item: "willow_logs", quantity: 1 }] },
             { key: "burn_maple_logs", name: "Maple Logs", xpPerAction: 135, actionLabel: "log", itemCosts: [{ item: "maple_logs", quantity: 1 }] },
@@ -23,7 +23,7 @@ export const SKILL_METHODS = {
     fishing: {
         label: "Fishing",
         methods: [
-            { key: "catch_shrimp", name: "Catch Shrimp", xpPerAction: 10, actionLabel: "fish", itemYields: [{ item: "raw_shrimp", quantity: 1 }] },
+            { key: "catch_shrimp", name: "Catch Shrimp", xpPerAction: 10, actionLabel: "fish", itemYields: [{ item: "raw_shrimps", quantity: 1 }] },
             { key: "catch_sardine", name: "Catch Sardine", xpPerAction: 20, actionLabel: "fish", itemYields: [{ item: "raw_sardine", quantity: 1 }] },
             { key: "catch_karambwanji", name: "Catch Karambwanji", xpPerAction: 5, actionLabel: "fish", itemYields: [{ item: "raw_karambwanji", quantity: 1 }] },
             { key: "catch_herring", name: "Catch Herring", xpPerAction: 30, actionLabel: "fish", itemYields: [{ item: "raw_herring", quantity: 1 }] },
@@ -56,7 +56,7 @@ export const SKILL_METHODS = {
     cooking: {
         label: "Cooking",
         methods: [
-            { key: "cook_shrimp", name: "Cook Shrimp", xpPerAction: 30, actionLabel: "cook", itemCosts: [{ item: "raw_shrimp", quantity: 1 }] },
+            { key: "cook_shrimp", name: "Cook Shrimp", xpPerAction: 30, actionLabel: "cook", itemCosts: [{ item: "raw_shrimps", quantity: 1 }] },
             { key: "cook_sardine", name: "Cook Sardine", xpPerAction: 40, actionLabel: "cook", itemCosts: [{ item: "raw_sardine", quantity: 1 }] },
             { key: "cook_karambwanji", name: "Cook Karambwanji", xpPerAction: 10, actionLabel: "cook", itemCosts: [{ item: "raw_karambwanji", quantity: 1 }] },
             { key: "cook_herring", name: "Cook Herring", xpPerAction: 50, actionLabel: "cook", itemCosts: [{ item: "raw_herring", quantity: 1 }] },
@@ -85,15 +85,15 @@ export const SKILL_METHODS = {
     fletching: {
         label: "Fletching",
         methods: [
-            { key: "fletch_fletch_arrow_shafts_logs", name: "Fletch Fletch Arrow Shafts (Logs)", xpPerAction: 5, actionLabel: "fletch" },
-            { key: "fletch_headless_arrows", name: "Fletch Headless Arrows", xpPerAction: 1, actionLabel: "fletch" },
-            { key: "fletch_shortbow_u", name: "Fletch Shortbow (u)", xpPerAction: 5, actionLabel: "fletch" },
+            { key: "fletch_fletch_arrow_shafts_logs", name: "Fletch Fletch Arrow Shafts (Logs)", xpPerAction: 5, actionLabel: "fletch", itemCosts: [{ item: "logs", quantity: 1 }], itemYields: [{ item: "arrow_shaft", quantity: 15 }] },
+            { key: "fletch_headless_arrows", name: "Fletch Headless Arrows", xpPerAction: 1, actionLabel: "fletch", itemCosts: [{ item: "arrow_shaft", quantity: 15 }, { item: "feather", quantity: 15 }], itemYields: [{ item: "headless_arrow", quantity: 15 }] },
+            { key: "fletch_shortbow_u", name: "Fletch Shortbow (u)", xpPerAction: 5, actionLabel: "fletch", itemCosts: [{ item: "logs", quantity: 1 }], itemYields: [{ item: "shortbow_u", quantity: 1 }] },
         ],
     },
     thieving: {
         label: "Thieving",
         methods: [
-            { key: "pickpocket_men", name: "Pickpocket Men", xpPerAction: 8, actionLabel: "pickpocket", itemYields: [{ item: "GP", quantity: 3 }] },
+            { key: "pickpocket_men", name: "Pickpocket Men", xpPerAction: 8, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 3 }] },
             { key: "pickpocket_guard", name: "Pickpocket Guard", xpPerAction: 46.8, actionLabel: "pickpocket" },
             { key: "steal_from_vegetable_stall", name: "Steal From Vegetable stall", xpPerAction: 10, actionLabel: "steal from" },
             { key: "steal_from_bakery_stall", name: "Steal From Bakery stall", xpPerAction: 16, actionLabel: "steal from" },

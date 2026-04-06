@@ -41,18 +41,29 @@ export const BASE_XP_MULTIPLIER = 5.0;
 // Regions are areas of the game that unlock progressively as tasks are completed.
 // tasks_required is the number of completed tasks needed to unlock the region.
 // Regions with tasks_required: 0 are available from the start.
-export const REGIONS = [
-    { key: "varlamore",  name: "Varlamore", tasks_required: 0,   color: "orange" },
-    { key: "misthalin",  name: "Misthalin", tasks_required: 0,   color: "yellow" },
-    { key: "karamja",    name: "Karamja", tasks_required: 50,  color: "green"  },
-    { key: "asgarnia",   name: "Asgarnia", tasks_required: 100, color: "blue"   },
-    { key: "kandarin",   name: "Kandarin", tasks_required: 150, color: "teal"   },
-    { key: "desert",     name: "Desert", tasks_required: 175, color: "amber"  },
-    { key: "morytania",  name: "Morytania", tasks_required: 200, color: "purple" },
-    { key: "fremennik",  name: "Fremennik", tasks_required: 225, color: "indigo" },
-    { key: "tirannwn",   name: "Tirannwn", tasks_required: 250, color: "emerald"},
-    { key: "wilderness", name: "Wilderness", tasks_required: 275, color: "red"    },
-];
+export const VARLAMORE = { key: "varlamore",  name: "Varlamore", tasks_required: 0,   color: "orange" };
+export const MISTHALIN = { key: "misthalin",  name: "Misthalin", tasks_required: 0,   color: "yellow" };
+export const KARAMJA = { key: "karamja",    name: "Karamja", tasks_required: 50,  color: "green"  };
+export const ASGARNIA = { key: "asgarnia",   name: "Asgarnia", tasks_required: 100, color: "blue"   };
+export const KANDARIN = { key: "kandarin",   name: "Kandarin", tasks_required: 150, color: "teal"   };
+export const DESERT = { key: "desert",     name: "Desert", tasks_required: 175, color: "amber"  };
+export const MORYTANIA = { key: "morytania",  name: "Morytania", tasks_required: 200, color: "purple" };
+export const FREMENNIK = { key: "fremennik",  name: "Fremennik", tasks_required: 225, color: "indigo" };
+export const TIRANNWN = { key: "tirannwn",   name: "Tirannwn", tasks_required: 250, color: "emerald"};
+export const WILDERNESS = { key: "wilderness", name: "Wilderness", tasks_required: 275, color: "red"    };
+
+export const REGIONS = {
+    varlamore: VARLAMORE,
+    misthalin: MISTHALIN,
+    karamja: KARAMJA,
+    asgarnia: ASGARNIA,
+    kandarin: KANDARIN,
+    desert: DESERT,
+    morytania: MORYTANIA,
+    fremennik: FREMENNIK,
+    tirannwn: TIRANNWN,
+    wilderness: WILDERNESS,
+};
 
 export const DEFAULT_LEAGUE_TIERS = [
     { pointsRequired: 500, xpMultiplier: 5.0 },

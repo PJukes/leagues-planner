@@ -452,10 +452,13 @@ window.updateActiveMarker = function(key) {
     prevMarker.setIcon(taskMarkerIcon(prevType, false));
   }
   activeMarkerKey = key;
-  // Enlarge newly active marker
+  // Enlarge newly active marker and centre map on it
   if (key && actionMarkers[key]) {
     const type = _getMarkerType(key);
     actionMarkers[key].setIcon(taskMarkerIcon(type, true));
+    if (actionLatLngs[key]) {
+      osrsMap.setView(actionLatLngs[key], osrsMap.getZoom());
+    }
   }
 };
 

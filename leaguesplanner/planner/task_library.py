@@ -46,7 +46,7 @@ def _parse_row(row: dict) -> dict:
 
     pct = row.get("player_completion_pct", "").strip()
     if pct:
-        task["player_completion_pct"] = int(pct)
+        task["player_completion_pct"] = float(pct) * 100
 
     return task
 

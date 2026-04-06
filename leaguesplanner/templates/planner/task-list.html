@@ -65,12 +65,10 @@
                 <span x-text="'+' + task.league_points + ' pts'"></span>
               </td>
               <td class="px-3 py-2">
-                <template x-if="task.region">
-                  <span
-                    class="inline-block rounded-full bg-green-100 text-green-700 text-xs px-1.5 py-0.5 font-medium"
-                    x-text="getRegionLabel(task.region)"
-                  ></span>
-                </template>
+                <span
+                  class="inline-block rounded-full bg-green-100 text-green-700 text-xs px-1.5 py-0.5 font-medium"
+                  x-text="getRegionLabel(task.region)"
+                ></span>
               </td>
               <td class="px-3 py-2 text-right whitespace-nowrap">
                 <template x-if="task.player_completion_pct != null">

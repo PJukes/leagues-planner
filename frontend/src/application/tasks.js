@@ -119,7 +119,7 @@ export function taskManager() {
                 // Tasks with no region are always available (global)
                 if (!task.region || task.region=="General") return true;
                 // Region-specific tasks require the region to be unlocked
-                if (!this.unlockedRegions.includes(task.region)) return false;
+                if (!this.unlockedRegions.some(region => region.key.toLowerCase() === task.region.toLowerCase())) return false;
                 // If a region filter is active, only show tasks from that region
                 if (this.regionFilter && task.region !== this.regionFilter) return false;
                 return true;
@@ -152,7 +152,7 @@ export function taskManager() {
         },
 
         getRegionLabel(regionKey) {
-            const region = REGIONS.find(r => r.key === regionKey);
+            const region = Object.values(REGIONS).find(r => r.key === regionKey);
             return region ? region.name : regionKey;
         },
 

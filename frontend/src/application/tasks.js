@@ -228,7 +228,87 @@ export function taskManager() {
         },
 
         canAddSkillAction() {
-            return Boolean(this.skillSelection && this.methodSelection && Number(this.skillQuantity) > 0);
+            if (!this.skillSelection || !this.methodSelection || Number(this.skillQuantity) <= 0) return false;
+            const preview = this.getSkillActionPreview();
+            return !preview?.hasInsufficientItems;
+        },
+
+        getSkillActionPreview() {
+            const method = this.getSelectedMethod();
+            const skill = this.skillSelection;
+            const quantity = Number(this.skillQuantity) || 0;
+            if (!method || !skill || quantity <= 0) return null;
+
+            const xpGain = method.xpPerAction * quantity * (getXpMultiplier(this.totalPoints) || 5);
+            const currentXp = this.skillExperience[skill] || 0;
+            const currentLevel = experienceToLevel(currentXp);
+            const newLevel = experienceToLevel(currentXp + xpGain);
+            const levelGain = newLevel - currentLevel;
+
+            const itemCosts = (method.itemCosts || []).map(costDef => {
+                const needed = costDef.quantity * quantity;
+                const available = this.itemRepository[costDef.item] || 0;
+                return {
+                    item: costDef.item,
+                    name: ITEMS[costDef.item]?.name || costDef.item,
+                    needed,
+                    available,
+                    sufficient: available >= needed,
+                };
+            });
+
+            const itemYields = (method.itemYields || []).map(yieldDef => ({
+                item: yieldDef.item,
+                name: ITEMS[yieldDef.item]?.name || yieldDef.item,
+                quantity: yieldDef.quantity * quantity,
+            }));
+
+            const gold = this.getGold(xpGain, quantity);
+            const hasInsufficientItems = itemCosts.some(c => !c.sufficient);
+
+            return { xpGain, currentLevel, newLevel, levelGain, itemCosts, itemYields, gold, hasInsufficientItems, skill };
+        },
+
+        getEditActionPreview() {
+            const skill = this.editFormData.skill;
+            const method = getMethod(skill, this.editFormData.method);
+            const quantity = Number(this.editFormData.quantity) || 0;
+            if (!method || !skill || quantity <= 0) return null;
+
+            const xpGain = method.xpPerAction * quantity * (getXpMultiplier(this.totalPoints) || 5);
+            const currentXp = this.skillExperience[skill] || 0;
+            const currentLevel = experienceToLevel(currentXp);
+            const newLevel = experienceToLevel(currentXp + xpGain);
+            const levelGain = newLevel - currentLevel;
+
+            // Use items available just before this action in the plan
+            const editAction = this.actions.find(a => a.key === this.editingAction);
+            const actionIndex = editAction ? this.actions.indexOf(editAction) : -1;
+            const prevAction = actionIndex > 0 ? this.actions[actionIndex - 1] : null;
+            const itemsBeforeAction = prevAction ? (prevAction.cumulativeItems || {}) : {};
+
+            const itemCosts = (method.itemCosts || []).map(costDef => {
+                const needed = costDef.quantity * quantity;
+                const available = itemsBeforeAction[costDef.item] || 0;
+                return {
+                    item: costDef.item,
+                    name: ITEMS[costDef.item]?.name || costDef.item,
+                    needed,
+                    available,
+                    sufficient: available >= needed,
+                };
+            });
+
+            const itemYields = (method.itemYields || []).map(yieldDef => ({
+                item: yieldDef.item,
+                name: ITEMS[yieldDef.item]?.name || yieldDef.item,
+                quantity: yieldDef.quantity * quantity,
+            }));
+
+            const gold = this.getGold(xpGain, quantity);
+            const hasInsufficientItems = itemCosts.some(c => !c.sufficient);
+
+            return { xpGain, currentLevel, newLevel, levelGain, itemCosts, itemYields, gold, hasInsufficientItems, skill };
         },
 
         canPickRelic() {
@@ -271,8 +351,6 @@ export function taskManager() {
                 type: "skill",
                 totalGold: calculatedGold,
             };
-            console.log(calculatedGold, this.itemRepository);
-            this.itemRepository.coins = (this.itemRepository.coins || 0) + calculatedGold;
             skillAction.currentStats = this.calculateStats(skillAction);
 
             this._insertAction(skillAction);
@@ -796,7 +874,7 @@ export function taskManager() {
                 const goldBeforeAction = runningGold;
                 runningGold += Number(action.totalGold) || 0;
                 action.cumulativeGold = runningGold;
-                this.itemRepository.coins = runningGold;
+                runningItems.coins = runningGold;
 
                 if (action.type === "purchase") {
                     const cost = action.totalCost || 0;
@@ -923,6 +1001,8 @@ export function taskManager() {
                     this.cancelEdit();
                     return;
                 }
+                const editPreview = this.getEditActionPreview();
+                if (editPreview?.hasInsufficientItems) return;
                 const parsedQuantity = Number(this.editFormData.quantity);
                 const experience = selectedMethod.xpPerAction * parsedQuantity * (getXpMultiplier(this.totalPoints) || 5);
 
@@ -936,8 +1016,6 @@ export function taskManager() {
                 action.bonusExp = this.getBonusExp(this.editFormData.skill, parsedQuantity, experience);
                 action.totalGold = ((selectedMethod.gold || 0) * parsedQuantity) + this.getGold(experience, parsedQuantity);
             }
-            this.itemRepository.coins = (this.itemRepository.coins || 0) + action.totalGold;
-
             if (action.type === "destination") {
                 action.description = this.editFormData.description;
             }

@@ -29,18 +29,49 @@
       </div>
     </div>
 
-    
-    <div class="mt-4 flex justify-between">
-      <div class="flex gap-x-4">
-        <p class="mt-2 text-sm text-gray-600">
-          <span x-text="`Total xp: ${(getSelectedMethod()?.xpPerAction || 0) * (skillQuantity || 0) * (currentExpModifier() || 5)}`"></span>
-        </p>
-  
-        <p class="mt-2 text-sm text-gray-600">
-          <span x-text="`Items: ${(getSelectedMethod()?.itemYields || []).map(y => `${skillQuantity * y.quantity} ${getItemName(y.item)}`).join(', ') || 'None'}`"></span>
-        </p>
-      </div>
+    <!-- Action preview -->
+    <template x-if="getSkillActionPreview()">
+      <div class="mt-3 p-3 bg-gray-50 border border-gray-200 rounded text-sm space-y-1" x-data="{ preview: null }" x-effect="preview = getSkillActionPreview()">
+        <div class="flex gap-x-4 flex-wrap">
+          <span class="text-gray-600">
+            XP: <span class="font-medium text-gray-800" x-text="`+${preview?.xpGain?.toLocaleString() || 0}`"></span>
+          </span>
+          <span class="text-gray-600">
+            Level: <span class="font-medium text-gray-800" x-text="preview ? `${preview.currentLevel} → ${preview.newLevel}` : ''"></span>
+            <template x-if="preview?.levelGain > 0">
+              <span class="text-green-600 font-medium" x-text="`(+${preview.levelGain})`"></span>
+            </template>
+          </span>
+          <template x-if="preview?.gold > 0">
+            <span class="text-yellow-700">
+              Coins: <span class="font-medium" x-text="`+${preview.gold.toLocaleString()}`"></span>
+            </span>
+          </template>
+        </div>
 
+        <template x-if="preview?.itemYields?.length">
+          <div class="text-gray-600">
+            Yields: <span class="font-medium text-gray-800" x-text="preview.itemYields.map(y => `${y.quantity.toLocaleString()} ${y.name}`).join(', ')"></span>
+          </div>
+        </template>
+
+        <template x-if="preview?.itemCosts?.length">
+          <div>
+            <span class="text-gray-600">Consumes: </span>
+            <template x-for="cost in preview.itemCosts" :key="cost.item">
+              <span :class="cost.sufficient ? 'text-gray-800' : 'text-red-600 font-semibold'">
+                <span x-text="`${cost.needed.toLocaleString()} ${cost.name} (have ${cost.available.toLocaleString()})`"></span>
+                <template x-if="!cost.sufficient">
+                  <span> — insufficient</span>
+                </template>
+              </span>
+            </template>
+          </div>
+        </template>
+      </div>
+    </template>
+
+    <div class="mt-4 flex justify-end">
       <button type="button"
         @click="addSkillAction(skillSelection, methodSelection, skillQuantity)"
         :disabled="!canAddSkillAction()"

@@ -9,30 +9,26 @@ export const STARTING_LEVEL = 1;
 export const HITPOINTS_STARTING_LEVEL = 10;
 export const HITPOINTS_STARTING_XP = 1154;
 
+export const RELICS = {
+    endless_harvest: { name: "Endless Harvest", tier: 1 },
+    barbarian_gathering: { name: "Barbarian Gathering", tier: 1 },
+    abundance: { name: "Abundance", tier: 1 },
+    hotfoot: { name: "Hot Foot", tier: 2 },
+    friendly_forager: { name: "Friendly Forager", tier: 2 },
+    woodsman: { name: "Woodsman", tier: 2 }
+};
+
 export const RELIC_LIST = [
-    ["Endless Harvest", "Barbarian Gathering", "Abundance"],
-    ["Woodsman"],
-    ["Evil Eye"],
-    ["Conniving Clues"],
-    ["Nature's Accord"],
-    ["Culling Spree"],
+    [RELICS.endless_harvest.name, RELICS.barbarian_gathering.name, RELICS.abundance.name],
+    [RELICS.hotfoot.name, RELICS.friendly_forager.name, RELICS.woodsman.name],
+    ["Evil Eye", "", ""],
+    ["Conniving Clues", "", ""],
+    ["Nature's Accord", "", ""],
+    ["Culling Spree", "", ""],
     ["Minion", "Flask of Fervour"],
 ];
 
-export const RELICS = {
-    "endless_harvest": {
-        name: "Endless Harvest",
-        tier: 1
-    },
-    "barbarian_gathering": {
-        name: "Barbarian Gathering",
-        tier: 1
-    },
-    "abundance": {
-        name: "Abundance",
-        tier: 1
-    }
-};
+
 
 export const RELIC_POINTS_TIER = [0, 750, 1500, 2500, 3500, 5000, 10000, 15000];
 

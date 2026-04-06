@@ -115,7 +115,7 @@ export function taskManager() {
             return this.taskList.filter(task => {
                 if (actionKeys.has(task.key) || !task.selectable) return false;
                 // Tasks with no region are always available (global)
-                if (!task.region) return true;
+                if (!task.region || task.region=="General") return true;
                 // Region-specific tasks require the region to be unlocked
                 if (!this.unlockedRegions.includes(task.region)) return false;
                 // If a region filter is active, only show tasks from that region
@@ -322,7 +322,7 @@ export function taskManager() {
             }
             const totalPoints = this.totalPoints;
             for (let i = 0; i < RELIC_POINTS_TIER.length; i++) {
-                if (totalPoints >= RELIC_POINTS_TIER[i] && this.relicSelection.length < i) {
+                if (totalPoints >= RELIC_POINTS_TIER[i] && this.relicSelection.length-1 < i) {
                     return true;
                 }
             }
@@ -1176,6 +1176,15 @@ export function taskManager() {
                 return 'https://oldschool.runescape.wiki/images/' + itemName + '.png?6dc61';
             }
             return "https://oldschool.runescape.wiki/images/" + itemName + "_" + scale + ".png?6dc61";
+        },
+
+        formatItemQuantity(quantity) {
+            if (quantity > 99_999) {
+                return (quantity / 1000).toFixed(0) + "K";
+            } else if (quantity > 9_999_999) {
+                return (quantity / 1_000_000).toFixed(0) + "M";
+            }
+            return quantity;
         }
     };
 }

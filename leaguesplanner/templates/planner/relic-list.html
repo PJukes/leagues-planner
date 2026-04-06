@@ -1,7 +1,7 @@
 <template id="relic-list-template">
   <h5 class="text-gray-700 font-medium text-lg mb-4">Select a Relic</h5>
   <div class="space-y-2 max-h-96 overflow-y-scroll bg-gray-100 p-4 rounded-lg">
-    <div class="space-y-3">
+    <div x-show="relicSelection.length == 0" class="space-y-3">
       <button @click="addRelic('endless_harvest')" class="hover:bg-gray-200 rounded-lg p-2 w-full text-left">
         <div class="grid grid-cols-6 gap-x-4">
           <img src="https://oldschool.runescape.wiki/images/Endless_Harvest_%28Demonic_Pacts_League%29.png?f5c84" alt="">
@@ -52,6 +52,91 @@
                 <li>All non-combat skills are permanently boosted by 10.</li>
                 <li>Every time you receive an XP drop, gain an additional 2 XP in the same skill. This is affected by the league passive XP modifier.</li>
                 <li>For every XP gained, gain 2x as many coins. These can go either to your bank or inventory if there is room, which can be toggled above.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </button>
+    </div>
+
+    <div x-show="relicSelection.length == 1" class="space-y-3">
+      <button @click="addRelic('hotfoot')" class="hover:bg-gray-200 rounded-lg p-2 w-full text-left">
+        <div class="grid grid-cols-6 gap-x-4">
+          <img src="https://oldschool.runescape.wiki/images/Hotfoot_%28Demonic_Pacts_League%29.png?a7187" alt="">
+        
+          <div class="col-span-5">
+            <p>Hot Foot</p>
+            
+            <div class="text-xs">
+              Upon choosing this relic you will receive the searing boots.
+              While the searing boots are worn, you gain the following benefits:
+
+              Agility experience is gained based on your Agility level while you run.
+              Caught fish are automatically cooked.
+              Mined ore is automatically smelted.
+              Additionally, regardless of your footwear:
+
+              Picking up some termites or a mark of grace from a course will automatically complete the lap granting completion XP and 10,000 coins.
+              Marks of grace will always have a 33% chance to spawn on all rooftop courses.
+              Completing a course grants two completion count and 25% bonus experience.
+              100% success rate on all actions for Agility and Cooking.
+              You will receive 2x termites from the Colossal Wyrm Agility Course.
+              You will receive 10x crystal shards from Prifddinas Agility Course.
+              The searing boots can be retrieved from the Leagues tutor in Yama's lair if lost.
+            </div>
+          </div>
+        </div>
+      </button>
+
+      <button @click="addRelic('friendly_forager')" class="hover:bg-gray-200 rounded-lg p-2 w-full text-left">
+        <div class="grid grid-cols-6 gap-x-4">
+          <img src="https://oldschool.runescape.wiki/images/Friendly_Forager_%28Demonic_Pacts_League%29.png?bb739" alt="">
+        
+          <div class="col-span-5">
+            <p>Friendly Forager</p>
+
+            <div class="text-xs">
+              Upon choosing this relic you will receive the forager's pouch.
+
+              While the forager's pouch is worn or in your inventory, you gain the following benefits:
+
+              When you gather resources from Woodcutting, Fishing, Mining, and Hunter, the pouch will find and store a random grimy herb
+              This herb is limited to any which your Herblore level + 25 can clean. This action also provides a small amount of Herblore experience.
+              The pouch will only find herbs it has room to store, but will always attempt to give you a herb you can receive.
+              The pouch also functions as a silklined herb sack, and shares an inventory with it.
+              Additionally, you gain the following perks to Herblore:
+
+              All items are processed at once.
+              Secondary ingredients have a 90% chance to not be consumed, this stacks additively with other sources.
+              Potions created will have 4 doses instead of 3.
+              The forager's pouch can be retrieved from the Leagues Tutor in Yama's Lair if lost.
+            </div>
+          </div>
+      </button>
+
+      <button @click="addRelic('woodsman')" class="hover:bg-gray-200 rounded-lg p-2 w-full text-left">
+        <div class="grid grid-cols-6 gap-x-4">
+          <img src="https://oldschool.runescape.wiki/images/Woodsman_%28Demonic_Pacts_League%29.png?46429" alt="">
+
+          <div class="col-span-5">
+            <p>Woodsman</p>
+            
+            <div class="text-xs">
+              <ul>
+                Toggleable effects:
+
+                Hunter traps harvest directly to your bank.
+                Logs chopped will be automatically burned.
+                Passive effects:
+
+                All items are processed at once while Fletching, stackable fletching items are capped at 10x the regular amount per action.
+                Chopped logs are automatically burned while Woodcutting granting full Firemaking XP, this effect can be toggled above.
+                100% success rate on all Hunter actions.
+                Hunter traps attract animals faster, give double the loot and XP.
+                Hunter traps always drop a random herb seed or tree seed when harvested.
+                Hunter rumours give double XP and Hunters loot sacks will award 2x as much loot.
+                All loot from jarred implings will be doubled and noted. Additionally they will no longer break upon opening.
+                All Quetzal Whistles will not lose charges.
               </ul>
             </div>
           </div>

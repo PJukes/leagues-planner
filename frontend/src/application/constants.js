@@ -61,6 +61,25 @@ export const REGIONS = {
     wilderness: WILDERNESS,
 };
 
+// Grimy herbs ordered by Herblore level required to clean them.
+// Used by the Friendly Forager relic to determine which herb the pouch finds.
+export const GRIMY_HERBS = [
+    { key: "grimy_guam_leaf",    cleanLevel: 3  },
+    { key: "grimy_marrentill",   cleanLevel: 5  },
+    { key: "grimy_tarromin",     cleanLevel: 11 },
+    { key: "grimy_harralander",  cleanLevel: 20 },
+    { key: "grimy_ranarr_weed",  cleanLevel: 25 },
+    { key: "grimy_toadflax",     cleanLevel: 30 },
+    { key: "grimy_irit_leaf",    cleanLevel: 40 },
+    { key: "grimy_avantoe",      cleanLevel: 48 },
+    { key: "grimy_kwuarm",       cleanLevel: 54 },
+    { key: "grimy_snapdragon",   cleanLevel: 59 },
+    { key: "grimy_cadantine",    cleanLevel: 65 },
+    { key: "grimy_lantadyme",    cleanLevel: 67 },
+    { key: "grimy_dwarf_weed",   cleanLevel: 70 },
+    { key: "grimy_torstol",      cleanLevel: 75 },
+];
+
 export const DEFAULT_LEAGUE_TIERS = [
     { pointsRequired: 500, xpMultiplier: 5.0 },
     { pointsRequired: 1800, xpMultiplier: 5.0 },

@@ -143,6 +143,22 @@ export const ITEMS = {
     law_rune: {name: "Law rune"},
     death_rune: {name: "Death rune"},
 
+    // Grimy herbs (Friendly Forager relic)
+    grimy_guam_leaf:   { name: "Grimy guam leaf" },
+    grimy_marrentill:  { name: "Grimy marrentill" },
+    grimy_tarromin:    { name: "Grimy tarromin" },
+    grimy_harralander: { name: "Grimy harralander" },
+    grimy_ranarr_weed: { name: "Grimy ranarr weed" },
+    grimy_toadflax:    { name: "Grimy toadflax" },
+    grimy_irit_leaf:   { name: "Grimy irit leaf" },
+    grimy_avantoe:     { name: "Grimy avantoe" },
+    grimy_kwuarm:      { name: "Grimy kwuarm" },
+    grimy_snapdragon:  { name: "Grimy snapdragon" },
+    grimy_cadantine:   { name: "Grimy cadantine" },
+    grimy_lantadyme:   { name: "Grimy lantadyme" },
+    grimy_dwarf_weed:  { name: "Grimy dwarf weed" },
+    grimy_torstol:     { name: "Grimy torstol" },
+
     bronze_dagger: { name: "Bronze dagger" },
     bronze_sword: { name: "Bronze sword" },
     wooden_shield: { name: "Wooden shield" },

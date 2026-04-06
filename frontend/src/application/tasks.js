@@ -3,7 +3,7 @@ import { ITEMS, STARTER_ITEMS } from "./items.js";
 import { SHOPS, SHOP_LIST } from "./shops.js";
 import { QUESTS, QUEST_LIST } from "./quests.js";
 import { CREATURES } from "./creatures.js";
-import { SKILLS, RELIC_LIST, RELICS, RELIC_POINTS_TIER, REGIONS } from "./constants.js";
+import { SKILLS, RELIC_LIST, RELICS, RELIC_POINTS_TIER, REGIONS, GRIMY_HERBS } from "./constants.js";
 import {
     experienceToLevel,
     emptySkillExperience,
@@ -108,8 +108,16 @@ export function taskManager() {
             this.actions.push(action);
         },
 
+        // Returns the XP multiplier for the current end-of-plan state.
+        // Floors at 8x once any Tier 2 relic has been chosen.
+        getEffectiveXpMultiplier(points) {
+            const m = getXpMultiplier(points != null ? points : this.totalPoints);
+            const hasTier2 = this.relicSelection.some(k => RELICS[k]?.tier === 2);
+            return hasTier2 ? Math.max(8.0, m) : m;
+        },
+
         currentExpModifier() {
-            return getXpMultiplier(this.totalPoints) || 5;
+            return this.getEffectiveXpMultiplier(this.totalPoints) || 5;
         },
 
         filteredTasks() {
@@ -267,7 +275,7 @@ export function taskManager() {
             const quantity = Number(this.skillQuantity) || 0;
             if (!method || !skill || quantity <= 0) return null;
 
-            const xpGain = method.xpPerAction * quantity * (getXpMultiplier(this.totalPoints) || 5);
+            const xpGain = method.xpPerAction * quantity * (this.getEffectiveXpMultiplier(this.totalPoints) || 5);
             const currentXp = this.skillExperience[skill] || 0;
             const currentLevel = experienceToLevel(currentXp);
             const newLevel = experienceToLevel(currentXp + xpGain);
@@ -303,7 +311,7 @@ export function taskManager() {
             const quantity = Number(this.editFormData.quantity) || 0;
             if (!method || !skill || quantity <= 0) return null;
 
-            const xpGain = method.xpPerAction * quantity * (getXpMultiplier(this.totalPoints) || 5);
+            const xpGain = method.xpPerAction * quantity * (this.getEffectiveXpMultiplier(this.totalPoints) || 5);
             const currentXp = this.skillExperience[skill] || 0;
             const currentLevel = experienceToLevel(currentXp);
             const newLevel = experienceToLevel(currentXp + xpGain);
@@ -364,7 +372,7 @@ export function taskManager() {
             if (!selectedMethod || parsedQuantity <= 0) return;
 
             const skillLabel = this.skillOptions.find(opt => opt.key === skill)?.label || skill;
-            const experience = selectedMethod.xpPerAction * parsedQuantity * (getXpMultiplier(this.totalPoints) || 5);
+            const experience = selectedMethod.xpPerAction * parsedQuantity * (this.getEffectiveXpMultiplier(this.totalPoints) || 5);
             const calculatedGold = ((selectedMethod.gold || 0) * parsedQuantity) + this.getGold(experience, quantity);
             const skillAction = {
                 key: `${skill}-${method}-${Date.now()}`,
@@ -374,7 +382,7 @@ export function taskManager() {
                 methodLabel: selectedMethod.name,
                 quantity: parsedQuantity,
                 xpPerAction: selectedMethod.xpPerAction,
-                bonusExp: this.getBonusExp(skill, parsedQuantity, experience),
+                bonusExp: this.getBonusExp(skill, parsedQuantity, experience, selectedMethod),
                 experience,
                 type: "skill",
                 totalGold: calculatedGold,
@@ -399,7 +407,7 @@ export function taskManager() {
             if (!selectedCreature || parsedQuantity <= 0) return;
 
             const skillLabel = this.skillOptions.find(opt => opt.key === skill)?.label || skill;
-            const experience = selectedCreature.hitpoints * 4 * parsedQuantity * (getXpMultiplier(this.totalPoints) || 5);
+            const experience = selectedCreature.hitpoints * 4 * parsedQuantity * (this.getEffectiveXpMultiplier(this.totalPoints) || 5);
             const hitpointsExperience = experience / 4;
             const skillAction = {
                 key: `${skill}-${creature}-${Date.now()}`,
@@ -430,28 +438,61 @@ export function taskManager() {
             this.closeModal();
         },
 
-        getBonusExp(skill, quantity, experience) {
+        // Returns an initial bonusExp array at action-add-time so that calculateStats()
+        // can preview relic effects before recalculateActionState() runs.
+        // recalculateActionState() will overwrite action.bonusExp with recomputed values.
+        getBonusExp(skill, quantity, experience, method = null) {
+            const mult = this.getEffectiveXpMultiplier(this.totalPoints);
+            const bonuses = [];
+
+            // Tier 1: Barbarian Gathering
             if (this.relicSelection.includes("barbarian_gathering")) {
                 if (["mining", "fishing", "woodcutting"].includes(skill)) {
-                    return [
-                        { key: `agility-bonusexp-${Date.now()}`, skill: "agility", amount: experience * 0.1 },
-                        { key: `strength-bonus-${Date.now()}`, skill: "strength", amount: experience * 0.1 },
-                    ];
+                    bonuses.push({ skill: "agility",  amount: experience * 0.1 });
+                    bonuses.push({ skill: "strength", amount: experience * 0.1 });
                 }
             }
+
+            // Tier 1: Abundance
             if (this.relicSelection.includes("abundance")) {
-                return [{
-                    key: `${skill}-bonusexp-${Date.now()}`,
-                    skill,
-                    amount: quantity * 2 * getXpMultiplier(this.totalPoints),
-                }];
+                bonuses.push({ skill, amount: quantity * 2 * mult });
             }
-            return 0;
+
+            // Tier 2: Hot Foot — passive agility XP from running
+            if (this.relicSelection.includes("hotfoot") &&
+                ["woodcutting", "fishing", "mining", "hunter"].includes(skill)) {
+                const agilityLevel = this.skillLevels.agility || 1;
+                const xpPerTile = Math.max(1, Math.floor(agilityLevel / 2));
+                const tilesMap = { woodcutting: 5, fishing: 3, mining: 3, hunter: 10 };
+                bonuses.push({ skill: "agility", amount: quantity * (tilesMap[skill] || 4) * xpPerTile * mult });
+            }
+
+            // Tier 2: Friendly Forager — small Herblore XP per gather
+            if (this.relicSelection.includes("friendly_forager") &&
+                ["woodcutting", "fishing", "mining", "hunter"].includes(skill)) {
+                bonuses.push({ skill: "herblore", amount: quantity * mult });
+            }
+
+            // Tier 2: Woodsman — auto-burn logs grant Firemaking XP
+            if (this.relicSelection.includes("woodsman") && skill === "woodcutting") {
+                const fmXpMap = {
+                    chop_regular_trees: 40,
+                    chop_oak_trees: 60,
+                    chop_willow_trees: 90,
+                    chop_maple_trees: 135,
+                    chop_yew_trees: 202.5,
+                };
+                const methodKey = method?.key || null;
+                const fmXp = (methodKey && fmXpMap[methodKey]) ? fmXpMap[methodKey] : 40;
+                bonuses.push({ skill: "firemaking", amount: quantity * fmXp * mult });
+            }
+
+            return bonuses.length > 0 ? bonuses : 0;
         },
 
         getGold(experience, quantity = 1) {
             if (this.relicSelection.includes("abundance")) {
-                const bonusExp = quantity * 2 * getXpMultiplier(this.totalPoints);
+                const bonusExp = quantity * 2 * this.getEffectiveXpMultiplier(this.totalPoints);
                 return (experience + bonusExp) * 2;
             }
             return 0;
@@ -791,22 +832,59 @@ export function taskManager() {
             const runningBySkill = emptySkillExperience();
             const runningItems = {};
 
+            // Relic tracking: updated as we encounter relic actions in order.
+            let activeTier1Relic = null;
+            let activeTier2Relic = null;
+            // After Tier 2 relic is chosen the base XP multiplier floors at 8x.
+            let hasTier2Relic = false;
+
+            // Log items consumed automatically by Woodsman's auto-burn toggle.
+            const WOODSMAN_AUTO_BURN_LOGS = new Set(["logs", "oak_logs", "willow_logs", "maple_logs", "yew_logs"]);
+            // Firemaking XP granted per log type by Woodsman auto-burn.
+            const WOODSMAN_FM_XP = {
+                chop_regular_trees: 40,
+                chop_oak_trees: 60,
+                chop_willow_trees: 90,
+                chop_maple_trees: 135,
+                chop_yew_trees: 202.5,
+            };
+            // Approximate tiles run per gathering action (used for Hot Foot agility XP).
+            const HOTFOOT_TILES = { woodcutting: 5, fishing: 3, mining: 3, hunter: 10 };
+
+            // Returns the effective XP multiplier at a given point, applying the 8x
+            // floor that becomes active once a Tier 2 relic has been chosen.
+            const getMultiplier = (pts) => {
+                const m = getXpMultiplier(pts);
+                return hasTier2Relic ? Math.max(8.0, m) : m;
+            };
+
             this.actions.forEach(action => {
-                const currentMultiplier = getXpMultiplier(runningPoints);
+                // Update active relics when we encounter a relic selection action.
+                if (action.type === "relic") {
+                    const tier = RELICS[action.key]?.tier;
+                    if (tier === 1) activeTier1Relic = action.key;
+                    if (tier === 2) {
+                        activeTier2Relic = action.key;
+                        hasTier2Relic = true;
+                    }
+                }
+
+                const currentMultiplier = getMultiplier(runningPoints);
                 runningPoints += Number(action.league_points || 0);
                 action.cumulativePoints = runningPoints;
 
                 const actionExperienceBySkill = Object.fromEntries(SKILLS.map(skill => [skill, 0]));
 
                 if (action.skill && SKILLS.includes(action.skill)) {
-                    const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0) * (getXpMultiplier(runningPoints) || 5);
+                    const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0) * (getMultiplier(runningPoints) || 5);
                     actionExperienceBySkill[action.skill] = baseXp;
+                    action.experience = baseXp;
                     action.currentMultiplier = currentMultiplier;
                     action.effectiveExperience = baseXp * currentMultiplier;
                 }
 
                 if (action.type === "combat" && action.hitpointsXpPerAction) {
-                    const hpXp = (Number(action.quantity) || 0) * (Number(action.hitpointsXpPerAction) || 0) * (getXpMultiplier(runningPoints) || 5);
+                    const hpXp = (Number(action.quantity) || 0) * (Number(action.hitpointsXpPerAction) || 0) * (getMultiplier(runningPoints) || 5);
                     actionExperienceBySkill["hitpoints"] += hpXp;
                 }
 
@@ -814,6 +892,57 @@ export function taskManager() {
                     const xp = Number(action.xp_reward.amount || 0) * currentMultiplier;
                     actionExperienceBySkill[action.xp_reward.skill] += xp;
                     action.currentMultiplier = currentMultiplier;
+                }
+
+                // --- Relic bonus XP (recomputed each recalculation for accuracy) ---
+                if (action.type === "skill") {
+                    const qty = Number(action.quantity) || 0;
+                    const baseXp = actionExperienceBySkill[action.skill] || 0;
+                    const mult = getMultiplier(runningPoints);
+                    const relicBonuses = [];
+
+                    // Tier 1: Barbarian Gathering — 10% agility + 10% strength from gathering
+                    if (activeTier1Relic === "barbarian_gathering" &&
+                        ["mining", "fishing", "woodcutting"].includes(action.skill)) {
+                        relicBonuses.push({ skill: "agility",   amount: baseXp * 0.1 });
+                        relicBonuses.push({ skill: "strength",  amount: baseXp * 0.1 });
+                    }
+
+                    // Tier 1: Abundance — double quantity's worth of XP to same skill
+                    if (activeTier1Relic === "abundance") {
+                        relicBonuses.push({ skill: action.skill, amount: qty * 2 * mult });
+                    }
+
+                    // Tier 2: Hot Foot — passive agility XP from running (~1 XP per tile,
+                    // scaled by floor(agilityLevel/2), multiplied by leagues multiplier)
+                    if (activeTier2Relic === "hotfoot" &&
+                        ["woodcutting", "fishing", "mining", "hunter"].includes(action.skill)) {
+                        const agilityLevel = experienceToLevel(runningBySkill.agility || 0);
+                        const xpPerTile = Math.max(1, Math.floor(agilityLevel / 2));
+                        const tiles = HOTFOOT_TILES[action.skill] || 4;
+                        relicBonuses.push({ skill: "agility", amount: qty * tiles * xpPerTile * mult });
+                    }
+
+                    // Tier 2: Friendly Forager — small Herblore XP per gather (1 base XP per action)
+                    if (activeTier2Relic === "friendly_forager" &&
+                        ["woodcutting", "fishing", "mining", "hunter"].includes(action.skill)) {
+                        relicBonuses.push({ skill: "herblore", amount: qty * mult });
+                    }
+
+                    // Tier 2: Woodsman — auto-burn logs grant Firemaking XP
+                    if (activeTier2Relic === "woodsman" && action.skill === "woodcutting") {
+                        const fmXpPerLog = WOODSMAN_FM_XP[action.method] || 40;
+                        relicBonuses.push({ skill: "firemaking", amount: qty * fmXpPerLog * mult });
+                    }
+
+                    // Store on action for UI display and update cumulative XP
+                    action.bonusExp = relicBonuses;
+                    for (const bonus of relicBonuses) {
+                        if (SKILLS.includes(bonus.skill)) {
+                            actionExperienceBySkill[bonus.skill] =
+                                (actionExperienceBySkill[bonus.skill] || 0) + bonus.amount;
+                        }
+                    }
                 }
 
                 Object.entries(actionExperienceBySkill).forEach(([skill, xp]) => {
@@ -837,6 +966,10 @@ export function taskManager() {
 
                         if (method.itemYields) {
                             for (const yieldDef of method.itemYields) {
+                                // Woodsman: auto-burned logs don't enter the inventory
+                                if (activeTier2Relic === "woodsman" &&
+                                    action.skill === "woodcutting" &&
+                                    WOODSMAN_AUTO_BURN_LOGS.has(yieldDef.item)) continue;
                                 const total = yieldDef.quantity * qty;
                                 actionItemDeltas[yieldDef.item] = (actionItemDeltas[yieldDef.item] || 0) + total;
                             }
@@ -855,6 +988,29 @@ export function taskManager() {
                                     });
                                 }
                                 actionItemDeltas[costDef.item] = (actionItemDeltas[costDef.item] || 0) - total;
+                            }
+                        }
+
+                        // Friendly Forager: find & store a grimy herb per gather action.
+                        // The herb tier is capped at Herblore level + 25 (clean level).
+                        if (activeTier2Relic === "friendly_forager" &&
+                            ["woodcutting", "fishing", "mining", "hunter"].includes(action.skill)) {
+                            const herbloreLevel = experienceToLevel(runningBySkill.herblore || 0);
+                            const maxCleanLevel = herbloreLevel + 25;
+                            const eligible = GRIMY_HERBS.filter(h => h.cleanLevel <= maxCleanLevel);
+                            if (eligible.length > 0) {
+                                const herb = eligible[eligible.length - 1]; // highest eligible tier
+                                actionItemDeltas[herb.key] = (actionItemDeltas[herb.key] || 0) + qty;
+                            }
+                        }
+
+                        // Woodsman traps-to-bank: hunter yields go directly to bank
+                        // (no inventory delta). Hunter methods are not yet implemented,
+                        // but this guard is here for future-proofing.
+                        if (activeTier2Relic === "woodsman" && action.skill === "hunter") {
+                            // Clear hunter item yields — they go to bank, not inventory
+                            for (const yieldDef of (method.itemYields || [])) {
+                                delete actionItemDeltas[yieldDef.item];
                             }
                         }
                     }
@@ -1032,7 +1188,7 @@ export function taskManager() {
                 const editPreview = this.getEditActionPreview();
                 if (editPreview?.hasInsufficientItems) return;
                 const parsedQuantity = Number(this.editFormData.quantity);
-                const experience = selectedMethod.xpPerAction * parsedQuantity * (getXpMultiplier(this.totalPoints) || 5);
+                const experience = selectedMethod.xpPerAction * parsedQuantity * (this.getEffectiveXpMultiplier(this.totalPoints) || 5);
 
                 action.skill = this.editFormData.skill;
                 action.skillLabel = this.skillOptions.find(opt => opt.key === this.editFormData.skill)?.label || this.editFormData.skill;
@@ -1041,7 +1197,7 @@ export function taskManager() {
                 action.quantity = parsedQuantity;
                 action.xpPerAction = selectedMethod.xpPerAction;
                 action.experience = experience;
-                action.bonusExp = this.getBonusExp(this.editFormData.skill, parsedQuantity, experience);
+                action.bonusExp = this.getBonusExp(this.editFormData.skill, parsedQuantity, experience, selectedMethod);
                 action.totalGold = ((selectedMethod.gold || 0) * parsedQuantity) + this.getGold(experience, parsedQuantity);
             }
             if (action.type === "destination") {

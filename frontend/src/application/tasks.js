@@ -1,5 +1,5 @@
 import { getMethod, getMethodsForSkill, getSkillOptions } from "./skill-methods.js";
-import { ITEMS } from "./items.js";
+import { ITEMS, STARTER_ITEMS } from "./items.js";
 import { SHOPS, SHOP_LIST } from "./shops.js";
 import { QUESTS, QUEST_LIST } from "./quests.js";
 import { CREATURES } from "./creatures.js";
@@ -71,6 +71,9 @@ export function taskManager() {
             this.unlockedRegions.push(REGIONS.varlamore, REGIONS.karamja);
             this.addTask("open_the_leagues_menu");
             this.addTask("complete_the_leagues_tutorial");
+            if (!this.itemRepository || Object.keys(this.itemRepository).length === 0) {
+                this.itemRepository = { ...STARTER_ITEMS };
+            }
         },
 
         openModal(content = "task-list-template") {
@@ -1164,7 +1167,7 @@ export function taskManager() {
             if (item.key == "coins") {
                 scale = [1,2,3,4,5,25,100,250,1000,10000].filter(t => item.quantity >= t).pop();
             }
-            if (item.key == "arrow_shaft") {
+            if (item.key.includes("arrow")) {
                 scale = [1,2,3,4,5].filter(t => item.quantity >= t).pop();
             }
             if(scale == null) {

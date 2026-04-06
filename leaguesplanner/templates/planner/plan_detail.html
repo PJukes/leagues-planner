@@ -47,7 +47,7 @@
     </div>
 
     <!-- Task Pane -->
-    <div class="xl:grid xl:grid-cols-2 gap-x-4">
+    <div class="xl:grid xl:grid-cols-2">
       <div id="task-pane" class="rounded-lg bg-white p-4 shadow flex flex-col h-screen">
         <div id="task-pane-header" class="mb-2">
           <div class="flex justify-between items-center pb-2">
@@ -373,13 +373,13 @@
         <div class="mt-2">
           <h3>Available Items</h3>
           <div class="flex flex-wrap gap-1 mt-2">
-            <div class="w-full min-h-64 p-2 h-full border border-gray-300 bg-blue-50 rounded-lg grid grid-cols-8 gap-x-4">
+            <div class="w-full p-2 h-full border border-gray-300 bg-blue-50 rounded-lg grid xl:grid-cols-8 grid-cols-6 gap-2">
               <template x-for="item in totalItemRepository()" :key="item.key">
-                <div class="relative h-min w-full" style="height: 32px">
+                <div class="relative h-min w-full" style="height: 42px">
                   <span :class="item.quantity < 0 ? 'text-red-800' : 'text-amber-800'"
                         class="absolute inset-top text-xs font-medium"
                         style="  color: yellow;
-                          font-size: 12px;
+                          font-size: 10px;
                           line-height: 1;
                           text-shadow:
                             -1px -1px 0 #000,
@@ -391,7 +391,7 @@
                             0px  1px 0 #000,
                             1px  1px 0 #000,
                             2px  2px 0 #000;"
-                        x-text="item.quantity.toLocaleString()"></span>
+                        x-text="item.quantity"></span>
                   <span class="sr-only" x-text="item.key"></span>
                   <div class="flex justify-end items-end h-full">
                     <div></div>

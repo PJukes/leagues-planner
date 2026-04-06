@@ -44,6 +44,10 @@ def _parse_row(row: dict) -> dict:
     if region:
         task["region"] = region
 
+    pct = row.get("player_completion_pct", "").strip()
+    if pct:
+        task["player_completion_pct"] = int(pct)
+
     return task
 
 

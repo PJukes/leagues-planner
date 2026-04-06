@@ -51,6 +51,8 @@ export function taskManager() {
         regions: REGIONS,
         unlockedRegions: [],
         regionFilter: null,
+        taskSortField: 'name',
+        taskSortDir: 1,
         savedRoutes: [],
         newRouteName: '',
 
@@ -126,6 +128,27 @@ export function taskManager() {
 
         setRegionFilter(regionKey) {
             this.regionFilter = this.regionFilter === regionKey ? null : regionKey;
+        },
+
+        setTaskSort(field) {
+            if (this.taskSortField === field) {
+                this.taskSortDir *= -1;
+            } else {
+                this.taskSortField = field;
+                this.taskSortDir = 1;
+            }
+        },
+
+        sortedFilteredTasks() {
+            const tasks = this.filteredTasks();
+            const field = this.taskSortField;
+            const dir = this.taskSortDir;
+            return tasks.slice().sort((a, b) => {
+                const av = a[field] ?? '';
+                const bv = b[field] ?? '';
+                if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
+                return String(av).localeCompare(String(bv)) * dir;
+            });
         },
 
         getRegionLabel(regionKey) {

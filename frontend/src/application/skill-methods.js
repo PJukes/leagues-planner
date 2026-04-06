@@ -96,7 +96,7 @@ export const SKILL_METHODS = {
         methods: [
             { key: "pickpocket_men", name: "Pickpocket Men", xpPerAction: 8, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 3 }]},
             { key: "pickpocket_farmer", name: "Pickpocket Farmer", xpPerAction: 14.5, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 3 }]},
-            { key: "pickpocket_ham_member", name: "Pickpocket HAM Member", xpPerAction: 22.2, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 3 }]},
+            { key: "pickpocket_ham_member", name: "Pickpocket HAM Member", xpPerAction: 22.2, actionLabel: "pickpocket", lootTableKey: "ham_member" },
             { key: "pickpocket_warrior", name: "Pickpocket Warrior", xpPerAction: 26, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 3 }]},
             { key: "pickpocket_digsite_workman", name: "Pickpocket Digsite workman", xpPerAction: 10.4, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 3 }]},
             { key: "pickpocket_villager", name: "Pickpocket Villager", xpPerAction: 8, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 3 }]},
@@ -106,7 +106,7 @@ export const SKILL_METHODS = {
             { key: "pickpocket_guard", name: "Pickpocket Guard", xpPerAction: 46.8, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 30 }]},
             { key: "pickpocket_fremennik_citizen", name: "Pickpocket Fremennik Citizen", xpPerAction: 65, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 30 }]},
             { key: "pickpocket_bearded_pollnivnian_bandit", name: "Pickpocket Bearded Pollnivnian Bandit", xpPerAction: 65, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 30 }]},
-            { key: "pickpocket_wealthy_citizen", name: "Pickpocket Wealthy citizen", xpPerAction: 96, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 30 }]},
+            { key: "pickpocket_wealthy_citizen", name: "Pickpocket Wealthy citizen", xpPerAction: 96, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 30 }, { item: "house_key", quantity: 1, chance: 1/17 }]},
             { key: "pickpocket_desert_bandit", name: "Pickpocket Desert Bandit", xpPerAction: 79.4, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 30 }]},
             { key: "pickpocket_pollnivnian_bandit", name: "Pickpocket Pollnivnian Bandit", xpPerAction: 84.3, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 30 }]},
             { key: "pickpocket_knight", name: "Pickpocket Knight", xpPerAction: 84.3, actionLabel: "pickpocket", itemYields: [{ item: "coins", quantity: 30 }]},

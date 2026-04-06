@@ -51,7 +51,16 @@
 
         <template x-if="preview?.itemYields?.length">
           <div class="text-gray-600">
-            Yields: <span class="font-medium text-gray-800" x-text="preview.itemYields.map(y => `${y.quantity.toLocaleString()} ${y.name}`).join(', ')"></span>
+            Yields:
+            <template x-for="(y, i) in preview.itemYields" :key="y.item">
+              <span>
+                <span x-show="i > 0">, </span>
+                <span class="font-medium text-gray-800" x-text="y.isRng ? `~${y.quantity.toLocaleString(undefined, {maximumFractionDigits: 1})} ${y.name}` : `${y.quantity.toLocaleString()} ${y.name}`"></span>
+                <template x-if="y.isRng">
+                  <span class="text-xs text-amber-600" x-text="`(${y.chanceLabel} chance)`"></span>
+                </template>
+              </span>
+            </template>
           </div>
         </template>
 

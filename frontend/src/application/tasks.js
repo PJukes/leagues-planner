@@ -1,5 +1,6 @@
 import { getMethod, getMethodsForSkill, getSkillOptions } from "./skill-methods.js";
 import { ITEMS, STARTER_ITEMS } from "./items.js";
+import { getLootTable } from "./loot-tables.js";
 import { SHOPS, SHOP_LIST } from "./shops.js";
 import { QUESTS, QUEST_LIST } from "./quests.js";
 import { CREATURES } from "./creatures.js";
@@ -13,6 +14,56 @@ import {
 } from "./experience.js";
 
 const STORAGE_KEY_CURRENT = 'leagues_planner_current';
+
+/**
+ * Formats a probability as a human-readable fraction (e.g. 0.0588… → "1/17")
+ * or percentage when no clean fraction exists.
+ */
+function formatChance(chance) {
+    const n = Math.round(1 / chance);
+    if (n > 1 && Math.abs(chance - 1 / n) < 1e-6) return `1/${n}`;
+    return `${(chance * 100).toFixed(1)}%`;
+}
+
+/**
+ * Resolves all item yields for a skill method into a normalised list.
+ * RNG drops (chance < 1) contribute their expected value to `quantity`.
+ * Both inline `itemYields[].chance` and `lootTableKey` references are handled.
+ */
+function resolveMethodYields(method, quantity) {
+    const results = [];
+
+    for (const yieldDef of (method.itemYields || [])) {
+        const chance = yieldDef.chance ?? 1;
+        const isRng = chance < 1;
+        results.push({
+            item: yieldDef.item,
+            name: ITEMS[yieldDef.item]?.name ?? yieldDef.item,
+            quantity: yieldDef.quantity * quantity * chance,
+            chance: isRng ? chance : null,
+            chanceLabel: isRng ? formatChance(chance) : null,
+            isRng,
+        });
+    }
+
+    const lootTable = method.lootTableKey ? getLootTable(method.lootTableKey) : null;
+    if (lootTable) {
+        for (const drop of lootTable.drops) {
+            const chance = drop.chance ?? 1;
+            const isRng = chance < 1;
+            results.push({
+                item: drop.item,
+                name: ITEMS[drop.item]?.name ?? drop.item,
+                quantity: drop.quantity * quantity * chance,
+                chance: isRng ? chance : null,
+                chanceLabel: isRng ? formatChance(chance) : null,
+                isRng,
+            });
+        }
+    }
+
+    return results;
+}
 const STORAGE_KEY_ROUTES = 'leagues_planner_routes';
 
 export function taskManager() {
@@ -285,11 +336,7 @@ export function taskManager() {
                 };
             });
 
-            const itemYields = (method.itemYields || []).map(yieldDef => ({
-                item: yieldDef.item,
-                name: ITEMS[yieldDef.item]?.name || yieldDef.item,
-                quantity: yieldDef.quantity * quantity,
-            }));
+            const itemYields = resolveMethodYields(method, quantity);
 
             const gold = this.getGold(xpGain, quantity);
             const hasInsufficientItems = itemCosts.some(c => !c.sufficient);
@@ -327,11 +374,7 @@ export function taskManager() {
                 };
             });
 
-            const itemYields = (method.itemYields || []).map(yieldDef => ({
-                item: yieldDef.item,
-                name: ITEMS[yieldDef.item]?.name || yieldDef.item,
-                quantity: yieldDef.quantity * quantity,
-            }));
+            const itemYields = resolveMethodYields(method, quantity);
 
             const gold = this.getGold(xpGain, quantity);
             const hasInsufficientItems = itemCosts.some(c => !c.sufficient);
@@ -835,11 +878,8 @@ export function taskManager() {
                     if (method) {
                         const qty = Number(action.quantity) || 0;
 
-                        if (method.itemYields) {
-                            for (const yieldDef of method.itemYields) {
-                                const total = yieldDef.quantity * qty;
-                                actionItemDeltas[yieldDef.item] = (actionItemDeltas[yieldDef.item] || 0) + total;
-                            }
+                        for (const yieldEntry of resolveMethodYields(method, qty)) {
+                            actionItemDeltas[yieldEntry.item] = (actionItemDeltas[yieldEntry.item] || 0) + yieldEntry.quantity;
                         }
 
                         if (method.itemCosts) {

@@ -896,11 +896,19 @@ export function taskManager() {
             let runningGold = 0;
             const runningBySkill = emptySkillExperience();
             const runningItems = {};
+            const activeRelics = [];
 
             this.actions.forEach(action => {
                 const currentMultiplier = getXpMultiplier(runningPoints);
                 runningPoints += Number(action.league_points || 0);
                 action.cumulativePoints = runningPoints;
+
+                // Track which relics are active at this point in the plan
+                if (action.type === "relic") {
+                    if (!activeRelics.includes(action.key)) {
+                        activeRelics.push(action.key);
+                    }
+                }
 
                 const actionExperienceBySkill = Object.fromEntries(SKILLS.map(skill => [skill, 0]));
 
@@ -911,16 +919,16 @@ export function taskManager() {
                     action.currentMultiplier = currentMultiplier;
                     action.effectiveExperience = baseXp * currentMultiplier;
 
-                    // Recompute bonusExp dynamically from current relic selection
+                    // Recompute bonusExp dynamically from relics active at this position
                     const qty = Number(action.quantity) || 0;
                     const actionMultiplier = getXpMultiplier(runningPoints) || 5;
                     let recomputedBonusExp = [];
-                    if (this.relicSelection.includes('barbarian_gathering') && ['mining', 'fishing', 'woodcutting'].includes(action.skill)) {
+                    if (activeRelics.includes('barbarian_gathering') && ['mining', 'fishing', 'woodcutting'].includes(action.skill)) {
                         recomputedBonusExp = [
                             { skill: 'agility', amount: baseXp * 0.1 },
                             { skill: 'strength', amount: baseXp * 0.1 },
                         ];
-                    } else if (this.relicSelection.includes('abundance')) {
+                    } else if (activeRelics.includes('abundance')) {
                         recomputedBonusExp = [{ skill: action.skill, amount: qty * 2 * actionMultiplier }];
                     }
                     action.bonusExp = recomputedBonusExp;
@@ -932,7 +940,7 @@ export function taskManager() {
 
                     // Recompute totalGold dynamically
                     const baseMethodGold = (getMethod(action.skill, action.method)?.gold || 0) * qty;
-                    if (this.relicSelection.includes('abundance')) {
+                    if (activeRelics.includes('abundance')) {
                         const abundanceBonusXp = qty * 2 * actionMultiplier;
                         action.totalGold = baseMethodGold + (baseXp + abundanceBonusXp) * 2;
                     } else {
@@ -949,7 +957,7 @@ export function taskManager() {
                     const actionMultiplier = getXpMultiplier(runningPoints) || 5;
                     const combatBaseXp = qty * (Number(action.xpPerAction) || 0) * actionMultiplier;
                     let recomputedBonusExp = [];
-                    if (this.relicSelection.includes('abundance') && action.skill) {
+                    if (activeRelics.includes('abundance') && action.skill) {
                         recomputedBonusExp = [{ skill: action.skill, amount: qty * 2 * actionMultiplier }];
                     }
                     action.bonusExp = recomputedBonusExp;
@@ -958,7 +966,7 @@ export function taskManager() {
                             actionExperienceBySkill[bonus.skill] = (actionExperienceBySkill[bonus.skill] || 0) + bonus.amount;
                         }
                     }
-                    if (this.relicSelection.includes('abundance')) {
+                    if (activeRelics.includes('abundance')) {
                         const abundanceBonusXp = qty * 2 * actionMultiplier;
                         action.totalGold = (combatBaseXp + abundanceBonusXp) * 2;
                     } else {
@@ -1001,6 +1009,16 @@ export function taskManager() {
                 runningExperience += action.totalExperienceGain;
                 action.cumulativeExperience = runningExperience;
                 action.cumulativeExperienceBySkill = { ...runningBySkill };
+
+                // Update currentStats for all action types so the stats modal is always accurate
+                action.currentStats = Object.fromEntries(
+                    SKILLS.map(skill => [skill, {
+                        cumulativeExperience: runningBySkill[skill] || 0,
+                        level: experienceToLevel(runningBySkill[skill] || 0),
+                        experienceGain: actionExperienceBySkill[skill] || 0,
+                        levelGain: 0,
+                    }])
+                );
 
                 // Item repository tracking
                 const actionItemDeltas = {};
@@ -1149,8 +1167,10 @@ export function taskManager() {
         },
 
         getCurrentCombatLevel() {
-            const currentStats = this.calculateStats();
-            return getCombatLevel(currentStats);
+            const statsForCombat = Object.fromEntries(
+                SKILLS.map(skill => [skill, { level: this.skillLevels[skill] || 1 }])
+            );
+            return getCombatLevel(statsForCombat);
         },
 
         // Edit action methods

@@ -809,11 +809,32 @@ export function taskManager() {
 
         // Returns quest requirements with a `met` flag based on current end-of-plan skill levels
         getQuestRequirements(quest) {
-            return Object.entries(quest.requirements || {}).map(([skill, level]) => ({
-                skill,
-                level,
-                met: (this.skillLevels[skill] || 1) >= level,
-            }));
+            const requirements = [];
+            
+            // Handle skill requirements
+            if (quest.requirements?.skills) {
+            for (const req of quest.requirements.skills) {
+                requirements.push({
+                type: 'skill',
+                skill: req.skill,
+                level: req.level,
+                met: (this.skillLevels[req.skill] || 1) >= req.level,
+                });
+            }
+            }
+            
+            // Handle quest requirements
+            if (quest.requirements?.quests) {
+            for (const questKey of quest.requirements.quests) {
+                requirements.push({
+                type: 'quest',
+                questKey,
+                met: this.isQuestInPlan(questKey),
+                });
+            }
+            }
+            
+            return requirements;
         },
 
         // Filtered quest list for the modal search box

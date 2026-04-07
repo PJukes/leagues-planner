@@ -325,7 +325,12 @@
                   <p x-text="skill" class="text-gray-600 font-medium text-xs"></p>
                   <p class="text-left text-xs text-gray-500" x-text="level.cumulativeExperience.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></p>
                 </div>
-                <p class="text-right font-medium" x-text="`${level.level}`"></p>
+                <div class="flex">
+                  <template x-if="relicSelection.includes('abundance') && !['attack','strength','defence','ranged','magic','hitpoints'].includes(skill)">
+                    <p class="text-right font-medium text-green-600" x-text="`${level.level+10}/`"></p>
+                  </template>
+                  <p class="text-right font-medium" x-text="`${level.level}`"></p>
+                </div>
               </div>
             </div>
           </template>
@@ -346,7 +351,7 @@
             Est. GP: <span class="pl-2" id="hdr-actions" x-text="totalGold().toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></span>
           </p>
           <p class="items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
-            Multiplier: <span class="pl-2" id="hdr-mult">{{ plan.base_xp_multiplier }}x</span>
+            Multiplier: <span class="pl-2" x-text="`${currentExpModifier()||5}x`"></span>
           </p>
         </div>
 

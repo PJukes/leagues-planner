@@ -8,7 +8,12 @@
         @click="setRegionFilter(null)"
         :class="regionFilter === null ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
         class="rounded-full px-3 py-1 text-xs font-medium transition-colors"
-      >All</button>
+        >All</button>
+      <button
+        @click="setRegionFilter('General')"
+        :class="regionFilter === 'General' ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+        class="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+        >General</button>
       <template x-for="region in unlockedRegions" :key="region.key">
         <button
           @click="setRegionFilter(region.key)"
@@ -66,7 +71,12 @@
               </td>
               <td class="px-3 py-2">
                 <span
-                  class="inline-block rounded-full bg-green-100 text-green-700 text-xs px-1.5 py-0.5 font-medium"
+                  :class="{
+                    'bg-orange-100 text-orange-700': task.region === 'Varlamore',
+                    'bg-green-100 text-green-700': task.region === 'Karamja',
+                    'bg-gray-100 text-gray-700': task.region === 'General'
+                  }"
+                  class="inline-block rounded-full text-xs px-1.5 py-0.5 font-medium"
                   x-text="getRegionLabel(task.region)"
                 ></span>
               </td>
@@ -78,7 +88,7 @@
                       'text-yellow-600': task.player_completion_pct >= 40 && task.player_completion_pct < 70,
                       'text-red-500': task.player_completion_pct < 40
                     }"
-                    x-text="task.player_completion_pct + '%'"
+                    x-text="`${Math.round(task.player_completion_pct*10)/10}%`"
                   ></span>
                 </template>
                 <template x-if="task.player_completion_pct == null">
@@ -89,8 +99,8 @@
           </template>
           <template x-if="sortedFilteredTasks().length === 0">
             <tr>
-              <td colspan="4" class="py-6 text-center text-sm text-gray-500">
-                No tasks available. Add more tasks to your plan to unlock new regions.
+              <td colspan="4" class="px-3 py-6 text-sm text-gray-500">
+                No tasks available.
               </td>
             </tr>
           </template>

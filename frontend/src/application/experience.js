@@ -45,7 +45,7 @@ export function getXpMultiplier(points, tiers = DEFAULT_LEAGUE_TIERS) {
     let multiplier = BASE_XP_MULTIPLIER;
     for (const tier of tiers) {
         if (points >= tier.pointsRequired) {
-            multiplier = tier.xpMultiplier;
+            return tier.xpMultiplier;
         }
     }
     return multiplier;

@@ -108,6 +108,7 @@ export const ITEMS = {
     coal: {name: "Coal"},
     sandstone: {name: "Sandstone"},
     uncut_sapphire: {name: "Uncut sapphire"},
+    uncut_emerald: {name: "Uncut emerald"},
     gold_ore: {name: "Gold ore"},
     calcified_rock: {name: "Calcified rock"},
     granite: {name: "Granite"},
@@ -142,6 +143,8 @@ export const ITEMS = {
     nature_rune: {name: "Nature rune"},
     law_rune: {name: "Law rune"},
     death_rune: {name: "Death rune"},
+
+    house_key: { name: "House key" },
 
     bronze_dagger: { name: "Bronze dagger" },
     bronze_sword: { name: "Bronze sword" },

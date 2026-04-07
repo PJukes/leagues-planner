@@ -1,5 +1,6 @@
 import { getMethod, getMethodsForSkill, getSkillOptions } from "./skill-methods.js";
 import { ITEMS, STARTER_ITEMS } from "./items.js";
+import { getLootTable } from "./loot-tables.js";
 import { SHOPS, SHOP_LIST } from "./shops.js";
 import { QUESTS, QUEST_LIST } from "./quests.js";
 import { CREATURES } from "./creatures.js";
@@ -13,6 +14,56 @@ import {
 } from "./experience.js";
 
 const STORAGE_KEY_CURRENT = 'leagues_planner_current';
+
+/**
+ * Formats a probability as a human-readable fraction (e.g. 0.0588… → "1/17")
+ * or percentage when no clean fraction exists.
+ */
+function formatChance(chance) {
+    const n = Math.round(1 / chance);
+    if (n > 1 && Math.abs(chance - 1 / n) < 1e-6) return `1/${n}`;
+    return `${(chance * 100).toFixed(1)}%`;
+}
+
+/**
+ * Resolves all item yields for a skill method into a normalised list.
+ * RNG drops (chance < 1) contribute their expected value to `quantity`.
+ * Both inline `itemYields[].chance` and `lootTableKey` references are handled.
+ */
+function resolveMethodYields(method, quantity) {
+    const results = [];
+
+    for (const yieldDef of (method.itemYields || [])) {
+        const chance = yieldDef.chance ?? 1;
+        const isRng = chance < 1;
+        results.push({
+            item: yieldDef.item,
+            name: ITEMS[yieldDef.item]?.name ?? yieldDef.item,
+            quantity: Math.floor(yieldDef.quantity * quantity * chance),
+            chance: isRng ? chance : null,
+            chanceLabel: isRng ? formatChance(chance) : null,
+            isRng,
+        });
+    }
+
+    const lootTable = method.lootTableKey ? getLootTable(method.lootTableKey) : null;
+    if (lootTable) {
+        for (const drop of lootTable.drops) {
+            const chance = drop.chance ?? 1;
+            const isRng = chance < 1;
+            results.push({
+                item: drop.item,
+                name: ITEMS[drop.item]?.name ?? drop.item,
+                quantity: Math.floor(drop.quantity * quantity * chance),
+                chance: isRng ? chance : null,
+                chanceLabel: isRng ? formatChance(chance) : null,
+                isRng,
+            });
+        }
+    }
+
+    return results;
+}
 const STORAGE_KEY_ROUTES = 'leagues_planner_routes';
 
 export function taskManager() {
@@ -114,14 +165,21 @@ export function taskManager() {
 
         filteredTasks() {
             const actionKeys = new Set(this.actions.map(a => a.key));
+            if (this.regionFilter == null) {
+                return this.taskList.filter(task => {
+                    if (actionKeys.has(task.key) || !task.selectable) return false;
+                    if (!this.unlockedRegions.some(region => region.key.toLowerCase() === task.region.toLowerCase()) && task.region != "General") return false;
+                    return true;
+                });
+            }
             return this.taskList.filter(task => {
                 if (actionKeys.has(task.key) || !task.selectable) return false;
                 // Tasks with no region are always available (global)
-                if (!task.region || task.region=="General") return true;
+                if (!task.region) return true;
                 // Region-specific tasks require the region to be unlocked
-                if (!this.unlockedRegions.some(region => region.key.toLowerCase() === task.region.toLowerCase())) return false;
+                if ((!this.unlockedRegions.some(region => region.key.toLowerCase() === task.region.toLowerCase())) && task.region.toLowerCase() !== "general") return false;
                 // If a region filter is active, only show tasks from that region
-                if (this.regionFilter && task.region !== this.regionFilter) return false;
+                if (this.regionFilter && task.region.toLowerCase() !== this.regionFilter.toLowerCase()) return false;
                 return true;
             });
         },
@@ -285,11 +343,7 @@ export function taskManager() {
                 };
             });
 
-            const itemYields = (method.itemYields || []).map(yieldDef => ({
-                item: yieldDef.item,
-                name: ITEMS[yieldDef.item]?.name || yieldDef.item,
-                quantity: yieldDef.quantity * quantity,
-            }));
+            const itemYields = resolveMethodYields(method, quantity);
 
             const gold = this.getGold(xpGain, quantity);
             const hasInsufficientItems = itemCosts.some(c => !c.sufficient);
@@ -327,11 +381,7 @@ export function taskManager() {
                 };
             });
 
-            const itemYields = (method.itemYields || []).map(yieldDef => ({
-                item: yieldDef.item,
-                name: ITEMS[yieldDef.item]?.name || yieldDef.item,
-                quantity: yieldDef.quantity * quantity,
-            }));
+            const itemYields = resolveMethodYields(method, quantity);
 
             const gold = this.getGold(xpGain, quantity);
             const hasInsufficientItems = itemCosts.some(c => !c.sufficient);
@@ -835,11 +885,8 @@ export function taskManager() {
                     if (method) {
                         const qty = Number(action.quantity) || 0;
 
-                        if (method.itemYields) {
-                            for (const yieldDef of method.itemYields) {
-                                const total = yieldDef.quantity * qty;
-                                actionItemDeltas[yieldDef.item] = (actionItemDeltas[yieldDef.item] || 0) + total;
-                            }
+                        for (const yieldEntry of resolveMethodYields(method, qty)) {
+                            actionItemDeltas[yieldEntry.item] = (actionItemDeltas[yieldEntry.item] || 0) + yieldEntry.quantity;
                         }
 
                         if (method.itemCosts) {
@@ -1183,7 +1230,7 @@ export function taskManager() {
 
         getItemName(item) {
             const itemData = ITEMS[item];
-            return itemData ? itemData.name : item;
+            return itemData ? itemData.name : item[0].toUpperCase() + item.slice(1).toLowerCase();
         },
 
         getItemPicture(item) {
@@ -1192,7 +1239,7 @@ export function taskManager() {
             if (item.key == "coins") {
                 scale = [1,2,3,4,5,25,100,250,1000,10000].filter(t => item.quantity >= t).pop();
             }
-            if (item.key.includes("arrow")) {
+            if (item.key.includes("arrow") || item.key.includes("keys")) {
                 scale = [1,2,3,4,5].filter(t => item.quantity >= t).pop();
             }
             if(scale == null) {

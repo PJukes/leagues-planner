@@ -214,10 +214,16 @@
                 </template>
 
                 <!-- QUEST type -->
-                 {% include "planner/plan/quest.html" %}
+                {% include "planner/plan/quest.html" %}
 
                 <!-- RELIC type -->
-                 {% include "planner/plan/relic.html" %}
+                {% include "planner/plan/relic.html" %}
+
+                <!-- COMBAT type -->
+                {% include "planner/plan/combat.html" %}
+
+                <!-- PURCHASE type -->
+                {% include "planner/plan/purchase.html" %}
 
                 <!-- SKILL type -->
                 <template x-if="action.type==='skill'">

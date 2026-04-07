@@ -26,26 +26,27 @@ export const SHOPS = {
             { item: "feather", price: 2 },
         ],
     },
-    axe_shop: {
-        name: "Bob's Axes",
+    tal_teklan_rune_shop: {
+        name: "Tal Teklan Rune Shop",
         inventory: [
-            { item: "bronze_axe", price: 16 },
-            { item: "iron_axe", price: 56 },
-            { item: "steel_axe", price: 200 },
-            { item: "mithril_axe", price: 512 },
-            { item: "adamant_axe", price: 1408 },
-        ],
-    },
-    pickaxe_shop: {
-        name: "Nurmof's Pickaxes",
-        inventory: [
-            { item: "bronze_pickaxe", price: 1 },
-            { item: "iron_pickaxe", price: 140 },
-            { item: "steel_pickaxe", price: 500 },
-            { item: "mithril_pickaxe", price: 1300 },
-            { item: "adamant_pickaxe", price: 3200 },
-        ],
-    },
+            { item: "air_rune", price: 4},
+            { item: "water_rune", price: 4},
+            { item: "earth_rune", price: 4},
+            { item: "fire_rune", price: 4},
+            { item: "mind_rune", price: 3},
+            { item: "body_rune", price: 3},
+            { item: "chaos_rune", price: 90},
+            { item: "death_rune", price: 180},
+            { item: "cosmic_rune", price: 50},
+            { item: "nature_rune", price: 180},
+            { item: "air_rune_pack", price: 430},
+            { item: "water_rune_pack", price: 430},
+            { item: "earth_rune_pack", price: 430},
+            { item: "fire_rune_pack", price: 430},
+            { item: "mind_rune_pack", price: 330},
+            { item: "chaos_rune_pack", price: 9950},
+        ]
+    }
 };
 
 export const SHOP_LIST = Object.entries(SHOPS).map(([key, shop]) => ({

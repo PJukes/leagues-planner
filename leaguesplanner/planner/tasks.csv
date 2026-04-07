@@ -320,7 +320,7 @@ cast_a_wave_spell,Cast a Wave Spell,80,0.74,false,true,,,,,,,,General
 cast_moonclan_teleport,Cast Moonclan Teleport,80,0.74,false,true,,,,,,,,Fremennik
 equip_any_piece_of_crystal_armour,Equip any piece of Crystal Armour,80,0.74,false,true,,,,,,,,Tirannwn
 equip_a_studded_body_and_chaps,Equip a Studded Body and Chaps,10,0.74,false,true,,,,,,,,General
-chop_down_an_arctic_pine_tree,Chop down an arctic pine tree,10,0.74,true,true,skill_action_quantity,,,,,,,Fremennik
+chop_down_an_arctic_pine_tree,Chop down an arctic pine tree,10,0.74,false,true,,,,,,,,Fremennik
 fletch_a_willow_shortbow_(u),Fletch a Willow Shortbow (u),30,0.74,false,true,,,,,,,,General
 unlock_a_gate_in_taverley_dungeon,Unlock a Gate in Taverley Dungeon,30,0.74,false,true,,,,,,,,Asgarnia
 mine_25_gold_rocks_in_tirannwn,Mine 25 gold rocks in Tirannwn,30,0.74,false,true,,,,,,,,Tirannwn
@@ -333,7 +333,7 @@ kill_30_bandits,Kill 30 Bandits,30,0.74,true,true,combat_quantity,,,,,,,Desert
 cook_20_pike,Cook 20 Pike,30,0.74,true,true,skill_action_quantity,,,cook_pike,20,1600,,General
 enter_the_cooks'_guild,Enter the Cooks' Guild,30,0.74,false,true,,,,,,,,Misthalin
 equip_a_dragon_defender,Equip a Dragon Defender,80,0.74,false,true,,,,,,,,Asgarnia
-chop_some_logs_with_a_rune_axe,Chop Some Logs With a Rune Axe,30,0.74,true,true,skill_action_quantity,,,,,,,General
+chop_some_logs_with_a_rune_axe,Chop Some Logs With a Rune Axe,30,0.74,false,true,,,,,,,,General
 smith_150_iron_arrowtips,Smith 150 Iron Arrowtips,30,0.74,false,true,,,,,,,,General
 mine_25_pure_essence,Mine 25 Pure Essence,30,0.74,false,true,,,,,,,,Misthalin
 drink_a_strength_potion,Drink a Strength Potion,10,0.74,false,true,,,,,,,,General
@@ -833,7 +833,7 @@ defeat_a_mithril_dragon,Defeat a Mithril Dragon,80,0.38,false,true,,,,,,,,Kandar
 kill_a_wallasalki,Kill a Wallasalki,30,0.38,true,true,combat_quantity,,,,,,,Fremennik
 complete_sea_slug,Complete Sea Slug,30,0.38,true,true,quest_completion,,,sea_slug,,,,Kandarin
 cast_degrime_spell_full_clean,Cast Degrime Spell Full Clean,30,0.38,false,true,,,,,,,,Kourend
-chop_some_rising_roots,Chop some Rising Roots,30,0.38,true,true,skill_action_quantity,,,,,,,General
+chop_some_rising_roots,Chop some Rising Roots,30,0.38,false,true,,,,,,,,General
 complete_fishing_contest,Complete Fishing Contest,30,0.38,true,true,quest_completion,,,fishing_contest,,,,Kandarin
 equip_the_ancient_sceptre,Equip the Ancient Sceptre,80,0.38,false,true,,,,,,,,Fremennik
 defeat_the_grotesque_guardians_50_times,Defeat the Grotesque Guardians 50 Times,80,0.38,false,true,,,,,,,,Morytania
@@ -1213,7 +1213,7 @@ equip_an_infernal_cape,Equip an Infernal Cape,400,0.17,false,true,,,,,,,,Karamja
 kill_a_necromancer,Kill a Necromancer,10,0.17,true,true,combat_quantity,,,,,,,General
 obtain_the_plank_sack,Obtain the Plank Sack,30,0.17,false,true,,,,,,,,Asgarnia
 equip_a_tormented_weapon,Equip a Tormented Weapon,80,0.17,false,true,,,,,,,,Misthalin
-cook_100_pies,Cook 100 pies,80,0.17,true,true,skill_action_quantity,,,,,,,General
+cook_100_pies,Cook 100 pies,80,0.17,false,true,,,,,,,,General
 catch_50_moonlight_antelopes,Catch 50 Moonlight Antelopes,200,0.17,false,true,,,,,,,,Varlamore
 obtain_a_kebab_from_the_certer_brothers,Obtain a Kebab from the Certer Brothers,80,0.17,false,true,,,,,,,,General
 equip_a_spottier_cape,Equip a Spottier Cape,30,0.17,false,true,,,,,,,,Kandarin

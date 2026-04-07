@@ -51,7 +51,10 @@
       <div id="task-pane" class="rounded-lg bg-white p-4 shadow flex flex-col h-screen">
         <div id="task-pane-header" class="mb-2">
           <div class="flex justify-between items-center pb-2">
-            <h3>Task List</h3>
+            <div>
+              <h3 class="leading-tight">Task List</h3>
+              <p x-show="currentRouteName" x-text="currentRouteName" class="text-xs text-gray-400 leading-tight truncate max-w-[160px]"></p>
+            </div>
             <div class="flex gap-2">
               <button type="button" @click="openModal();" class="relative rounded-lg border border-gray-300 bg-gray-100 px-2 py-1 shadow-sm focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-indigo-600 hover:border-gray-400 w-full mt-2 whitespace-nowrap flex-1">
                 <div class="flex items-center gap-x-1">
@@ -72,6 +75,13 @@
                 </div>
               </button>
 
+              <!-- Add Group button -->
+              <button type="button" @click="addingGroup = !addingGroup" title="Add a group / section" class="p-1 h-min rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 mt-2" :class="addingGroup ? 'bg-amber-100 text-amber-700' : ''">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
+                  <path fill-rule="evenodd" d="M3 6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm14.25 6a.75.75 0 0 1-.22.53l-2.25 2.25a.75.75 0 1 1-1.06-1.06L15.44 12l-1.72-1.72a.75.75 0 1 1 1.06-1.06l2.25 2.25c.141.14.22.331.22.53Zm-10.28-.53a.75.75 0 0 0 0 1.06l2.25 2.25a.75.75 0 1 0 1.06-1.06L8.56 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L7.97 11.47a.75.75 0 0 0-.22.53Z" clip-rule="evenodd" />
+                </svg>
+              </button>
+
               <button type="button" @click="openRouteModal()" title="Save / load routes" class="p-1 h-min rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 mt-2">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
                   <path fill-rule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 0 0-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 0 0-2.282.819l-.922 1.597a1.875 1.875 0 0 0 .432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 0 0 0 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 0 0-.432 2.385l.922 1.597a1.875 1.875 0 0 0 2.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 0 0 2.28-.819l.923-1.597a1.875 1.875 0 0 0-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 0 0 0-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 0 0-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 0 0-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 0 0-1.85-1.567h-1.843ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z" clip-rule="evenodd" />
@@ -81,14 +91,67 @@
           </div>
         </div>
 
+        <!-- Add group inline bar -->
+        <div x-show="addingGroup" x-transition class="flex gap-2 mb-2">
+          <input type="text" x-model="newGroupName" @keyup.enter="addGroup()" @keyup.escape="addingGroup = false; newGroupName = ''" placeholder="Group name…" class="flex-1 text-sm border border-amber-300 rounded px-3 py-1 focus:outline-none focus:border-amber-500" autofocus>
+          <button type="button" @click="addGroup()" :disabled="!newGroupName.trim()" class="text-sm px-3 py-1 rounded bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed">Add</button>
+          <button type="button" @click="addingGroup = false; newGroupName = ''" class="text-sm px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">Cancel</button>
+        </div>
+
         <div id="task-list-wrap" class="flex-1 overflow-y-scroll no-scrollbar p-2 bg-blue-50 rounded-lg border border-gray-300">
           <ul id="task-list" class="space-y-2">
-            <template x-for="action in actions" :key="action.key">
+            <template x-for="action in visibleActions()" :key="action.key">
               <div :data-action-key="action.key" :class="action.parentKey ? 'ml-6 relative' : ''">
 
                 <!-- Child connector line -->
                 <template x-if="action.parentKey">
                   <div class="absolute -left-4 top-0 bottom-0 w-px bg-blue-200"></div>
+                </template>
+
+                <!-- GROUP type -->
+                <template x-if="action.type==='group'">
+                  <li class="rounded-lg border border-amber-400 bg-amber-50 px-3 py-2 shadow-sm">
+                    <div x-show="editingAction !== action.key" class="flex items-center gap-2">
+                      <!-- Collapse toggle -->
+                      <button @click.stop="toggleGroup(action.key)" class="text-amber-600 hover:text-amber-800 flex-shrink-0" :title="action.collapsed ? 'Expand group' : 'Collapse group'">
+                        <svg x-show="!action.collapsed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4">
+                          <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                        </svg>
+                        <svg x-show="action.collapsed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4">
+                          <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                        </svg>
+                      </button>
+
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 text-amber-500 flex-shrink-0">
+                        <path fill-rule="evenodd" d="M3 6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm14.25 6a.75.75 0 0 1-.22.53l-2.25 2.25a.75.75 0 1 1-1.06-1.06L15.44 12l-1.72-1.72a.75.75 0 1 1 1.06-1.06l2.25 2.25c.141.14.22.331.22.53Zm-10.28-.53a.75.75 0 0 0 0 1.06l2.25 2.25a.75.75 0 1 0 1.06-1.06L8.56 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L7.97 11.47a.75.75 0 0 0-.22.53Z" clip-rule="evenodd" />
+                      </svg>
+
+                      <p class="text-sm font-semibold text-amber-900 flex-1 truncate" x-text="action.name"></p>
+
+                      <span x-show="action.collapsed" class="text-xs text-amber-600 mr-1" x-text="`${getGroupMemberCount(action.key)} items`"></span>
+
+                      <!-- Rename -->
+                      <button @click.stop="startEdit(action.key)" title="Rename group" class="text-amber-400 hover:text-amber-600 mr-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                        </svg>
+                      </button>
+
+                      <!-- Delete group header only -->
+                      <button @click.stop="removeGroup(action.key)" title="Remove group (keeps tasks)" class="text-gray-400 hover:text-red-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <!-- Rename form -->
+                    <div x-show="editingAction === action.key" @click.stop class="flex gap-2">
+                      <input type="text" x-model="editFormData.name" @keyup.enter="saveEdit()" @keyup.escape="cancelEdit()" class="flex-1 text-sm border border-amber-300 rounded px-2 py-1 focus:outline-none focus:border-amber-500" placeholder="Group name…">
+                      <button @click="saveEdit()" class="text-xs px-3 py-1 rounded bg-amber-500 text-white hover:bg-amber-600">Save</button>
+                      <button @click="cancelEdit()" class="text-xs px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">Cancel</button>
+                    </div>
+                  </li>
                 </template>
 
                 <!-- TASK type -->
@@ -369,8 +432,8 @@
           <div class="flex flex-wrap gap-1 mt-2">
             <template x-for="relic in relicSelection" :key="relic">
               <span :title="relic"
-                class="bg-green-100 text-green-800 border-green-300 cursor-pointer hover:bg-green-200 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium select-none">
-                <span x-text="relic"></span>
+                class="bg-red-100 text-red-800 border-red-300 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium">
+                <span x-text="getRelicName(relic)"></span>
               </span>
             </template>
           </div>

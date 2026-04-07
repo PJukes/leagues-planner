@@ -620,7 +620,7 @@ export function taskManager() {
                 const totalKilled = actionCounts[`combat_${requirement.method}`] || 0;
                 return totalKilled >= Number(requirement.quantity || 0);
             }
-            if (requirement.type === "quest_completed") {
+            if (requirement.type === "quest_completion") {
                 return (actionCounts[`quest:${requirement.method}`] || 0) > 0;
             }
             return false;
@@ -972,6 +972,26 @@ export function taskManager() {
                     action.currentMultiplier = currentMultiplier;
                 }
 
+                if (action.type === "quest") {
+                    // Check skill level requirements against XP accumulated BEFORE this quest
+                    const requirementWarnings = [];
+                    for (const [skill, requiredLevel] of Object.entries(action.requirements || {})) {
+                        const currentLevel = experienceToLevel(runningBySkill[skill] || 0);
+                        if (currentLevel < requiredLevel) {
+                            requirementWarnings.push({ skill, required: requiredLevel, current: currentLevel });
+                        }
+                    }
+                    action.requirementWarnings = requirementWarnings;
+                    // Apply XP rewards before updating runningBySkill so they count toward cumulative totals
+                    for (const reward of (action.xpRewards || [])) {
+                        if (SKILLS.includes(reward.skill)) {
+                            const xp = Number(reward.amount || 0) * currentMultiplier;
+                            actionExperienceBySkill[reward.skill] = (actionExperienceBySkill[reward.skill] || 0) + xp;
+                            action.currentMultiplier = currentMultiplier;
+                        }
+                    }
+                }
+
                 Object.entries(actionExperienceBySkill).forEach(([skill, xp]) => {
                     runningBySkill[skill] += xp;
                 });
@@ -1020,27 +1040,10 @@ export function taskManager() {
                 }
 
                 if (action.type === "quest") {
-                    // Apply XP rewards (multiplier-boosted, like task xp_reward)
-                    for (const reward of (action.xpRewards || [])) {
-                        if (SKILLS.includes(reward.skill)) {
-                            const xp = Number(reward.amount || 0) * currentMultiplier;
-                            actionExperienceBySkill[reward.skill] = (actionExperienceBySkill[reward.skill] || 0) + xp;
-                            action.currentMultiplier = currentMultiplier;
-                        }
-                    }
                     // Apply item rewards
                     for (const ir of (action.itemRewards || [])) {
                         actionItemDeltas[ir.item] = (actionItemDeltas[ir.item] || 0) + ir.quantity;
                     }
-                    // Check skill level requirements against XP accumulated BEFORE this quest
-                    const requirementWarnings = [];
-                    for (const [skill, requiredLevel] of Object.entries(action.requirements || {})) {
-                        const currentLevel = experienceToLevel(runningBySkill[skill] || 0);
-                        if (currentLevel < requiredLevel) {
-                            requirementWarnings.push({ skill, required: requiredLevel, current: currentLevel });
-                        }
-                    }
-                    action.requirementWarnings = requirementWarnings;
                 }
 
                 for (const [item, delta] of Object.entries(actionItemDeltas)) {
@@ -1139,7 +1142,7 @@ export function taskManager() {
                     .reduce((sum, a) => sum + (a.quantity || 0), 0);
                 return totalKilled >= Number(requirement.quantity || 0);
             }
-            if (requirement.type === "quest_completed") {
+            if (requirement.type === "quest_completion") {
                 return this.actions.some(a => a.type === "quest" && a.questKey === requirement.method);
             }
             return false;

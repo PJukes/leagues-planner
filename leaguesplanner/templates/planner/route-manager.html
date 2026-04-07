@@ -1,16 +1,52 @@
 <template id="route-manager-template">
   <div>
     <h5 class="text-gray-700 font-medium text-lg mb-1">Route Manager</h5>
-    <p class="text-xs text-gray-400 mb-4">Save the current plan or load a previously saved route.</p>
+    <p class="text-xs text-gray-400 mb-4">Create a new route, save the current plan, or load a previously saved route.</p>
 
-    <!-- Save section -->
+    <!-- New Route section -->
+    <div class="mb-4 pb-4 border-b border-gray-200">
+      <p class="text-sm font-medium text-gray-600 mb-2">New route</p>
+      <div class="flex gap-2">
+        <input type="text" x-model="newRouteName" @keyup.enter="createNewRoute()" placeholder="Route name…" class="flex-1 text-sm border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-green-400">
+        <button type="button" @click="createNewRoute()" :disabled="!newRouteName.trim()" class="text-sm px-4 py-1.5 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed">Create</button>
+      </div>
+      <p class="mt-1 text-xs text-gray-400">Creates a fresh plan and clears the current one.</p>
+    </div>
+
+    <!-- Save current route section -->
     <div class="mb-4 pb-4 border-b border-gray-200">
       <p class="text-sm font-medium text-gray-600 mb-2">Save current route</p>
-      <div class="flex gap-2">
-        <input type="text" x-model="newRouteName" @keyup.enter="saveRoute()" placeholder="Give this route a name…" class="flex-1 text-sm border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-400">
-        <button type="button" @click="saveRoute()" :disabled="!newRouteName.trim()" class="text-sm px-4 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">Save</button>
-      </div>
-      <p class="mt-1 text-xs text-gray-400" x-text="`Current plan: ${totalTasks} task(s) · ${totalPoints} pts · Total level ${totalLevel}`"></p>
+
+      <!-- Quick-save if a route is already named -->
+      <template x-if="currentRouteName">
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-gray-700">
+              Saving as: <span class="font-semibold" x-text="currentRouteName"></span>
+            </span>
+            <button type="button" @click="saveRoute(false)" class="text-sm px-4 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700">Save</button>
+          </div>
+          <p class="text-xs text-gray-400" x-text="`Current plan: ${totalTasks} task(s) · ${totalPoints} pts · Total level ${totalLevel}`"></p>
+          <details class="text-xs text-gray-500">
+            <summary class="cursor-pointer hover:text-gray-700">Save as a different name…</summary>
+            <div class="flex gap-2 mt-2">
+              <input type="text" x-model="newRouteName" @keyup.enter="saveRoute(true)" placeholder="New name…" class="flex-1 text-sm border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-400">
+              <button type="button" @click="saveRoute(true)" :disabled="!newRouteName.trim()" class="text-sm px-4 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">Save As</button>
+            </div>
+          </details>
+        </div>
+      </template>
+
+      <!-- No name yet — prompt for one -->
+      <template x-if="!currentRouteName">
+        <div>
+          <div class="flex gap-2">
+            <input type="text" x-model="newRouteName" @keyup.enter="saveRoute(true)" placeholder="Give this route a name…" class="flex-1 text-sm border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-400">
+            <button type="button" @click="saveRoute(true)" :disabled="!newRouteName.trim()" class="text-sm px-4 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">Save</button>
+          </div>
+          <p class="mt-1 text-xs text-gray-400" x-text="`Current plan: ${totalTasks} task(s) · ${totalPoints} pts · Total level ${totalLevel}`"></p>
+        </div>
+      </template>
     </div>
 
     <!-- Saved routes list -->
@@ -20,11 +56,16 @@
       <p class="text-sm text-gray-400 italic">No routes saved yet.</p>
     </template>
 
-    <ul class="space-y-2 max-h-72 overflow-y-auto">
+    <ul class="space-y-2 max-h-64 overflow-y-auto">
       <template x-for="route in savedRoutes" :key="route.name">
-        <li class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+        <li class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2" :class="route.name === currentRouteName ? 'border-blue-300 bg-blue-50' : ''">
           <div class="min-w-0 mr-3">
-            <p class="text-sm font-semibold text-gray-800 truncate" x-text="route.name"></p>
+            <div class="flex items-center gap-1">
+              <p class="text-sm font-semibold text-gray-800 truncate" x-text="route.name"></p>
+              <template x-if="route.name === currentRouteName">
+                <span class="text-xs text-blue-500 font-medium">(current)</span>
+              </template>
+            </div>
             <p class="text-xs text-gray-500" x-text="`${route.totalTasks || 0} tasks · ${route.totalPoints || 0} pts · Lvl ${route.totalLevel || 0}`"></p>
             <p class="text-xs text-gray-400" x-text="formatSavedAt(route.savedAt)"></p>
           </div>

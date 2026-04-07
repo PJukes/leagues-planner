@@ -55,6 +55,10 @@ export function taskManager() {
         taskSortDir: 1,
         savedRoutes: [],
         newRouteName: '',
+        currentRouteName: '',
+        changingRelicTier: null,
+        addingGroup: false,
+        newGroupName: '',
 
         init() {
             window.addEventListener("add-task", () => this.openModal());
@@ -216,6 +220,31 @@ export function taskManager() {
         },
 
         addRelic(relicKey) {
+            // When changing a relic, remove the existing one from the same tier first
+            if (this.changingRelicTier !== null) {
+                const existingRelic = this.relicSelection.find(r => RELICS[r] && RELICS[r].tier === this.changingRelicTier);
+                if (existingRelic && existingRelic !== relicKey) {
+                    this.relicSelection = this.relicSelection.filter(r => r !== existingRelic);
+                    // Replace the old relic action in-place with the new one
+                    const idx = this.actions.findIndex(a => a.key === existingRelic);
+                    if (idx !== -1) {
+                        this.actions[idx] = {
+                            key: relicKey,
+                            name: RELICS[relicKey].name,
+                            type: "relic",
+                            currentStats: this.calculateStats(),
+                        };
+                        if (window.removeActionLatLng) window.removeActionLatLng(existingRelic);
+                        this.relicSelection.push(relicKey);
+                        this.changingRelicTier = null;
+                        this.recalculateActionState();
+                        this.closeModal();
+                        return;
+                    }
+                }
+                this.changingRelicTier = null;
+            }
+
             const action = {
                 key: relicKey,
                 name: RELICS[relicKey].name,
@@ -233,9 +262,15 @@ export function taskManager() {
         },
 
         removeRelic(relicKey) {
-            console.log(`Removing relic: ${relicKey}`);
             this.relicSelection = this.relicSelection.filter(key => key !== relicKey);
             this.removeTask(relicKey);
+        },
+
+        changeRelic(relicKey) {
+            const relic = RELICS[relicKey];
+            if (!relic) return;
+            this.changingRelicTier = relic.tier;
+            this.openModal('relic-list-template');
         },
 
         getCreature() {
@@ -801,13 +836,63 @@ export function taskManager() {
                 if (action.skill && SKILLS.includes(action.skill)) {
                     const baseXp = (Number(action.quantity) || 0) * (Number(action.xpPerAction) || 0) * (getXpMultiplier(runningPoints) || 5);
                     actionExperienceBySkill[action.skill] = baseXp;
+                    action.experience = baseXp;
                     action.currentMultiplier = currentMultiplier;
                     action.effectiveExperience = baseXp * currentMultiplier;
+
+                    // Recompute bonusExp dynamically from current relic selection
+                    const qty = Number(action.quantity) || 0;
+                    const actionMultiplier = getXpMultiplier(runningPoints) || 5;
+                    let recomputedBonusExp = [];
+                    if (this.relicSelection.includes('barbarian_gathering') && ['mining', 'fishing', 'woodcutting'].includes(action.skill)) {
+                        recomputedBonusExp = [
+                            { skill: 'agility', amount: baseXp * 0.1 },
+                            { skill: 'strength', amount: baseXp * 0.1 },
+                        ];
+                    } else if (this.relicSelection.includes('abundance')) {
+                        recomputedBonusExp = [{ skill: action.skill, amount: qty * 2 * actionMultiplier }];
+                    }
+                    action.bonusExp = recomputedBonusExp;
+                    for (const bonus of recomputedBonusExp) {
+                        if (SKILLS.includes(bonus.skill)) {
+                            actionExperienceBySkill[bonus.skill] = (actionExperienceBySkill[bonus.skill] || 0) + bonus.amount;
+                        }
+                    }
+
+                    // Recompute totalGold dynamically
+                    const baseMethodGold = (getMethod(action.skill, action.method)?.gold || 0) * qty;
+                    if (this.relicSelection.includes('abundance')) {
+                        const abundanceBonusXp = qty * 2 * actionMultiplier;
+                        action.totalGold = baseMethodGold + (baseXp + abundanceBonusXp) * 2;
+                    } else {
+                        action.totalGold = baseMethodGold;
+                    }
                 }
 
                 if (action.type === "combat" && action.hitpointsXpPerAction) {
                     const hpXp = (Number(action.quantity) || 0) * (Number(action.hitpointsXpPerAction) || 0) * (getXpMultiplier(runningPoints) || 5);
                     actionExperienceBySkill["hitpoints"] += hpXp;
+
+                    // Recompute combat bonusExp and totalGold
+                    const qty = Number(action.quantity) || 0;
+                    const actionMultiplier = getXpMultiplier(runningPoints) || 5;
+                    const combatBaseXp = qty * (Number(action.xpPerAction) || 0) * actionMultiplier;
+                    let recomputedBonusExp = [];
+                    if (this.relicSelection.includes('abundance') && action.skill) {
+                        recomputedBonusExp = [{ skill: action.skill, amount: qty * 2 * actionMultiplier }];
+                    }
+                    action.bonusExp = recomputedBonusExp;
+                    for (const bonus of recomputedBonusExp) {
+                        if (SKILLS.includes(bonus.skill)) {
+                            actionExperienceBySkill[bonus.skill] = (actionExperienceBySkill[bonus.skill] || 0) + bonus.amount;
+                        }
+                    }
+                    if (this.relicSelection.includes('abundance')) {
+                        const abundanceBonusXp = qty * 2 * actionMultiplier;
+                        action.totalGold = (combatBaseXp + abundanceBonusXp) * 2;
+                    } else {
+                        action.totalGold = 0;
+                    }
                 }
 
                 if (action.xp_reward && action.xp_reward.skill && SKILLS.includes(action.xp_reward.skill)) {
@@ -1007,6 +1092,7 @@ export function taskManager() {
                 method: action.method || "",
                 quantity: action.quantity || 1,
                 description: action.description || "",
+                name: action.name || "",
             };
         },
 
@@ -1048,6 +1134,11 @@ export function taskManager() {
                 action.description = this.editFormData.description;
             }
 
+            if (action.type === "group") {
+                const trimmed = (this.editFormData.name || '').trim();
+                if (trimmed) action.name = trimmed;
+            }
+
             this.editingAction = null;
             this.editFormData = {};
             this.recalculateActionState();
@@ -1057,12 +1148,73 @@ export function taskManager() {
         // Persistence helpers
         // -----------------------------------------------------------------------
 
+        // -----------------------------------------------------------------------
+        // Task groups
+        // -----------------------------------------------------------------------
+
+        addGroup(name) {
+            const groupName = (name || this.newGroupName || '').trim();
+            if (!groupName) return;
+            const action = {
+                key: `group-${Date.now()}`,
+                name: groupName,
+                type: 'group',
+                collapsed: false,
+            };
+            this._insertAction(action);
+            this.newGroupName = '';
+            this.addingGroup = false;
+            this.recalculateActionState();
+        },
+
+        toggleGroup(key) {
+            const group = this.actions.find(a => a.key === key && a.type === 'group');
+            if (group) {
+                group.collapsed = !group.collapsed;
+                this._saveState();
+            }
+        },
+
+        removeGroup(key) {
+            // Remove only the group header; member actions remain ungrouped
+            this.actions = this.actions.filter(a => a.key !== key);
+            this.recalculateActionState();
+        },
+
+        getGroupMemberCount(groupKey) {
+            let counting = false;
+            let count = 0;
+            for (const action of this.actions) {
+                if (action.type === 'group') {
+                    if (action.key === groupKey) { counting = true; continue; }
+                    if (counting) break;
+                }
+                if (counting) count++;
+            }
+            return count;
+        },
+
+        visibleActions() {
+            const visible = [];
+            let collapsed = false;
+            for (const action of this.actions) {
+                if (action.type === 'group') {
+                    collapsed = action.collapsed;
+                    visible.push(action);
+                } else if (!collapsed) {
+                    visible.push(action);
+                }
+            }
+            return visible;
+        },
+
         _saveState() {
             try {
                 const state = {
                     actions: this.actions,
                     relicSelection: this.relicSelection,
                     actionLatLngs: window.getActionLatLngs ? window.getActionLatLngs() : {},
+                    currentRouteName: this.currentRouteName,
                 };
                 localStorage.setItem(STORAGE_KEY_CURRENT, JSON.stringify(state));
             } catch (e) {
@@ -1085,6 +1237,7 @@ export function taskManager() {
         _applyState(state) {
             this.actions = state.actions || [];
             this.relicSelection = state.relicSelection || [];
+            this.currentRouteName = state.currentRouteName || state.name || '';
             const savedLatLngs = state.actionLatLngs || {};
             const actions = this.actions;
             const doRestore = () => {
@@ -1103,13 +1256,28 @@ export function taskManager() {
         // -----------------------------------------------------------------------
 
         openRouteModal() {
-            console.log("Opening route modal");
             this.savedRoutes = this._listRoutes();
+            this.newRouteName = '';
             this.openModal("route-manager-template");
         },
 
-        saveRoute() {
-            const name = (this.newRouteName || '').trim();
+        createNewRoute(name) {
+            const routeName = (name || this.newRouteName || '').trim();
+            if (!routeName) return;
+            if (!confirm(`Create new route "${routeName}"? The current plan will be cleared.`)) return;
+            this.actions = [];
+            this.relicSelection = [];
+            this.currentRouteName = routeName;
+            if (window.restoreActionLatLngs) window.restoreActionLatLngs({}, []);
+            this.newRouteName = '';
+            this.recalculateActionState();
+            this.closeModal();
+        },
+
+        saveRoute(asNewName) {
+            const name = asNewName
+                ? (this.newRouteName || '').trim()
+                : (this.currentRouteName || this.newRouteName || '').trim();
             if (!name) return;
             try {
                 const routes = this._loadRoutesStore();
@@ -1122,8 +1290,10 @@ export function taskManager() {
                     actions: this.actions,
                     relicSelection: this.relicSelection,
                     actionLatLngs: window.getActionLatLngs ? window.getActionLatLngs() : {},
+                    currentRouteName: name,
                 };
                 localStorage.setItem(STORAGE_KEY_ROUTES, JSON.stringify(routes));
+                this.currentRouteName = name;
                 this.savedRoutes = this._listRoutes();
                 this.newRouteName = '';
             } catch (e) {
@@ -1158,6 +1328,7 @@ export function taskManager() {
             if (!confirm('Clear the current plan? This cannot be undone.')) return;
             this.actions = [];
             this.relicSelection = [];
+            this.currentRouteName = '';
             if (window.restoreActionLatLngs) window.restoreActionLatLngs({}, []);
             this.recalculateActionState();
         },
@@ -1179,6 +1350,10 @@ export function taskManager() {
 
         formatSavedAt(ts) {
             return new Date(ts).toLocaleString();
+        },
+
+        getRelicName(relicKey) {
+            return RELICS[relicKey]?.name || relicKey;
         },
 
         getItemName(item) {

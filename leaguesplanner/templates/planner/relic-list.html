@@ -1,7 +1,11 @@
 <template id="relic-list-template">
-  <h5 class="text-gray-700 font-medium text-lg mb-4">Select a Relic</h5>
+  <h5 class="text-gray-700 font-medium text-lg mb-1">
+    <span x-show="changingRelicTier !== null">Change Tier <span x-text="changingRelicTier"></span> Relic</span>
+    <span x-show="changingRelicTier === null">Select a Relic</span>
+  </h5>
+  <p x-show="changingRelicTier !== null" class="text-xs text-gray-400 mb-4">Choose a replacement — the existing relic will be swapped out and all dependent calculations will update.</p>
   <div class="space-y-2 max-h-96 overflow-y-scroll bg-gray-100 p-4 rounded-lg">
-    <div x-show="relicSelection.length == 0" class="space-y-3">
+    <div x-show="changingRelicTier === 1 || (changingRelicTier === null && relicSelection.length == 0)" class="space-y-3">
       <button @click="addRelic('endless_harvest')" class="hover:bg-gray-200 rounded-lg p-2 w-full text-left">
         <div class="grid grid-cols-6 gap-x-4">
           <img src="https://oldschool.runescape.wiki/images/Endless_Harvest_%28Demonic_Pacts_League%29.png?f5c84" alt="">
@@ -59,7 +63,7 @@
       </button>
     </div>
 
-    <div x-show="relicSelection.length == 1" class="space-y-3">
+    <div x-show="changingRelicTier === 2 || (changingRelicTier === null && relicSelection.length == 1)" class="space-y-3">
       <button @click="addRelic('hotfoot')" class="hover:bg-gray-200 rounded-lg p-2 w-full text-left">
         <div class="grid grid-cols-6 gap-x-4">
           <img src="https://oldschool.runescape.wiki/images/Hotfoot_%28Demonic_Pacts_League%29.png?a7187" alt="">

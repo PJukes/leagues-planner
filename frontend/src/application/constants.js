@@ -62,14 +62,12 @@ export const REGIONS = {
 };
 
 export const DEFAULT_LEAGUE_TIERS = [
-    { pointsRequired: 500, xpMultiplier: 5.0 },
-    { pointsRequired: 1800, xpMultiplier: 5.0 },
-    { pointsRequired: 5000, xpMultiplier: 8.0 },
-    { pointsRequired: 12000, xpMultiplier: 12.0 },
-    { pointsRequired: 21000, xpMultiplier: 16.0 },
-    { pointsRequired: 37000, xpMultiplier: 24.0 },
-    { pointsRequired: 60000, xpMultiplier: 32.0 },
-    { pointsRequired: 80000, xpMultiplier: 48.0 },
-    { pointsRequired: 104000, xpMultiplier: 64.0 },
-    { pointsRequired: 136000, xpMultiplier: 80.0 },
+    { pointsRequired: 15000, xpMultiplier: 16.0 },
+    { pointsRequired: 10000, xpMultiplier: 16.0 },
+    { pointsRequired: 5000, xpMultiplier: 12.0 },
+    { pointsRequired: 3500, xpMultiplier: 12.0 },
+    { pointsRequired: 2500, xpMultiplier: 8.0 },
+    { pointsRequired: 1500, xpMultiplier: 8.0 },
+    { pointsRequired: 750, xpMultiplier: 8.0 },
+    { pointsRequired: 0, xpMultiplier: 5.0 },
 ];

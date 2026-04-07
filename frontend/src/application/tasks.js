@@ -39,7 +39,7 @@ function resolveMethodYields(method, quantity) {
         results.push({
             item: yieldDef.item,
             name: ITEMS[yieldDef.item]?.name ?? yieldDef.item,
-            quantity: yieldDef.quantity * quantity * chance,
+            quantity: Math.floor(yieldDef.quantity * quantity * chance),
             chance: isRng ? chance : null,
             chanceLabel: isRng ? formatChance(chance) : null,
             isRng,
@@ -54,7 +54,7 @@ function resolveMethodYields(method, quantity) {
             results.push({
                 item: drop.item,
                 name: ITEMS[drop.item]?.name ?? drop.item,
-                quantity: drop.quantity * quantity * chance,
+                quantity: Math.floor(drop.quantity * quantity * chance),
                 chance: isRng ? chance : null,
                 chanceLabel: isRng ? formatChance(chance) : null,
                 isRng,
@@ -165,14 +165,21 @@ export function taskManager() {
 
         filteredTasks() {
             const actionKeys = new Set(this.actions.map(a => a.key));
+            if (this.regionFilter == null) {
+                return this.taskList.filter(task => {
+                    if (actionKeys.has(task.key) || !task.selectable) return false;
+                    if (!this.unlockedRegions.some(region => region.key.toLowerCase() === task.region.toLowerCase()) && task.region != "General") return false;
+                    return true;
+                });
+            }
             return this.taskList.filter(task => {
                 if (actionKeys.has(task.key) || !task.selectable) return false;
                 // Tasks with no region are always available (global)
-                if (!task.region || task.region=="General") return true;
+                if (!task.region) return true;
                 // Region-specific tasks require the region to be unlocked
-                if (!this.unlockedRegions.some(region => region.key.toLowerCase() === task.region.toLowerCase())) return false;
+                if ((!this.unlockedRegions.some(region => region.key.toLowerCase() === task.region.toLowerCase())) && task.region.toLowerCase() !== "general") return false;
                 // If a region filter is active, only show tasks from that region
-                if (this.regionFilter && task.region !== this.regionFilter) return false;
+                if (this.regionFilter && task.region.toLowerCase() !== this.regionFilter.toLowerCase()) return false;
                 return true;
             });
         },
@@ -1223,7 +1230,7 @@ export function taskManager() {
 
         getItemName(item) {
             const itemData = ITEMS[item];
-            return itemData ? itemData.name : item;
+            return itemData ? itemData.name : item[0].toUpperCase() + item.slice(1).toLowerCase();
         },
 
         getItemPicture(item) {
@@ -1232,7 +1239,7 @@ export function taskManager() {
             if (item.key == "coins") {
                 scale = [1,2,3,4,5,25,100,250,1000,10000].filter(t => item.quantity >= t).pop();
             }
-            if (item.key.includes("arrow")) {
+            if (item.key.includes("arrow") || item.key.includes("keys")) {
                 scale = [1,2,3,4,5].filter(t => item.quantity >= t).pop();
             }
             if(scale == null) {

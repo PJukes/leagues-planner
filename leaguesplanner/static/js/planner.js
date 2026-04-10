@@ -226,6 +226,7 @@ function initMapContextMenu() {
     <button type="button" data-map-action="buy_items">Buy Items</button>
     <button type="button" data-map-action="complete_quest">Complete Quest</button>
     <button type="button" data-map-action="set_path">Set Destination</button>
+    <button type="button" data-map-action="add_teleport">Add Teleport</button>
   `;
   container.appendChild(menu);
   mapContextMenuEl = menu;
@@ -282,6 +283,8 @@ function handleMapContextAction(action) {
     window.dispatchEvent(new CustomEvent("complete-quest", {detail: { id: 123 }}));
   } else if (action == "buy_items") {
     window.dispatchEvent(new CustomEvent("buy-items", {detail: { id: 123 }}));
+  } else if (action === "add_teleport") {
+    window.dispatchEvent(new CustomEvent("add-teleport", {detail: { id: 123 }}));
   }
 }
 
@@ -329,6 +332,11 @@ window.registerActionLatLng = function(key, latlng, actionType) {
 
   marker.addTo(osrsMap);
   actionMarkers[key] = marker;
+
+  // If this key was already selected (before the marker existed), apply active icon now
+  if (key === activeMarkerKey) {
+    marker.setIcon(taskMarkerIcon(actionType || "generic_action", true));
+  }
 };
 
 window.removeActionLatLng = function(key) {
@@ -371,6 +379,7 @@ window.restoreActionLatLngs = function(savedLatLngs, actions) {
     const markerType = t === 'task' ? 'league_task'
                      : t === 'relic' ? 'tier_unlock'
                      : t === 'destination' ? 'note'
+                     : t === 'teleport' ? 'teleport'
                      : 'generic_action';
     window.registerActionLatLng(key, L.latLng(coords.lat, coords.lng), markerType);
   }
@@ -387,7 +396,7 @@ window.refreshMapPolylines = function(actions) {
   for (const action of actions) {
     const latlng = actionLatLngs[action.key];
     if (latlng) {
-      if (prevLatlng) {
+      if (prevLatlng && action.type !== 'teleport') {
         const poly = L.polyline([prevLatlng, latlng], { color: 'orange', weight: 2 });
         poly.addTo(osrsMap);
         connectionPolylines.push(poly);
@@ -427,6 +436,7 @@ function taskMarkerIcon(taskType, isActive = false) {
     generic_action: "#4caf50",
     tier_unlock: "#9c27b0",
     note: "#2196f3",
+    teleport: "#f97316",
   };
   const color = colors[taskType] || "#aaa";
   const size = isActive ? 20 : 12;
@@ -472,6 +482,7 @@ function _getMarkerType(key) {
         return action.type === 'task' ? 'league_task'
              : action.type === 'relic' ? 'tier_unlock'
              : action.type === 'destination' ? 'note'
+             : action.type === 'teleport' ? 'teleport'
              : 'generic_action';
       }
     }

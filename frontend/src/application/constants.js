@@ -30,7 +30,7 @@ export const RELIC_LIST = [
 
 
 
-export const RELIC_POINTS_TIER = [0, 750, 1500, 2500, 3500, 5000, 10000, 15000];
+export const RELIC_POINTS_TIER = [0, 600, 1500, 2500, 3500, 5000, 10000, 15000];
 
 export const BASE_XP_MULTIPLIER = 5.0;
 
@@ -68,6 +68,6 @@ export const DEFAULT_LEAGUE_TIERS = [
     { pointsRequired: 3500, xpMultiplier: 12.0 },
     { pointsRequired: 2500, xpMultiplier: 8.0 },
     { pointsRequired: 1500, xpMultiplier: 8.0 },
-    { pointsRequired: 750, xpMultiplier: 8.0 },
+    { pointsRequired: 600, xpMultiplier: 8.0 },
     { pointsRequired: 0, xpMultiplier: 5.0 },
 ];

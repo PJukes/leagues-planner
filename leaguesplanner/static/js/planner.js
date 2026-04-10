@@ -425,7 +425,9 @@ function taskMarkerIcon(taskType, isActive = false) {
   const colors = {
     league_task: "#e8b84b",
     generic_action: "#4caf50",
-    tier_unlock: "#9c27b0",
+    add_combat: "#af4c4cff",
+    buy_items: "#4cafacff",
+    complete_quest: "#acaf4cff",
     note: "#2196f3",
   };
   const color = colors[taskType] || "#aaa";

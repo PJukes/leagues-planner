@@ -20,7 +20,7 @@
             <!-- XP reward badges -->
             <template x-for="r in (action.xpRewards || [])" :key="r.skill">
               <span class="bg-orange-100 text-orange-700 text-xs px-1.5 py-0.5 rounded font-medium capitalize"
-                    x-text="'+' + r.amount.toLocaleString() + ' ' + r.skill + ' xp'"></span>
+                    x-text="'+' + (r.amount * (action.currentMultiplier || 5)).toLocaleString() + ' ' + r.skill + ' xp'"></span>
             </template>
             <!-- Item reward badges (uses itemDeltas from recalculation) -->
             <template x-for="delta in getActionItemDeltas(action)" :key="delta.item">

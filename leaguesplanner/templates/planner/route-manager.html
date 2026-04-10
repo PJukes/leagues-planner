@@ -8,7 +8,7 @@
       <p class="text-sm font-medium text-gray-600 mb-2">New route</p>
       <div class="flex gap-2">
         <input type="text" x-model="newRouteName" @keyup.enter="createNewRoute()" placeholder="Route name…" class="flex-1 text-sm border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-green-400">
-        <button type="button" @click="createNewRoute()" :disabled="!newRouteName.trim()" class="text-sm px-4 py-1.5 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed">Create</button>
+        <button type="button" @click="createNewRoute()" :disabled="!newRouteName" class="text-sm px-4 py-1.5 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed">Create</button>
       </div>
       <p class="mt-1 text-xs text-gray-400">Creates a fresh plan and clears the current one.</p>
     </div>
@@ -31,7 +31,7 @@
             <summary class="cursor-pointer hover:text-gray-700">Save as a different name…</summary>
             <div class="flex gap-2 mt-2">
               <input type="text" x-model="newRouteName" @keyup.enter="saveRoute(true)" placeholder="New name…" class="flex-1 text-sm border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-400">
-              <button type="button" @click="saveRoute(true)" :disabled="!newRouteName.trim()" class="text-sm px-4 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">Save As</button>
+              <button type="button" @click="saveRoute(true)" :disabled="!newRouteName" class="text-sm px-4 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">Save As</button>
             </div>
           </details>
         </div>
@@ -42,7 +42,7 @@
         <div>
           <div class="flex gap-2">
             <input type="text" x-model="newRouteName" @keyup.enter="saveRoute(true)" placeholder="Give this route a name…" class="flex-1 text-sm border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-400">
-            <button type="button" @click="saveRoute(true)" :disabled="!newRouteName.trim()" class="text-sm px-4 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">Save</button>
+            <button type="button" @click="saveRoute(true)" :disabled="!newRouteName" class="text-sm px-4 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">Save</button>
           </div>
           <p class="mt-1 text-xs text-gray-400" x-text="`Current plan: ${totalTasks} task(s) · ${totalPoints} pts · Total level ${totalLevel}`"></p>
         </div>

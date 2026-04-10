@@ -1,8 +1,8 @@
 import { getMethod, getMethodsForSkill, getSkillOptions } from "./skill-methods.js";
-import { ITEMS, STARTER_ITEMS } from "./items.js";
+import { ITEMS, GRIMY_HERBS, STARTER_ITEMS } from "./items.js";
 import { getLootTable } from "./loot-tables.js";
 import { SHOPS, SHOP_LIST } from "./shops.js";
-import { QUESTS, QUEST_LIST } from "./quests.js";
+import { QUESTS, QUEST_LIST, PRECOMPLETED_QUESTS } from "./quests.js";
 import { CREATURES } from "./creatures.js";
 import { SKILLS, RELIC_LIST, RELICS, RELIC_POINTS_TIER, REGIONS } from "./constants.js";
 import {
@@ -91,6 +91,7 @@ export function taskManager() {
         shopSelection: "",
         shopCart: {},
         questList: QUEST_LIST.map(q => ({
+            key: q.key || q[0],
             ...q,
             itemRewards: q.itemRewards.map(ir => ({ ...ir, name: ITEMS[ir.item]?.name || ir.item })),
         })),
@@ -310,6 +311,7 @@ export function taskManager() {
                 currentStats: this.calculateStats(),
             };
             this._insertAction(action);
+            this.selectTask(action.key);
             this.relicSelection.push(relicKey);
             if (window._pendingActionLatlng && window.registerActionLatLng) {
                 window.registerActionLatLng(relicKey, window._pendingActionLatlng, "tier_unlock");
@@ -360,7 +362,11 @@ export function taskManager() {
             const quantity = Number(this.skillQuantity) || 0;
             if (!method || !skill || quantity <= 0) return null;
 
-            const xpGain = method.xpPerAction * quantity * (getXpMultiplier(this.totalPoints) || 5);
+            let endlessHarvestBonus = 0;
+            if(this.relicSelection.includes("endless_harvest") && ["mining", "fishing", "woodcutting"].includes(skill)) {
+                endlessHarvestBonus = 2;
+            }
+            const xpGain = method.xpPerAction * quantity * (getXpMultiplier(this.totalPoints) || 5) * endlessHarvestBonus;
             const currentXp = this.skillExperience[skill] || 0;
             const currentLevel = experienceToLevel(currentXp);
             const newLevel = experienceToLevel(currentXp + xpGain);
@@ -378,7 +384,7 @@ export function taskManager() {
                 };
             });
 
-            const itemYields = resolveMethodYields(method, quantity);
+            const itemYields = resolveMethodYields(method, quantity * endlessHarvestBonus);
 
             const gold = this.getGold(xpGain, quantity);
             const hasInsufficientItems = itemCosts.some(c => !c.sufficient);
@@ -460,6 +466,7 @@ export function taskManager() {
                 quantity: parsedQuantity,
                 xpPerAction: selectedMethod.xpPerAction,
                 bonusExp: this.getBonusExp(skill, parsedQuantity, experience),
+                bonusItems: this.getBonusItems(skill, parsedQuantity, experience, selectedMethod),
                 experience,
                 type: "skill",
                 totalGold: calculatedGold,
@@ -505,7 +512,7 @@ export function taskManager() {
 
             this._insertAction(skillAction);
             if (window._pendingActionLatlng && window.registerActionLatLng) {
-                window.registerActionLatLng(skillAction.key, window._pendingActionLatlng, "generic_action");
+                window.registerActionLatLng(skillAction.key, window._pendingActionLatlng, "add_combat");
                 window._pendingActionLatlng = null;
             }
             this.combatStyle = "";
@@ -524,6 +531,14 @@ export function taskManager() {
                     ];
                 }
             }
+            if (this.relicSelection.includes("endless_harvest")) {
+                if (["mining", "fishing", "woodcutting"].includes(skill)) {
+                    return [
+                        { key: `${skill}-bonusexp-${Date.now()}`, skill: skill, amount: experience },
+                    ];
+                }
+            }
+            
             if (this.relicSelection.includes("abundance")) {
                 return [{
                     key: `${skill}-bonusexp-${Date.now()}`,
@@ -532,6 +547,30 @@ export function taskManager() {
                 }];
             }
             return 0;
+        },
+
+        getBonusItems(skill, quantity, experience, selectedMethod) {
+            let bonusItems = {};
+            if (this.relicSelection.includes("endless_harvest")) {
+                if (["mining", "fishing", "woodcutting"].includes(skill)) {
+                    selectedMethod.itemYields.forEach(item => {
+                        bonusItems[item.item] = (bonusItems[item.item] || 0) + item.quantity;
+                    });
+                }
+            }
+            if (this.relicSelection.includes("friendly_forager")) {
+            const herbloreLevel = this.calculateStats()["herblore"].level || 1;
+                if (["woodcutting", "fishing", "mining", "hunter"].includes(skill)) {
+                    for (let i = 0; i < quantity; i++) {
+                    const availableHerbs = GRIMY_HERBS.filter(herb => ITEMS[herb].level <= herbloreLevel + 25);
+                    if (availableHerbs.length > 0) {
+                        const randomHerb = availableHerbs[Math.floor(Math.random() * availableHerbs.length)];
+                        bonusItems[randomHerb] = (bonusItems[randomHerb] || 0) + 1;
+                    }
+                    }
+                }
+            }
+            return bonusItems;
         },
 
         getGold(experience, quantity = 1) {
@@ -557,6 +596,12 @@ export function taskManager() {
                     for (const bonus of existingAction.bonusExp) {
                         runningBySkill[bonus.skill] += bonus.amount || 0;
                     }
+                }
+                if (existingAction.type === "quest") { // && existingAction.questId) {
+                    const quest = QUESTS[existingAction.questKey];
+                    quest.xpRewards.forEach(reward => {
+                        runningBySkill[reward.skill] += reward.amount * (existingAction.currentMultiplier || 5) || 0;
+                    });
                 }
                 if (action && existingAction.key === action.key) break;
             }
@@ -698,7 +743,9 @@ export function taskManager() {
                 }
             }
 
-            return !this.evaluateRequirementAtPoint(action.passive_requirement, prevXpBySkill, actionCounts);
+            if (!this.evaluateRequirementAtPoint(action.passive_requirement, prevXpBySkill, actionCounts)) {
+                this.actions.splice(this.actions.indexOf(action), 1);
+            }
         },
 
         checkPassiveTasks() {
@@ -796,6 +843,10 @@ export function taskManager() {
                 totalGold: -totalCost,
             };
             this._insertAction(action);
+            if (window._pendingActionLatlng && window.registerActionLatLng) {
+                window.registerActionLatLng(action.key, window._pendingActionLatlng, "buy_items");
+                window._pendingActionLatlng = null;
+            }
             this.shopSelection = "";
             this.shopCart = {};
             this.recalculateActionState();
@@ -840,8 +891,8 @@ export function taskManager() {
         // Filtered quest list for the modal search box
         filteredQuestList() {
             const search = (this.questSearch || "").toLowerCase();
-            if (!search) return this.questList;
-            return this.questList.filter(q => q.name.toLowerCase().includes(search));
+            if (!search) return this.questList.filter(q => !PRECOMPLETED_QUESTS.includes(q.key));
+            return this.questList.filter(q => q.name.toLowerCase().includes(search) && !PRECOMPLETED_QUESTS.includes(q.key));
         },
 
         addQuest(questKey) {
@@ -860,6 +911,10 @@ export function taskManager() {
                 })),
             };
             this._insertAction(action);
+            if (window._pendingActionLatlng && window.registerActionLatLng) {
+                window.registerActionLatLng(action.key, window._pendingActionLatlng, "complete_quest");
+                window._pendingActionLatlng = null;
+            }
             this.questSearch = "";
             this.recalculateActionState();
             this.closeModal();
@@ -879,6 +934,7 @@ export function taskManager() {
 
         // Returns all items in the repository with non-zero counts
         totalItemRepository() {
+            console.log("Total item repository:", this.itemRepository);
             return Object.entries(this.itemRepository)
                 .filter(([, qty]) => qty !== 0)
                 .map(([key, qty]) => ({
@@ -895,7 +951,7 @@ export function taskManager() {
             let runningExperience = 0;
             let runningGold = 0;
             const runningBySkill = emptySkillExperience();
-            const runningItems = {};
+            const runningItems = { ...STARTER_ITEMS };
             const activeRelics = [];
 
             this.actions.forEach(action => {
@@ -1061,6 +1117,13 @@ export function taskManager() {
                     // Apply item rewards
                     for (const ir of (action.itemRewards || [])) {
                         actionItemDeltas[ir.item] = (actionItemDeltas[ir.item] || 0) + ir.quantity;
+                    }
+                }
+
+                // Apply bonusItems to actionItemDeltas
+                if (action.bonusItems && typeof action.bonusItems === 'object') {
+                    for (const [item, quantity] of Object.entries(action.bonusItems)) {
+                        actionItemDeltas[item] = (actionItemDeltas[item] || 0) + quantity;
                     }
                 }
 
@@ -1361,6 +1424,7 @@ export function taskManager() {
             this.currentRouteName = routeName;
             if (window.restoreActionLatLngs) window.restoreActionLatLngs({}, []);
             this.newRouteName = '';
+            this.itemRepository = { ...STARTER_ITEMS };
             this.recalculateActionState();
             this.closeModal();
         },
@@ -1421,6 +1485,7 @@ export function taskManager() {
             this.relicSelection = [];
             this.currentRouteName = '';
             if (window.restoreActionLatLngs) window.restoreActionLatLngs({}, []);
+            this.itemRepository = { ...STARTER_ITEMS };
             this.recalculateActionState();
         },
 
@@ -1453,7 +1518,7 @@ export function taskManager() {
         },
 
         getItemPicture(item) {
-            const itemName = this.getItemName(item.key).replace(' ', '_');
+            const itemName = this.getItemName(item.key).replaceAll(' ', '_');
             let scale = null;
             if (item.key == "coins") {
                 scale = [1,2,3,4,5,25,100,250,1000,10000].filter(t => item.quantity >= t).pop();

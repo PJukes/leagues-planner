@@ -1,4 +1,7 @@
 key,name,league_points,player_completion_pct,is_passive,selectable,passive_req_type,passive_req_value,passive_req_skill,passive_req_method,passive_req_quantity,xp_reward_skill,xp_reward_amount,region
+cry_near_a_child,Cry Near a Child,10,1.00,false,true,,,,,,,,General
+active_a_prayer_near_an_altar,Active a Prayer near an Altar,10,1.00,false,true,,,,,,,,General
+attack_a_dummy,Attack a Dummy,10,1.00,false,true,,,,,,,,General
 complete_the_garden_of_death,Complete the Garden of Death,30,1.00,true,true,quest_completion,,,garden_of_death,,,,Kourend
 visit_ferox_enclave,Visit Ferox Enclave,10,0.98,false,true,,,,,,,,Wilderness
 open_a_looting_bag,Open a Looting Bag,10,0.97,false,true,,,,,,,,Wilderness
@@ -38,7 +41,7 @@ cast_home_teleport,Cast Home Teleport,10,0.91,false,true,,,,,,,,General
 visit_port_phasmatys,Visit Port Phasmatys,10,0.91,false,true,,,,,,,,Morytania
 defeat_a_dagannoth_in_the_fremennik_province,Defeat a Dagannoth in the Fremennik Province,30,0.91,false,true,,,,,,,,Fremennik
 switch_to_the_lunar_spellbook,Switch to the Lunar Spellbook,10,0.90,false,true,,,,,,,,Fremennik
-kill_a_rat,Kill a Rat,10,0.90,true,true,combat_quantity,,,,,,,Misthalin
+kill_a_rat,Kill a Rat,10,0.90,true,true,kill_creature_quantity,,,rat,1,,,Misthalin
 pet_renu,Pet Renu,10,0.90,false,true,,,,,,,,Varlamore
 defeat_a_chaos_dwarf_in_the_wilderness,Defeat a Chaos Dwarf in the Wilderness,10,0.90,false,true,,,,,,,,Wilderness
 use_the_bank_on_neitiznot,Use the Bank on Neitiznot,10,0.90,false,true,,,,,,,,Fremennik
@@ -60,7 +63,7 @@ fletch_some_arrow_shafts,Fletch Some Arrow Shafts,10,0.89,true,true,skill_action
 mine_some_copper_ore,Mine some Copper Ore,10,0.89,true,true,skill_action_quantity,,,mine_copper,1,17.5,,General
 achieve_your_first_level_50,Achieve Your First Level 50,30,0.89,true,false,any_skill_level,50,,,,,,General
 pick_up_snapegrass,Pick up Snapegrass,10,0.89,false,true,,,,,,,,Fremennik
-kill_a_buffalo,Kill a Buffalo,10,0.89,true,true,combat_quantity,,,,,,,Varlamore
+kill_a_buffalo,Kill a Buffalo,10,0.89,true,true,kill_creature_quantity,,,buffalo,1,,,Varlamore
 reach_total_level_250,Reach Total Level 250,30,0.89,true,false,total_level,250,,,,,,General
 room_1_of_pyramid_plunder,Room 1 of Pyramid Plunder,10,0.89,false,true,,,,,,,,Desert
 make_some_flour,Make some Flour,30,0.89,false,true,,,,,,,,General
@@ -80,15 +83,15 @@ visit_the_tree_gnome_village,Visit the Tree Gnome Village,10,0.88,false,true,,,,
 use_the_bank_in_lletya,Use the Bank in Lletya,10,0.88,false,true,,,,,,,,Tirannwn
 complete_10_laps_of_the_draynor_agility_course,Complete 10 Laps of the Draynor Agility Course,30,0.88,false,true,,,,,,,,Misthalin
 assemble_a_slayer_helm,Assemble a Slayer Helm,30,0.88,false,true,,,,,,,,Morytania
-kill_a_chicken_with_your_fists,Kill a Chicken with your fists,10,0.87,true,true,combat_quantity,,,,,,,Misthalin
+kill_a_chicken_with_your_fists,Kill a Chicken with your fists,10,0.87,true,true,kill_creature_quantity,,,chicken,1,,,Misthalin
 burn_some_oak_logs,Burn Some Oak Logs,10,0.87,true,true,skill_action_quantity,,,burn_oak_logs,1,60,,General
-kill_a_yak,Kill a Yak,10,0.87,true,true,combat_quantity,,,,,,,Fremennik
+kill_a_yak,Kill a Yak,10,0.87,true,true,kill_creature_quantity,,,yak,1,,,Fremennik
 enter_zanaris,Enter Zanaris,10,0.87,false,true,,,,,,,,Misthalin
 enter_the_wizards'_guild,Enter the Wizards' Guild,30,0.87,false,true,,,,,,,,Kandarin
 use_a_lever_to_teleport_to_edgeville,Use a Lever to Teleport to Edgeville,10,0.87,false,true,,,,,,,,Wilderness
 equip_an_elemental_staff,Equip an Elemental Staff,10,0.87,false,true,,,,,,,,General
-kill_a_ram,Kill a Ram,10,0.87,true,true,combat_quantity,,,,,,,Misthalin
-kill_a_spider_by_kicking_it,Kill a Spider by kicking it,10,0.87,true,true,combat_quantity,,,,,,,Misthalin
+kill_a_ram,Kill a Ram,10,0.87,true,true,kill_creature_quantity,,,ram,1,,,Misthalin
+kill_a_spider_by_kicking_it,Kill a Spider by kicking it,10,0.87,true,true,kill_creature_quantity,,,spider,1,,,Misthalin
 chop_some_logs_with_a_steel_axe,Chop Some Logs With a Steel Axe,10,0.87,false,true,,,,,,,,General
 dance_in_a_graveyard,Dance in a graveyard,10,0.87,false,true,,,,,,,,General
 perform_a_special_attack,Perform a Special Attack,10,0.87,false,true,,,,,,,,General
@@ -98,15 +101,15 @@ defeat_the_king_black_dragon,Defeat the King Black Dragon,80,0.87,false,true,,,,
 cry_in_a_wheat_field,Cry in a wheat field,10,0.87,false,true,,,,,,,,General
 ask_for_a_quest_from_bob,Ask for a Quest from Bob,10,0.87,false,true,,,,,,,,Misthalin
 open_one_of_larran's_chests,Open One of Larran's Chests,30,0.87,false,true,,,,,,,,Wilderness
-defeat_a_guard,Defeat a Guard,10,0.86,false,true,,,,,,,,General
+defeat_a_guard,Defeat a Guard,10,0.86,true,true,kill_creature_quantity,,,guard,1,,,General
 visit_the_rune_essence_mine,Visit the Rune Essence Mine,10,0.86,false,true,,,,,,,,General
 pick_some_sweetcorn_from_a_field,Pick some Sweetcorn from a Field,10,0.86,false,true,,,,,,,,Varlamore
 steal_a_fish,Steal a Fish,30,0.86,false,true,,,,,,,,Fremennik
 defeat_the_crazy_archaeologist,Defeat the Crazy Archaeologist,30,0.86,false,true,,,,,,,,Wilderness
 reach_combat_level_25,Reach Combat Level 25,10,0.86,true,false,combat_level,25,,,,,,General
-kill_a_mugger,Kill a Mugger,10,0.86,true,true,combat_quantity,,,,,,,Misthalin
+kill_a_mugger,Kill a Mugger,10,0.86,true,true,kill_creature_quantity,,,mugger,1,,,Misthalin
 defeat_a_gargoyle_in_morytania,Defeat a Gargoyle in Morytania,30,0.86,false,true,,,,,,,,Morytania
-kill_a_frog,Kill a Frog,10,0.86,true,true,combat_quantity,,,,,,,Misthalin
+kill_a_frog,Kill a Frog,10,0.86,true,true,kill_creature_quantity,,,frog,1,,,Misthalin
 defeat_a_fire_giant_in_the_wilderness,Defeat a Fire Giant in the Wilderness,10,0.86,false,true,,,,,,,,Wilderness
 equip_a_helm_of_neitiznot,Equip a Helm of Neitiznot,30,0.86,false,true,,,,,,,,Fremennik
 rake_a_farming_patch,Rake a Farming Patch,10,0.86,false,true,,,,,,,,General
@@ -115,7 +118,7 @@ equip_an_iron_dagger,Equip an Iron dagger,10,0.86,false,true,,,,,,,,Misthalin
 drink_a_beer_in_the_longhall,Drink a beer in the Longhall,10,0.86,false,true,,,,,,,,Misthalin
 enter_the_woodcutting_guild,Enter the Woodcutting Guild,30,0.86,false,true,,,,,,,,Kourend
 use_the_range_in_lumbridge_castle,Use the Range in Lumbridge Castle,30,0.86,false,true,,,,,,,,Misthalin
-kill_a_barbarian_in_the_barbarian_village,Kill a Barbarian in the Barbarian Village,10,0.86,true,true,combat_quantity,,,,,,,Misthalin
+kill_a_barbarian_in_the_barbarian_village,Kill a Barbarian in the Barbarian Village,10,0.86,true,true,kill_creature_quantity,,,barbarian,1,,,Misthalin
 insult_aggie_the_witch,Insult Aggie the Witch,10,0.86,false,true,,,,,,,,Misthalin
 defeat_a_moss_giant_in_tirannwn,Defeat a Moss Giant in Tirannwn,10,0.86,false,true,,,,,,,,Tirannwn
 use_an_elven_teleport_crystal,Use an Elven Teleport Crystal,30,0.86,false,true,,,,,,,,Tirannwn
@@ -127,10 +130,10 @@ eat_an_onion,Eat an Onion,10,0.85,false,true,,,,,,,,Misthalin
 get_your_revenge_against_a_dark_wizard,Get your revenge against a Dark Wizard,10,0.85,false,true,,,,,,,,Misthalin
 room_4_of_pyramid_plunder,Room 4 of Pyramid Plunder,30,0.85,false,true,,,,,,,,Desert
 reach_total_level_500,Reach Total Level 500,30,0.85,true,false,total_level,500,,,,,,General
-kill_5_sand_crabs,Kill 5 Sand Crabs,30,0.85,true,true,combat_quantity,,,,,,,Kourend
-kill_a_goblin_holding_a_spear,Kill a Goblin holding a spear,10,0.85,true,true,combat_quantity,,,,,,,Misthalin
+kill_5_sand_crabs,Kill 5 Sand Crabs,30,0.85,true,true,kill_creature_quantity,,,sand_crab,5,,,Kourend
+kill_a_goblin_holding_a_spear,Kill a Goblin holding a spear,10,0.85,true,true,kill_creature_quantity,,,goblin,1,,,Misthalin
 defeat_a_kalphite_guardian,Defeat a Kalphite Guardian,30,0.85,false,true,,,,,,,,Desert
-clean_a_grimy_guam,Clean a Grimy Guam,10,0.85,false,true,,,,,,,,General
+clean_a_grimy_guam,Clean a Grimy Guam,10,0.85,true,true,skill_action_quantity,,,clean_grimy_guam_leaf,1,,,General
 restore_5_prayer_points_at_an_altar,Restore 5 Prayer Points at an Altar,10,0.85,false,true,,,,,,,,General
 drink_from_a_bird_bath,Drink from a bird bath,10,0.85,false,true,,,,,,,,Varlamore
 pickpocket_an_elf_50_times,Pickpocket an Elf 50 Times,80,0.85,true,true,skill_action_quantity,,,pickpocket_elf,50,17665,,Tirannwn
@@ -152,9 +155,9 @@ brutally_murder_conrad_king,Brutally murder Conrad King,10,0.84,false,true,,,,,,
 use_the_bank_in_nardah,Use the Bank in Nardah,10,0.84,false,true,,,,,,,,Desert
 bank_at_mount_quidamortem,Bank at Mount Quidamortem,10,0.84,false,true,,,,,,,,Kourend
 pickpocket_a_knight_of_ardougne_50_times,Pickpocket a Knight of Ardougne 50 Times,30,0.84,false,true,,,,,,,,Kandarin
-kill_a_snake_in_karamja,Kill a Snake in Karamja,10,0.84,true,true,combat_quantity,,,,,,,Karamja
+kill_a_snake_in_karamja,Kill a Snake in Karamja,10,0.84,true,true,kill_creature_quantity,,,snake,1,,,Karamja
 turn_in_1_library_book,Turn in 1 Library Book,10,0.84,false,true,,,,,,,,Kourend
-steal_25_valuables,Steal 25 Valuables,30,0.84,false,true,,,,,,,,Varlamore
+steal_25_valuables,Steal 25 Valuables,30,0.84,true,true,skill_action_quantity,,,steal_from_house,1,,,Varlamore
 purchase_a_player_owned_house,Purchase a Player Owned House,10,0.84,false,true,,,,,,,,General
 complete_the_al_kharid_agility_course,Complete the Al Kharid Agility Course,10,0.84,false,true,,,,,,,,Desert
 pick_a_cabbage_in_varrock,Pick a Cabbage in Varrock,10,0.84,false,true,,,,,,,,Misthalin
@@ -186,31 +189,31 @@ obtain_a_bird_nest,Obtain a Bird Nest,10,0.82,false,true,,,,,,,,General
 get_a_haircut,Get a haircut,10,0.82,false,true,,,,,,,,Misthalin
 equip_a_mithril_weapon,Equip a Mithril Weapon,30,0.82,false,true,,,,,,,,General
 catch_a_herring,Catch a Herring,10,0.82,true,true,skill_action_quantity,,,catch_herring,1,30,,General
-pickpocket_a_master_farmer,Pickpocket a Master Farmer,30,0.82,false,true,,,,,,,,General
+pickpocket_a_master_farmer,Pickpocket a Master Farmer,30,0.82,true,true,skill_action_quantity,,,pickpocket_master_farmer,1,,,General
 defeat_a_crocodile,Defeat a Crocodile,30,0.82,false,true,,,,,,,,Desert
 superhuman_strength_and_improved_reflexes,Superhuman Strength and Improved Reflexes,10,0.82,false,true,,,,,,,,General
 charter_a_ship_from_sunset_coast_to_civitas,Charter a Ship From Sunset Coast to Civitas,10,0.82,false,true,,,,,,,,Varlamore
 defeat_a_cockatrice_in_the_fremennik_province,Defeat a Cockatrice in the Fremennik Province,10,0.81,false,true,,,,,,,,Fremennik
 defeat_the_lesser_demon_in_the_wizards'_tower,Defeat the Lesser Demon in the Wizards' Tower,10,0.81,false,true,,,,,,,,Misthalin
 fletch_1000_arrow_shafts,Fletch 1000 arrow shafts,30,0.81,true,true,skill_action_quantity,,,fletch_fletch_arrow_shafts_logs,67,335,,General
-steal_100_valuables,Steal 100 Valuables,30,0.81,false,true,,,,,,,,Varlamore
-kill_a_cow_in_one_hit,Kill a Cow in one hit,10,0.81,true,true,combat_quantity,,,,,,,Misthalin
-cast_high_level_alchemy,Cast High Level Alchemy,30,0.81,false,false,,,,,,,,General
+steal_100_valuables,Steal 100 Valuables,30,0.81,true,true,skill_action_quantity,,,steal_from_house,2,,,Varlamore
+kill_a_cow_in_one_hit,Kill a Cow in one hit,10,0.81,true,true,kill_creature_quantity,,,cow,1,,,Misthalin
+cast_high_level_alchemy,Cast High Level Alchemy,30,0.81,true,true,,,,,,,,General
 fill_a_crate_with_bananas,Fill a Crate With Bananas,10,0.81,false,true,,,,,,,,Karamja
 1_easy_clue_scroll,1 Easy Clue Scroll,30,0.81,false,true,,,,,,,,General
 burn_some_food,Burn Some Food,10,0.81,true,true,skill_action_quantity,,,cook,5,,,General
 cross_a_trap_in_isafdar,Cross a Trap in Isafdar,10,0.81,false,true,,,,,,,,Tirannwn
 enter_your_player_owned_house,Enter your Player Owned House,10,0.81,false,true,,,,,,,,General
 steal_from_a_fur_stall,Steal from a Fur Stall,30,0.81,false,true,,,,,,,,Kandarin
-kill_a_duck_with_a_fire_spell,Kill a Duck with a fire spell,10,0.81,true,true,combat_quantity,,,,,,,Misthalin
-cut_a_sapphire,Cut a Sapphire,10,0.81,false,true,,,,,,,,General
+kill_a_duck_with_a_fire_spell,Kill a Duck with a fire spell,10,0.81,true,true,kill_creature_quantity,,,duck,1,,,Misthalin
+cut_a_sapphire,Cut a Sapphire,10,0.81,true,true,skill_action_quantity,,,cut_uncut_sapphire,1,,,General
 pick_wheat_in_catherby,Pick Wheat in Catherby,10,0.81,false,true,,,,,,,,Kandarin
 bank_at_land's_end,Bank at Land's End,10,0.81,false,true,,,,,,,,Kourend
 complete_1_slayer_task,Complete 1 Slayer Task,30,0.81,false,true,,,,,,,,General
 equip_an_adamant_weapon,Equip an Adamant Weapon,30,0.81,false,true,,,,,,,,General
 equip_a_rune_weapon,Equip a Rune Weapon,30,0.81,false,true,,,,,,,,General
 defeat_a_turoth_in_the_fremennik_province,Defeat a Turoth in the Fremennik Province,30,0.81,false,true,,,,,,,,Fremennik
-kill_a_suqah,Kill a Suqah,30,0.81,true,true,combat_quantity,,,,,,,Fremennik
+kill_a_suqah,Kill a Suqah,30,0.81,true,true,kill_creature_quantity,,,suqah,1,,,Fremennik
 enter_the_brimhaven_dungeon,Enter the Brimhaven Dungeon,30,0.81,false,true,,,,,,,,Karamja
 smelt_an_iron_bar,Smelt an Iron Bar,10,0.81,true,true,skill_action_quantity,,,smelt_iron,1,12.5,,General
 gain_a_unique_item_from_an_easy_clue,Gain a Unique Item From an Easy Clue,30,0.81,false,true,,,,,,,,General
@@ -254,12 +257,12 @@ catch_50_salmon,Catch 50 Salmon,30,0.79,true,true,skill_action_quantity,,,catch_
 have_ned_make_you_some_rope,Have Ned make you some rope,10,0.79,false,true,,,,,,,,Misthalin
 take_a_canoe_to_champions_guild,Take a Canoe to Champions Guild,10,0.79,false,true,,,,,,,,Misthalin
 equip_a_defender,Equip a Defender,30,0.79,false,true,,,,,,,,Asgarnia
-kill_an_imp_with_an_earth_spell,Kill an Imp with an earth spell,10,0.79,true,true,combat_quantity,,,,,,,Misthalin
+kill_an_imp_with_an_earth_spell,Kill an Imp with an earth spell,10,0.79,true,true,kill_creature_quantity,,,imp,1,,,Misthalin
 chop_100_willow_logs,Chop 100 Willow Logs,30,0.79,true,true,skill_action_quantity,,,chop_willow_trees,100,6700,,General
 stroke_your_cat,Stroke your cat,10,0.79,false,true,,,,,,,,Misthalin
 defeat_a_tzhaar,Defeat a TzHaar,30,0.79,false,true,,,,,,,,Karamja
 reach_total_level_1000,Reach Total Level 1000,80,0.79,true,false,total_level,1000,,,,,,General
-clean_25_grimy_guam_leafs,Clean 25 Grimy Guam Leafs,10,0.79,false,true,,,,,,,,General
+clean_25_grimy_guam_leafs,Clean 25 Grimy Guam Leafs,10,0.79,true,true,skill_action_quantity,,,clean_grimy_guam_leaf,25,,,General
 catch_10_pike,Catch 10 Pike,30,0.79,true,true,skill_action_quantity,,,catch_pike,10,600,,General
 complete_a_game_of_intermediate_pest_control,Complete a Game of Intermediate Pest Control,30,0.78,false,true,,,,,,,,Asgarnia
 teleport_using_law_runes,Teleport Using Law Runes,30,0.78,false,true,,,,,,,,General
@@ -271,13 +274,13 @@ complete_perilous_moons,Complete Perilous Moons,80,0.78,true,true,quest_completi
 steal_a_chisel,Steal a Chisel,30,0.78,false,true,,,,,,,,Fremennik
 cast_kourend_castle_teleport,Cast Kourend Castle Teleport,30,0.78,false,true,,,,,,,,Kourend
 cast_ice_burst,Cast Ice Burst,80,0.78,false,true,,,,,,,,Desert
-kill_a_guard_in_varlamore_underground,Kill a Guard in Varlamore underground,10,0.78,true,true,combat_quantity,,,,,,,Varlamore
+kill_a_guard_in_varlamore_underground,Kill a Guard in Varlamore underground,10,0.78,false,true,,,,,,,,Varlamore
 build_a_room_in_your_player_owned_house,Build a Room in Your Player Owned House,30,0.78,false,true,,,,,,,,General
 catch_a_karambwanji,Catch a Karambwanji,10,0.77,true,true,skill_action_quantity,,,catch_karambwanji,1,5,,Karamja
 30_collection_log_slots,30 Collection log slots,30,0.77,false,true,,,,,,,,General
 equip_some_black_armour,Equip some Black armour,30,0.77,false,true,,,,,,,,General
 smelt_a_steel_bar,Smelt a Steel Bar,30,0.77,true,true,skill_action_quantity,,,smelt_steel,1,17.5,,General
-kill_a_port_sarim_prisoner,Kill a port sarim prisoner,10,0.77,true,true,combat_quantity,,,,,,,Asgarnia
+kill_a_port_sarim_prisoner,Kill a port sarim prisoner,10,0.77,true,true,kill_creature_quantity,,,port_sarim_prisoner,1,,,Asgarnia
 achieve_your_first_level_95,Achieve Your First Level 95,200,0.77,true,false,any_skill_level,95,,,,,,General
 buy_a_candle_in_lumbridge,Buy a candle in Lumbridge,30,0.77,false,true,,,,,,,,General
 enter_the_crafting_guild,Enter the Crafting Guild,30,0.77,false,true,,,,,,,,Asgarnia
@@ -291,15 +294,15 @@ catch_50_swordfish,Catch 50 Swordfish,30,0.76,true,true,skill_action_quantity,,,
 obtain_a_gem_while_mining,Obtain a Gem While Mining,30,0.76,false,true,,,,,,,,General
 defeat_the_dagannoth_kings_without_leaving,Defeat the Dagannoth Kings Without Leaving,80,0.76,false,true,,,,,,,,Fremennik
 get_stung_by_bees,Get Stung By Bees,10,0.76,false,true,,,,,,,,Kandarin
-1_wintertodt_kill,1 Wintertodt Kill,10,0.76,true,true,combat_quantity,,,,,,,Kourend
+1_wintertodt_kill,1 Wintertodt Kill,10,0.76,false,true,,,,,,,,Kourend
 cast_ice_blitz,Cast Ice Blitz,80,0.76,false,true,,,,,,,,Desert
 pet_the_museum_camp_dog,Pet the Museum Camp dog,10,0.76,false,true,,,,,,,,Misthalin
 equip_a_damaged_god_book,Equip a Damaged God book,30,0.76,false,true,,,,,,,,Fremennik
 pickpocket_a_hero,Pickpocket a Hero,80,0.76,false,true,,,,,,,,Kandarin
-kill_a_billy_goat,Kill a Billy Goat,10,0.76,true,true,combat_quantity,,,,,,,Desert
+kill_a_billy_goat,Kill a Billy Goat,10,0.76,true,true,kill_creature_quantity,,,billy_goat,1,,,Desert
 cast_ice_rush,Cast Ice Rush,30,0.76,false,true,,,,,,,,Desert
 equip_a_crystal_shield,Equip a Crystal Shield,80,0.76,false,true,,,,,,,,Tirannwn
-kill_a_rooster,Kill a Rooster,10,0.76,true,true,combat_quantity,,,,,,,Fremennik
+kill_a_rooster,Kill a Rooster,10,0.76,true,true,kill_creature_quantity,,,rooster,1,,,Fremennik
 complete_the_wilderness_agility_course,Complete the Wilderness Agility Course,30,0.76,false,true,,,,,,,,Wilderness
 subdue_the_moons_of_peril,Subdue the Moons of Peril,30,0.76,false,true,,,,,,,,Varlamore
 defeat_venenatis,Defeat Venenatis,80,0.76,false,true,,,,,,,,Wilderness
@@ -315,7 +318,7 @@ complete_10_laps_of_the_varrock_agility_course,Complete 10 Laps of the Varrock A
 defeat_callisto,Defeat Callisto,80,0.75,false,true,,,,,,,,Wilderness
 defeat_a_troll_in_asgarnia,Defeat a Troll in Asgarnia,10,0.75,false,true,,,,,,,,Asgarnia
 chop_100_maples_in_tirannwn,Chop 100 Maples in Tirannwn,30,0.75,true,true,skill_action_quantity,,,chop_maple_trees,100,,,Tirannwn
-kill_an_icefiend_in_varlamore,Kill an Icefiend in Varlamore,10,0.75,true,true,combat_quantity,,,,,,,Varlamore
+kill_an_icefiend_in_varlamore,Kill an Icefiend in Varlamore,10,0.75,true,true,kill_creature_quantity,,,icefiend,1,,,Varlamore
 cast_a_wave_spell,Cast a Wave Spell,80,0.74,false,true,,,,,,,,General
 cast_moonclan_teleport,Cast Moonclan Teleport,80,0.74,false,true,,,,,,,,Fremennik
 equip_any_piece_of_crystal_armour,Equip any piece of Crystal Armour,80,0.74,false,true,,,,,,,,Tirannwn
@@ -329,7 +332,7 @@ equip_a_god_cape,Equip a God Cape,30,0.74,false,true,,,,,,,,Wilderness
 reach_total_level_1250,Reach Total Level 1250,80,0.74,true,false,total_level,1250,,,,,,General
 reach_base_level_5,Reach Base Level 5,30,0.74,false,false,,,,,,,,General
 defeat_a_black_demon_in_asgarnia,Defeat a Black Demon in Asgarnia,30,0.74,false,true,,,,,,,,Asgarnia
-kill_30_bandits,Kill 30 Bandits,30,0.74,true,true,combat_quantity,,,,,,,Desert
+kill_30_bandits,Kill 30 Bandits,30,0.74,true,true,kill_creature_quantity,,,bandit,30,,,Desert
 cook_20_pike,Cook 20 Pike,30,0.74,true,true,skill_action_quantity,,,cook_pike,20,1600,,General
 enter_the_cooks'_guild,Enter the Cooks' Guild,30,0.74,false,true,,,,,,,,Misthalin
 equip_a_dragon_defender,Equip a Dragon Defender,80,0.74,false,true,,,,,,,,Asgarnia
@@ -339,9 +342,9 @@ mine_25_pure_essence,Mine 25 Pure Essence,30,0.74,false,true,,,,,,,,Misthalin
 drink_a_strength_potion,Drink a Strength Potion,10,0.74,false,true,,,,,,,,General
 room_6_of_pyramid_plunder,Room 6 of Pyramid Plunder,30,0.74,false,true,,,,,,,,Desert
 make_50_teak_planks_in_prifddinas,Make 50 Teak Planks in Prifddinas,80,0.73,false,true,,,,,,,,Tirannwn
-clean_15_grimy_tarromin,Clean 15 Grimy Tarromin,10,0.73,false,true,,,,,,,,General
+clean_15_grimy_tarromin,Clean 15 Grimy Tarromin,10,0.73,true,true,skill_action_quantity,,,clean_grimy_tarromin,15,,,General
 restore_14_prayer_points_in_hosidius,Restore 14 Prayer points in Hosidius,30,0.73,false,true,,,,,,,,Kourend
-kill_a_barbarian_in_kourend,Kill a Barbarian in Kourend,10,0.73,true,true,combat_quantity,,,,,,,Kourend
+kill_a_barbarian_in_kourend,Kill a Barbarian in Kourend,10,0.73,true,true,kill_creature_quantity,,,barbarian,1,,,Kourend
 gain_10_unique_items_from_easy_clues,Gain 10 Unique Items From Easy Clues,30,0.73,false,true,,,,,,,,General
 defeat_an_abyssal_demon_in_morytania,Defeat an Abyssal Demon in Morytania,30,0.73,false,true,,,,,,,,Morytania
 receive_an_agility_arena_ticket,Receive an Agility Arena Ticket,10,0.73,false,true,,,,,,,,Karamja
@@ -349,7 +352,7 @@ bury_some_wyvern_or_dragon_bones,Bury Some Wyvern or Dragon Bones,30,0.73,false,
 turn_in_a_pyramid_top_to_simon_templeton,Turn in a Pyramid Top to Simon Templeton,30,0.73,false,true,,,,,,,,Desert
 locate_a_runecrafting_altar_with_a_talisman,Locate a Runecrafting Altar With a Talisman,10,0.73,false,true,,,,,,,,General
 craft_an_eternal_teleport_crystal,Craft an Eternal Teleport Crystal,80,0.73,false,true,,,,,,,,Tirannwn
-kill_a_moss_fire_&_hill_giant_in_kourend,Kill a Moss Fire & Hill Giant in Kourend,30,0.73,true,true,combat_quantity,,,,,,,Kourend
+kill_a_moss_fire_&_hill_giant_in_kourend,Kill a Moss Fire & Hill Giant in Kourend,30,0.73,false,true,,,,,,,,Kourend
 mine_15_coal,Mine 15 coal,30,0.72,true,true,skill_action_quantity,,,mine_coal,15,750,,General
 steal_a_cow_bell_in_rellekka,Steal a Cow bell in Rellekka,30,0.72,false,true,,,,,,,,Fremennik
 use_a_hat_stand,Use a Hat Stand,10,0.72,false,true,,,,,,,,General
@@ -378,8 +381,8 @@ blast_furnace_100_mithril_bars,Blast Furnace 100 Mithril Bars,80,0.71,false,true
 fletch_an_oak_shortbow,Fletch an Oak Shortbow,10,0.70,false,true,,,,,,,,General
 catch_a_cerulean_twitch,Catch a Cerulean Twitch,10,0.70,false,true,,,,,,,,Fremennik
 fill_3_hard_clue_collection_log_slots,Fill 3 Hard Clue Collection Log Slots,30,0.70,false,true,,,,,,,,General
-kill_three_chickens_in_6_seconds,Kill three chickens in 6 seconds,30,0.70,true,true,combat_quantity,,,,,,,General
-kill_a_black_dragon_in_tirannwn,Kill a Black Dragon in Tirannwn,30,0.70,true,true,combat_quantity,,,,,,,Tirannwn
+kill_three_chickens_in_6_seconds,Kill three chickens in 6 seconds,30,0.70,false,true,,,,,,,,General
+kill_a_black_dragon_in_tirannwn,Kill a Black Dragon in Tirannwn,30,0.70,true,true,kill_creature_quantity,,,black_dragon,1,,,Tirannwn
 combat_achievements_easy_tier,Combat Achievements Easy Tier,80,0.70,false,true,,,,,,,,General
 defeat_scorpia,Defeat Scorpia,80,0.70,false,true,,,,,,,,Wilderness
 dig_25_saltpetre,Dig 25 Saltpetre,30,0.70,false,true,,,,,,,,Kourend
@@ -399,10 +402,10 @@ reach_a_prayer_bonus_of_15,Reach a Prayer Bonus of 15,30,0.69,false,true,,,,,,,,
 smith_steel_in_kourend_castle,Smith Steel in Kourend Castle,30,0.69,false,true,,,,,,,,Kourend
 turn_in_10_library_books,Turn in 10 Library Books,30,0.69,false,true,,,,,,,,Kourend
 successfully_hop_over_the_tripwire_in_tirannwn,Successfully hop over the Tripwire in Tirannwn,30,0.69,false,true,,,,,,,,Tirannwn
-kill_a_king_sand_crab,Kill a King Sand Crab,30,0.69,true,true,combat_quantity,,,,,,,Kourend
+kill_a_king_sand_crab,Kill a King Sand Crab,30,0.69,true,true,kill_creature_quantity,,,king_sand_crab,1,,,Kourend
 brimstail_rune_essence_mine_teleport,Brimstail Rune Essence Mine teleport,10,0.69,false,true,,,,,,,,Kandarin
-kill_5_spinners,Kill 5 Spinners,30,0.69,true,true,combat_quantity,,,,,,,Asgarnia
-kill_a_dire_wolf,Kill a Dire Wolf,30,0.69,true,true,combat_quantity,,,,,,,Varlamore
+kill_5_spinners,Kill 5 Spinners,30,0.69,true,true,kill_creature_quantity,,,spinner,5,,,Asgarnia
+kill_a_dire_wolf,Kill a Dire Wolf,30,0.69,true,true,kill_creature_quantity,,,dire_wolf,1,,,Varlamore
 defeat_a_kurask_in_the_fremennik_province,Defeat a Kurask in the Fremennik Province,30,0.69,false,true,,,,,,,,Fremennik
 gain_5_unique_items_from_hard_clues,Gain 5 Unique Items From Hard Clues,30,0.69,false,true,,,,,,,,General
 drink_a_lizardkicker,Drink a LizardKicker,10,0.68,false,true,,,,,,,,Kourend
@@ -415,7 +418,7 @@ mine_some_ore_with_a_rune_pickaxe,Mine some Ore With a Rune Pickaxe,30,0.68,fals
 open_15_larran's_chests,Open 15 Larran's Chests,30,0.68,false,true,,,,,,,,Wilderness
 complete_1_farming_contract,Complete 1 Farming Contract,10,0.68,false,true,,,,,,,,Kourend
 restore_75_prayer_points_at_an_altar,Restore 75 Prayer Points at an Altar,80,0.68,false,true,,,,,,,,General
-1_sarachnis_kill,1 Sarachnis Kill,10,0.68,true,true,combat_quantity,,,,,,,Kourend
+1_sarachnis_kill,1 Sarachnis Kill,10,0.68,true,true,kill_creature_quantity,,,sarachnis,1,,,Kourend
 fill_5_medium_clue_collection_log_slots,Fill 5 Medium Clue Collection Log Slots,30,0.68,false,true,,,,,,,,General
 craft_50_astral_runes,Craft 50 Astral Runes,30,0.68,false,true,,,,,,,,Fremennik
 pickpocket_a_king_worm,Pickpocket a King Worm,80,0.68,false,true,,,,,,,,Kandarin
@@ -429,7 +432,7 @@ destroy_the_one_ring_to_rule_them_all,Destroy the one ring to rule them all,30,0
 craft_an_air_rune,Craft an Air Rune,10,0.67,false,true,,,,,,,,Asgarnia
 reach_total_level_1500,Reach Total Level 1500,80,0.67,true,false,total_level,1500,,,,,,General
 equip_an_archer's_ring,Equip an Archer's Ring,80,0.67,false,true,,,,,,,,Fremennik
-kill_50_elves_in_tirannwn,Kill 50 Elves in Tirannwn,80,0.67,true,true,combat_quantity,,,,,,,Tirannwn
+kill_50_elves_in_tirannwn,Kill 50 Elves in Tirannwn,80,0.67,true,true,kill_creature_quantity,,,elf,50,,,Tirannwn
 defeat_a_fire_giant_in_kandarin,Defeat a Fire Giant in Kandarin,10,0.67,false,true,,,,,,,,Kandarin
 smith_a_steel_platebody,Smith a Steel Platebody,30,0.67,false,true,,,,,,,,General
 equip_a_piece_of_the_dagon'hai_set,Equip a Piece of the Dagon'Hai Set,200,0.67,false,true,,,,,,,,Wilderness
@@ -448,7 +451,7 @@ eat_a_magic_cabbage,Eat a magic cabbage,10,0.66,false,true,,,,,,,,Asgarnia
 defeat_commander_zilyana,Defeat Commander Zilyana,80,0.66,false,true,,,,,,,,Asgarnia
 reach_base_level_20,Reach Base Level 20,30,0.65,false,false,,,,,,,,General
 protect_your_crops,Protect Your Crops,10,0.65,false,true,,,,,,,,General
-kill_5_bunnies,Kill 5 Bunnies,30,0.65,true,true,combat_quantity,,,,,,,General
+kill_5_bunnies,Kill 5 Bunnies,30,0.65,true,true,kill_creature_quantity,,,bunny,5,,,General
 equip_a_rat_bone_weapon,Equip a Rat Bone Weapon,30,0.65,false,true,,,,,,,,Misthalin
 fish_a_house_key,Fish a House Key,30,0.65,false,true,,,,,,,,Varlamore
 plant_seeds_in_an_allotment_patch,Plant Seeds in an Allotment Patch,10,0.65,false,true,,,,,,,,General
@@ -464,10 +467,10 @@ complete_sins_of_the_father,Complete Sins of the Father,80,0.65,true,true,quest_
 build_a_bank_on_fossil_island,Build a Bank on Fossil Island,30,0.65,false,true,,,,,,,,Misthalin
 equip_a_fire_cape,Equip a Fire Cape,200,0.65,false,true,,,,,,,,Karamja
 worship_the_ectofuntus,Worship the Ectofuntus,30,0.65,false,true,,,,,,,,Morytania
-clean_50_grimy_ranarr_weed,Clean 50 Grimy Ranarr Weed,30,0.64,false,true,,,,,,,,General
+clean_50_grimy_ranarr_weed,Clean 50 Grimy Ranarr Weed,30,0.64,true,true,skill_action_quantity,,,clean_grimy_ranarr_weed,50,,,General
 equip_a_seer's_ring,Equip a Seer's Ring,80,0.64,false,true,,,,,,,,Fremennik
 catch_150_anglerfish,Catch 150 Anglerfish,200,0.64,true,true,skill_action_quantity,,,catch_anglerfish,150,18000,,Kourend
-kill_a_brine_rat,Kill a Brine Rat,30,0.64,true,true,combat_quantity,,,,,,,Fremennik
+kill_a_brine_rat,Kill a Brine Rat,30,0.64,true,true,kill_creature_quantity,,,brine_rat,1,,,Fremennik
 equip_a_piece_of_the_bandos_armour_set,Equip a Piece of the Bandos Armour Set,200,0.64,false,true,,,,,,,,Asgarnia
 make_an_attack_potion,Make an Attack Potion,10,0.64,false,true,,,,,,,,General
 fill_20_easy_clue_collection_log_slots,Fill 20 Easy Clue Collection Log Slots,30,0.64,false,true,,,,,,,,General
@@ -475,14 +478,14 @@ eat_a_field_ration,Eat a Field Ration,10,0.64,false,true,,,,,,,,Kourend
 equip_a_toktz-ket-xil,Equip a Toktz-Ket-Xil,30,0.64,false,true,,,,,,,,Karamja
 defeat_a_nechryael_in_tirannwn,Defeat a Nechryael in Tirannwn,80,0.64,false,true,,,,,,,,Tirannwn
 cook_100_anglerfish,Cook 100 Anglerfish,200,0.64,true,true,skill_action_quantity,,,cook_anglerfish,100,23000,,Kourend
-clean_a_grimy_avantoe,Clean a Grimy Avantoe,30,0.64,false,true,,,,,,,,General
+clean_a_grimy_avantoe,Clean a Grimy Avantoe,30,0.64,true,true,skill_action_quantity,,,clean_grimy_avantoe,1,,,General
 pay_an_urchin_for_information,Pay an Urchin for Information,30,0.64,false,true,,,,,,,,Varlamore
 complete_wave_1_of_fortis_colosseum,Complete Wave 1 of Fortis Colosseum,30,0.64,false,true,,,,,,,,Varlamore
-steal_a_blessed_bone_statuette,Steal a Blessed Bone Statuette,80,0.64,false,true,,,,,,,,Varlamore
+steal_a_blessed_bone_statuette,Steal a Blessed Bone Statuette,80,0.64,true,true,skill_action_quantity,,,steal_from_house,1,,,Varlamore
 unlock_permanent_boat_travel_with_andras,Unlock permanent boat travel with Andras,80,0.64,false,true,,,,,,,,Morytania
 fill_5_beginner_clue_collection_log_slots,Fill 5 Beginner Clue Collection Log Slots,30,0.63,false,true,,,,,,,,General
 burn_25_maple_logs,Burn 25 Maple Logs,30,0.63,true,true,skill_action_quantity,,,burn_maple_logs,25,3375,,General
-1_amoxliatl_kill,1 Amoxliatl Kill,30,0.63,true,true,combat_quantity,,,,,,,Varlamore
+1_amoxliatl_kill,1 Amoxliatl Kill,30,0.63,true,true,kill_creature_quantity,,,amoxliatl,11,,,Varlamore
 catch_a_baby_impling,Catch a Baby Impling,10,0.63,false,true,,,,,,,,General
 defeat_zulrah_50_times,Defeat Zulrah 50 Times,80,0.63,false,true,,,,,,,,Tirannwn
 1_elite_clue_scroll,1 Elite Clue Scroll,30,0.62,false,true,,,,,,,,General
@@ -526,8 +529,8 @@ catch_100_shark,Catch 100 Shark,80,0.60,true,true,skill_action_quantity,,,catch_
 build_an_oak_larder,Build an Oak Larder,30,0.59,false,true,,,,,,,,General
 repair_a_fishing_crane,Repair a Fishing Crane,10,0.59,false,true,,,,,,,,Kourend
 give_oli_some_stew,Give Oli some Stew,10,0.59,false,true,,,,,,,,Varlamore
-kill_1_unique_echo_boss,Kill 1 unique Echo Boss,80,0.59,true,true,combat_quantity,,,,,,,General
-kill_a_rock_lobster,Kill a Rock Lobster,80,0.59,true,true,combat_quantity,,,,,,,Fremennik
+kill_1_unique_echo_boss,Kill 1 unique Echo Boss,80,0.59,false,true,,,,,,,,General
+kill_a_rock_lobster,Kill a Rock Lobster,80,0.59,true,true,kill_creature_quantity,,,rock_lobster,1,,,Fremennik
 catch_300_red_chinchompas_in_tirannwn,Catch 300 Red Chinchompas in Tirannwn,200,0.59,false,true,,,,,,,,Tirannwn
 steal_from_a_gem_stall,Steal From a Gem Stall,80,0.59,false,true,,,,,,,,General
 cast_spellbook_swap,Cast Spellbook Swap,80,0.59,false,true,,,,,,,,Fremennik
@@ -566,7 +569,7 @@ defeat_any_god_wars_dungeon_boss_100_times,Defeat Any God Wars Dungeon Boss 100 
 equip_a_pair_of_dragon_boots,Equip a Pair of Dragon Boots,80,0.57,false,true,,,,,,,,Asgarnia
 gain_20_unique_items_from_hard_clues,Gain 20 Unique Items From Hard Clues,30,0.57,false,true,,,,,,,,General
 defeat_a_skeletal_wyvern,Defeat a Skeletal Wyvern,30,0.57,false,true,,,,,,,,Asgarnia
-1_araxxor_kill,1 Araxxor Kill,80,0.57,true,true,combat_quantity,,,,,,,Morytania
+1_araxxor_kill,1 Araxxor Kill,80,0.57,true,true,kill_creature_quantity,,,araxxor,1,,,Morytania
 complete_a_ribbiting_tale,Complete a Ribbiting Tale,80,0.57,true,true,quest_completion,,,the_ribbiting_tale_of_a_lily_pad_labour_dispute,,,,Varlamore
 cast_saradomin_strike,Cast Saradomin Strike,30,0.57,false,true,,,,,,,,Wilderness
 equip_a_thammaron's_sceptre,Equip a Thammaron's Sceptre,200,0.57,false,true,,,,,,,,Wilderness
@@ -581,7 +584,7 @@ equip_a_combination_battlestaff_or_mystic_staff,Equip a Combination Battlestaff 
 equip_a_magic_shortbow,Equip a Magic Shortbow,80,0.56,false,true,,,,,,,,General
 equip_a_full_adamant_set,Equip a Full Adamant Set,30,0.56,false,true,,,,,,,,General
 equip_a_granite_hammer_or_granite_ring,Equip a Granite Hammer or Granite Ring,30,0.56,false,true,,,,,,,,Morytania
-kill_10_frost_crabs,Kill 10 Frost Crabs,30,0.56,true,true,combat_quantity,,,,,,,Varlamore
+kill_10_frost_crabs,Kill 10 Frost Crabs,30,0.56,true,true,kill_creature_quantity,,,frost_crab,10,,,Varlamore
 room_8_of_pyramid_plunder,Room 8 of Pyramid Plunder,80,0.56,false,true,,,,,,,,Desert
 equip_a_fedora,Equip a Fedora,30,0.56,false,true,,,,,,,,Wilderness
 mine_a_shooting_star,Mine a shooting star,80,0.55,false,true,,,,,,,,General
@@ -632,7 +635,7 @@ equip_a_corrupted_weapon,Equip a Corrupted Weapon,400,0.51,false,true,,,,,,,,Tir
 equip_a_zamorakian_spear,Equip a Zamorakian Spear,200,0.51,false,true,,,,,,,,Asgarnia
 complete_the_easy_karamja_diary,Complete the Easy Karamja Diary,30,0.51,false,true,,,,,,,,Karamja
 fletch_100_maple_longbow_(u)_in_kandarin,Fletch 100 Maple Longbow (u) in Kandarin,80,0.51,false,true,,,,,,,,Kandarin
-1_tempoross_kill,1 Tempoross Kill,10,0.51,true,true,combat_quantity,,,,,,,Desert
+1_tempoross_kill,1 Tempoross Kill,10,0.51,false,true,,,,,,,,Desert
 equip_a_piece_of_blood_moon_armour,Equip a piece of Blood Moon armour,30,0.51,false,true,,,,,,,,Varlamore
 pan_for_an_uncut_jade,Pan for an Uncut Jade,10,0.51,false,true,,,,,,,,Misthalin
 complete_the_postie_pete_random_event,Complete the Postie Pete random event,30,0.51,false,true,,,,,,,,General
@@ -642,12 +645,12 @@ mine_30_chunks_of_granite,Mine 30 Chunks of Granite,30,0.51,false,true,,,,,,,,De
 light_a_bullseye_lantern,Light a Bullseye Lantern,30,0.50,false,true,,,,,,,,General
 defeat_a_steel_dragon_on_karamja,Defeat a Steel Dragon on Karamja,30,0.50,false,true,,,,,,,,Karamja
 complete_the_pillory_random_event,Complete the Pillory random event,30,0.50,false,true,,,,,,,,General
-10_wintertodt_kills,10 Wintertodt Kills,30,0.50,true,true,combat_quantity,,,,,,,Kourend
+10_wintertodt_kills,10 Wintertodt Kills,30,0.50,false,true,,,,,,,,Kourend
 catch_a_black_chinchompa,Catch a Black Chinchompa,30,0.50,false,true,,,,,,,,Wilderness
 create_a_mithril_grapple,Create a Mithril Grapple,80,0.50,false,true,,,,,,,,General
 combat_achievements_medium_tier,Combat Achievements Medium Tier,200,0.50,false,true,,,,,,,,General
 craft_2500_essence_into_runes,Craft 2500 Essence Into Runes,80,0.50,false,true,,,,,,,,General
-1_skotizo_kill,1 Skotizo Kill,80,0.50,true,true,combat_quantity,,,,,,,Kourend
+1_skotizo_kill,1 Skotizo Kill,80,0.50,true,true,kill_creature_quantity,,,skotizo,1,,,Kourend
 scurrius_combat_achievements,Scurrius Combat Achievements,80,0.50,false,true,,,,,,,,Misthalin
 equip_any_full_barrows_armour_set,Equip any Full Barrows Armour Set,80,0.49,false,true,,,,,,,,Morytania
 craft_50_nature_runes,Craft 50 Nature Runes,30,0.49,false,true,,,,,,,,Karamja
@@ -677,18 +680,18 @@ reach_level_99_prayer,Reach Level 99 Prayer,200,0.48,false,false,,,,,,,,General
 defeat_phantom_muspah,Defeat Phantom Muspah,80,0.48,false,true,,,,,,,,Fremennik
 dissect_250_sacred_eels,Dissect 250 Sacred Eels,200,0.48,false,true,,,,,,,,Tirannwn
 defeat_a_bloodveld_in_kandarin,Defeat a Bloodveld in Kandarin,10,0.48,false,true,,,,,,,,Kandarin
-kill_2_unique_echo_bosses,Kill 2 unique Echo Bosses,80,0.48,true,true,combat_quantity,,,,,,,General
+kill_2_unique_echo_bosses,Kill 2 unique Echo Bosses,80,0.48,false,true,,,,,,,,General
 catch_a_grey_chinchompa,Catch a Grey Chinchompa,30,0.48,false,true,,,,,,,,General
 defeat_a_dark_beast_in_tirannwn,Defeat a Dark Beast in Tirannwn,80,0.48,false,true,,,,,,,,Tirannwn
 defeat_venenatis_50_times,Defeat Venenatis 50 times,80,0.48,false,true,,,,,,,,Wilderness
 reach_level_99_cooking,Reach Level 99 Cooking,200,0.48,false,false,,,,,,,,General
 purchase_a_seed_box,Purchase a Seed Box,30,0.47,false,true,,,,,,,,Kourend
-kill_25_echo_bosses,Kill 25 Echo Bosses,200,0.47,true,true,combat_quantity,,,,,,,General
+kill_25_echo_bosses,Kill 25 Echo Bosses,200,0.47,false,true,,,,,,,,General
 gain_25_unique_items_from_medium_clues,Gain 25 Unique Items From Medium Clues,80,0.47,false,true,,,,,,,,General
 fill_20_medium_clue_collection_log_slots,Fill 20 Medium Clue Collection Log Slots,30,0.47,false,true,,,,,,,,General
 equip_a_salve_amulet_(e),Equip a Salve Amulet (e),30,0.47,false,true,,,,,,,,Morytania
 reach_base_level_50,Reach Base Level 50,80,0.47,false,false,,,,,,,,General
-kill_10_locusts,Kill 10 Locusts,30,0.47,true,true,combat_quantity,,,,,,,Desert
+kill_10_locusts,Kill 10 Locusts,30,0.47,true,true,kill_creature_quantity,,,locust,10,,,Desert
 complete_the_barbarian_outpost_agility_course,Complete the Barbarian Outpost Agility Course,30,0.47,false,true,,,,,,,,Kandarin
 equip_100_black_chinchompas,Equip 100 Black Chinchompas,80,0.47,false,true,,,,,,,,Wilderness
 plant_an_anima_seed,Plant an Anima Seed,80,0.47,false,true,,,,,,,,Kourend
@@ -727,7 +730,7 @@ defeat_vorkath_15_times_without_leaving,Defeat Vorkath 15 Times Without Leaving,
 complete_the_struggling_sapling_event,Complete the Struggling Sapling event,30,0.45,false,true,,,,,,,,General
 score_a_goal_in_gnomeball,Score a Goal in Gnomeball,80,0.45,false,true,,,,,,,,Kandarin
 complete_the_evil_bob_random_event,Complete the Evil Bob random event,30,0.45,false,true,,,,,,,,General
-1_hueycoatl_kill,1 Hueycoatl Kill,30,0.45,true,true,combat_quantity,,,,,,,Varlamore
+1_hueycoatl_kill,1 Hueycoatl Kill,30,0.45,false,true,,,,,,,,Varlamore
 complete_the_ritual_forestry_event,Complete the Ritual Forestry Event,30,0.45,false,true,,,,,,,,General
 defeat_obor,Defeat Obor,30,0.45,false,true,,,,,,,,Misthalin
 catch_50_grey_chinchompas,Catch 50 Grey Chinchompas,80,0.45,false,true,,,,,,,,General
@@ -754,10 +757,10 @@ defeat_cerberus_50_times,Defeat Cerberus 50 times,80,0.44,false,true,,,,,,,,Asga
 defeat_vet'ion_50_times,Defeat Vet'ion 50 times,80,0.44,false,true,,,,,,,,Wilderness
 telegrab_a_bloody_bracer,Telegrab a Bloody bracer,30,0.44,false,true,,,,,,,,Morytania
 load_a_blowpipe_with_rune_darts,Load a blowpipe with Rune Darts,80,0.44,false,true,,,,,,,,Tirannwn
-clean_100_grimy_avantoe,Clean 100 Grimy Avantoe,80,0.43,false,true,,,,,,,,General
+clean_100_grimy_avantoe,Clean 100 Grimy Avantoe,80,0.43,true,true,skill_action_quantity,,,clean_grimy_avantoe,100,,,General
 catch_a_black_salamander,Catch a Black Salamander,30,0.43,false,true,,,,,,,,Wilderness
 open_1_zombie_pirate_locker,Open 1 Zombie Pirate Locker,30,0.43,false,true,,,,,,,,Wilderness
-50_araxxor_kills,50 Araxxor Kills,80,0.43,true,true,combat_quantity,,,,,,,Morytania
+50_araxxor_kills,50 Araxxor Kills,80,0.43,false,true,,,,,,,,Morytania
 smelt_a_mithril_bar_in_a_volcanic_fissure,Smelt a mithril bar in a volcanic fissure,30,0.43,false,true,,,,,,,,Kourend
 equip_a_piece_of_eclipse_moon_armour,Equip a piece of Eclipse Moon armour,30,0.43,false,true,,,,,,,,Varlamore
 defeat_a_drake,Defeat a Drake,30,0.43,false,true,,,,,,,,Kourend
@@ -775,7 +778,7 @@ craft_50_law_runes,Craft 50 Law Runes,80,0.42,false,true,,,,,,,,Asgarnia
 complete_the_golem,Complete The Golem,30,0.42,true,true,quest_completion,,,the_golem,,,,Desert
 equip_a_frog_mask,Equip a frog mask,30,0.42,false,true,,,,,,,,General
 mine_50_mithril_ore,Mine 50 Mithril Ore,30,0.42,false,true,,,,,,,,General
-kill_a_kalphite_with_the_keris_partisan,Kill a Kalphite with the Keris Partisan,30,0.42,true,true,combat_quantity,,,,,,,Desert
+kill_a_kalphite_with_the_keris_partisan,Kill a Kalphite with the Keris Partisan,30,0.42,false,true,,,,,,,,Desert
 complete_the_easy_lumbridge_&_draynor_diary,Complete the Easy Lumbridge & Draynor Diary,30,0.42,false,true,,,,,,,,Misthalin
 fletch_a_rune_crossbow,Fletch a Rune Crossbow,80,0.42,false,true,,,,,,,,General
 open_a_frozen_cache,Open a Frozen Cache,30,0.42,false,true,,,,,,,,Fremennik
@@ -789,7 +792,7 @@ equip_the_ursine_chainmace,Equip the Ursine Chainmace,200,0.41,false,true,,,,,,,
 sacrifice_a_fire_cape_to_access_the_inferno,Sacrifice a Fire Cape to Access the Inferno,200,0.41,false,true,,,,,,,,Karamja
 equip_the_webweaver,Equip the Webweaver,200,0.41,false,true,,,,,,,,Wilderness
 equip_500_black_chinchompas,Equip 500 Black Chinchompas,200,0.41,false,true,,,,,,,,Wilderness
-clean_50_grimy_cadantine,Clean 50 Grimy Cadantine,30,0.41,false,true,,,,,,,,General
+clean_50_grimy_cadantine,Clean 50 Grimy Cadantine,30,0.41,true,true,skill_action_quantity,,,clean_grimy_cadantine,50,,,General
 complete_the_easy_desert_diary,Complete the Easy Desert Diary,30,0.41,false,true,,,,,,,,Desert
 burn_100_yew_logs,Burn 100 Yew Logs,80,0.41,false,true,,,,,,,,General
 reach_combat_level_120,Reach Combat Level 120,200,0.41,true,false,combat_level,120,,,,,,General
@@ -809,7 +812,7 @@ obtain_a_casket_from_fishing,Obtain a Casket from Fishing,10,0.40,false,true,,,,
 create_the_divine_rune_pouch,Create the Divine Rune pouch,30,0.40,false,true,,,,,,,,Desert
 complete_the_easy_fremennik_diary,Complete the Easy Fremennik Diary,30,0.40,false,true,,,,,,,,Fremennik
 equip_a_dust_battlestaff,Equip a Dust Battlestaff,80,0.40,false,true,,,,,,,,Kourend
-clean_50_grimy_lantadyme,Clean 50 Grimy Lantadyme,80,0.40,false,true,,,,,,,,General
+clean_50_grimy_lantadyme,Clean 50 Grimy Lantadyme,80,0.40,true,true,skill_action_quantity,,,clean_grimy_lantadyme,50,,,General
 reach_level_99_fishing,Reach Level 99 Fishing,200,0.40,false,false,,,,,,,,General
 equip_a_piece_of_zombie_outfit,Equip a piece of Zombie Outfit,30,0.40,false,true,,,,,,,,General
 equip_osmumten's_fang_(or),Equip Osmumten's Fang (or),400,0.40,false,true,,,,,,,,Desert
@@ -830,7 +833,7 @@ cook_20_sharks_in_darkmeyer,Cook 20 Sharks in Darkmeyer,80,0.39,false,true,,,,,,
 complete_the_shayzien_advanced_agility_course,Complete the Shayzien Advanced Agility Course,80,0.38,false,true,,,,,,,,Kourend
 complete_10_hunter_rumours,Complete 10 Hunter Rumours,30,0.38,false,true,,,,,,,,Varlamore
 defeat_a_mithril_dragon,Defeat a Mithril Dragon,80,0.38,false,true,,,,,,,,Kandarin
-kill_a_wallasalki,Kill a Wallasalki,30,0.38,true,true,combat_quantity,,,,,,,Fremennik
+kill_a_wallasalki,Kill a Wallasalki,30,0.38,false,true,,,,,,,,Fremennik
 complete_sea_slug,Complete Sea Slug,30,0.38,true,true,quest_completion,,,sea_slug,,,,Kandarin
 cast_degrime_spell_full_clean,Cast Degrime Spell Full Clean,30,0.38,false,true,,,,,,,,Kourend
 chop_some_rising_roots,Chop some Rising Roots,30,0.38,false,true,,,,,,,,General
@@ -839,7 +842,7 @@ equip_the_ancient_sceptre,Equip the Ancient Sceptre,80,0.38,false,true,,,,,,,,Fr
 defeat_the_grotesque_guardians_50_times,Defeat the Grotesque Guardians 50 Times,80,0.38,false,true,,,,,,,,Morytania
 equip_a_crystal_grail,Equip a Crystal Grail,200,0.38,false,true,,,,,,,,Tirannwn
 redeem_50_wilderness_agility_tickets,Redeem 50 Wilderness Agility Tickets,80,0.38,false,true,,,,,,,,Wilderness
-50_lizardmen_shaman_kills,50 Lizardmen Shaman Kills,30,0.38,true,true,combat_quantity,,,,,,,Kourend
+50_lizardmen_shaman_kills,50 Lizardmen Shaman Kills,30,0.38,true,true,kill_creature_quantity,,,lizardmen_shaman,50,,,Kourend
 receive_30_agility_arena_tickets_with_no_mistakes,Receive 30 Agility Arena Tickets With No Mistakes,80,0.38,false,true,,,,,,,,Karamja
 equip_three_unique_echo_items,Equip three unique Echo Items,80,0.38,false,true,,,,,,,,General
 gain_10_unique_items_from_elite_clues,Gain 10 Unique Items From Elite Clues,80,0.38,false,true,,,,,,,,General
@@ -887,9 +890,9 @@ complete_a_mahogany_homes_beginner_contract,Complete a Mahogany homes beginner c
 use_a_herring_on_a_mighty_tree,Use a Herring on a mighty tree,30,0.35,false,true,,,,,,,,Kandarin
 equip_a_piece_of_sunfire_fanatic,Equip a piece of Sunfire Fanatic,80,0.35,false,true,,,,,,,,Varlamore
 reach_base_level_60,Reach Base Level 60,80,0.35,false,false,,,,,,,,General
-1_alchemical_hydra_kill,1 Alchemical Hydra Kill,80,0.35,true,true,combat_quantity,,,,,,,Kourend
+1_alchemical_hydra_kill,1 Alchemical Hydra Kill,80,0.35,true,true,kill_creature_quantity,,,alchemical_hydra,1,,,Kourend
 fill_a_medium_stash_unit,Fill a Medium STASH Unit,30,0.34,false,true,,,,,,,,General
-kill_3_unique_echo_bosses,Kill 3 unique Echo Bosses,80,0.34,true,true,combat_quantity,,,,,,,General
+kill_3_unique_echo_bosses,Kill 3 unique Echo Bosses,80,0.34,false,true,,,,,,,,General
 defeat_each_dagannoth_king_50_times,Defeat Each Dagannoth King 50 Times,80,0.34,false,true,,,,,,,,Fremennik
 equip_full_blood_moon_armour,Equip full Blood Moon armour,80,0.34,false,true,,,,,,,,Varlamore
 pick_a_summer_sq'irk,Pick a Summer Sq'irk,80,0.34,false,true,,,,,,,,Desert
@@ -956,14 +959,14 @@ fill_40_medium_clue_collection_log_slots,Fill 40 Medium Clue Collection Log Slot
 set_a_mummy_ablaze,Set a mummy ablaze,10,0.30,false,true,,,,,,,,Desert
 equip_a_ghrazi_rapier,Equip a Ghrazi Rapier,200,0.30,false,true,,,,,,,,Morytania
 enter_the_tai_bwo_wannai_hardwood_grove,Enter the Tai Bwo Wannai Hardwood Grove,30,0.30,false,true,,,,,,,,Karamja
-kill_a_swordchick,Kill a Swordchick,30,0.30,true,true,combat_quantity,,,,,,,Kandarin
+kill_a_swordchick,Kill a Swordchick,30,0.30,true,true,kill_creature_quantity,,,swordchick,1,,,Kandarin
 dismantle_20_filled_bird_houses,Dismantle 20 Filled Bird Houses,30,0.30,false,true,,,,,,,,Misthalin
 blast_furnace_100_runite_bars,Blast Furnace 100 Runite Bars,200,0.30,false,true,,,,,,,,Fremennik
 defeat_sol_heredit_5_times,Defeat Sol Heredit 5 times,400,0.30,false,true,,,,,,,,Varlamore
 25_hard_clue_scrolls,25 Hard Clue Scrolls,30,0.30,false,true,,,,,,,,General
-25_wintertodt_kills,25 Wintertodt Kills,30,0.30,true,true,combat_quantity,,,,,,,Kourend
+25_wintertodt_kills,25 Wintertodt Kills,30,0.30,false,true,,,,,,,,Kourend
 defeat_20_superior_slayer_creatures,Defeat 20 Superior Slayer Creatures,80,0.30,false,true,,,,,,,,General
-10_tempoross_kills,10 Tempoross Kills,30,0.30,true,true,combat_quantity,,,,,,,Desert
+10_tempoross_kills,10 Tempoross Kills,30,0.30,false,true,,,,,,,,Desert
 teleport_to_cam_torum_using_a_calcified_moth,Teleport to Cam Torum using a Calcified Moth,30,0.30,false,true,,,,,,,,Varlamore
 reach_level_99_slayer,Reach Level 99 Slayer,200,0.30,false,false,,,,,,,,General
 mine_some_runite_ore_in_the_wilderness,Mine Some Runite Ore in the Wilderness,200,0.30,false,true,,,,,,,,Wilderness
@@ -1027,7 +1030,7 @@ equip_full_guthans_armour_set,Equip Full Guthans Armour Set,80,0.27,false,true,,
 giants'_foundry_150_quality_sword,Giants' Foundry 150 quality sword,80,0.26,false,true,,,,,,,,Desert
 obtain_50_million_magic_xp,Obtain 50 Million Magic XP,200,0.26,false,false,,,,,,,,General
 reach_combat_level_126,Reach Combat Level 126,200,0.26,true,false,combat_level,126,,,,,,General
-kill_salarin_the_twisted,Kill Salarin the Twisted,10,0.26,true,true,combat_quantity,,,,,,,Kandarin
+kill_salarin_the_twisted,Kill Salarin the Twisted,10,0.26,false,true,,,,,,,,Kandarin
 equip_a_sarachnis_cudgel,Equip a Sarachnis Cudgel,80,0.26,false,true,,,,,,,,Kourend
 equip_a_leaf-bladed_sword,Equip a Leaf-Bladed Sword,30,0.26,false,true,,,,,,,,General
 use_some_icy_basalt_to_teleport_to_weiss,Use Some Icy Basalt to Teleport to Weiss,30,0.26,false,true,,,,,,,,Fremennik
@@ -1036,7 +1039,7 @@ complete_the_easy_morytania_diary,Complete the Easy Morytania Diary,30,0.26,fals
 smith_a_rune_item,Smith a Rune Item,80,0.26,false,true,,,,,,,,General
 complete_25_laps_of_the_rellekka_agility_course,Complete 25 laps of the Rellekka Agility Course,80,0.26,false,true,,,,,,,,Fremennik
 balance_5_barrels_on_your_head,Balance 5 barrels on your head,10,0.26,false,true,,,,,,,,Asgarnia
-50_sarachnis_kills,50 Sarachnis Kills,30,0.26,true,true,combat_quantity,,,,,,,Kourend
+50_sarachnis_kills,50 Sarachnis Kills,30,0.26,false,true,,,,,,,,Kourend
 chop_a_sulliuscep_cap,Chop a Sulliuscep Cap,30,0.26,true,true,skill_action_quantity,,,chop_sulliuscep_cap,1,,,Misthalin
 defeat_the_kraken_boss_50_times,Defeat the Kraken Boss 50 Times,80,0.26,false,true,,,,,,,,Kandarin
 catch_a_salmon,Catch a Salmon,10,0.26,false,true,,,,,,,,Desert
@@ -1046,7 +1049,7 @@ defeat_venenatis_150_times,Defeat Venenatis 150 times,80,0.26,false,true,,,,,,,,
 investigate_meztlan,Investigate Meztlan,30,0.26,false,true,,,,,,,,Varlamore
 ferment_100_jugs_of_wine,Ferment 100 Jugs of Wine,80,0.26,false,true,,,,,,,,General
 complete_the_hard_fremennik_diary,Complete the Hard Fremennik Diary,80,0.26,false,true,,,,,,,,Fremennik
-kill_75_echo_bosses,Kill 75 Echo Bosses,200,0.25,true,true,combat_quantity,,,,,,,General
+kill_75_echo_bosses,Kill 75 Echo Bosses,200,0.25,false,true,,,,,,,,General
 equip_full_blue_moon_armour,Equip full Blue Moon armour,80,0.25,false,true,,,,,,,,Varlamore
 make_a_saradomin_brew,Make a Saradomin Brew,80,0.25,false,true,,,,,,,,General
 stun_a_monster,Stun a monster,30,0.25,false,true,,,,,,,,Desert
@@ -1065,7 +1068,7 @@ equip_a_neitiznot_faceguard,Equip a Neitiznot Faceguard,200,0.24,false,true,,,,,
 land_a_hoop_on_a_stick,Land a hoop on a stick,30,0.24,false,true,,,,,,,,General
 equip_a_dragon_pickaxe,Equip a Dragon Pickaxe,80,0.24,false,true,,,,,,,,General
 mine_200_runite_ore_in_tirannwn,Mine 200 Runite Ore in Tirannwn,200,0.24,false,true,,,,,,,,Tirannwn
-kill_8_penguins_within_5_seconds,Kill 8 penguins within 5 seconds,30,0.24,true,true,combat_quantity,,,,,,,Fremennik
+kill_8_penguins_within_5_seconds,Kill 8 penguins within 5 seconds,30,0.24,true,true,kill_creature_quantity,,,penguin,8,,,Fremennik
 complete_the_medium_varrock_diary,Complete the Medium Varrock Diary,30,0.24,false,true,,,,,,,,Misthalin
 create_the_colossal_rune_pouch,Create the Colossal Rune Pouch,80,0.24,false,true,,,,,,,,Desert
 complete_the_hard_wilderness_diary,Complete the Hard Wilderness Diary,80,0.24,false,true,,,,,,,,Wilderness
@@ -1076,7 +1079,7 @@ reach_base_level_70,Reach Base Level 70,80,0.24,false,false,,,,,,,,General
 defeat_phantom_muspah_50_times,Defeat Phantom Muspah 50 times,80,0.24,false,true,,,,,,,,Fremennik
 equip_a_full_set_of_golden_prospector,Equip a Full set of Golden Prospector,200,0.24,false,true,,,,,,,,Asgarnia
 open_a_bronze_chest,Open a Bronze Chest,10,0.23,false,true,,,,,,,,Morytania
-inferior_demonbane_demon_kill,Inferior Demonbane Demon Kill,30,0.23,true,true,combat_quantity,,,,,,,Kourend
+inferior_demonbane_demon_kill,Inferior Demonbane Demon Kill,30,0.23,false,true,,,,,,,,Kourend
 floor_3_of_the_hallowed_sepulchre,Floor 3 of the Hallowed Sepulchre,30,0.23,false,true,,,,,,,,Morytania
 obtain_35_million_thieving_xp,Obtain 35 Million Thieving XP,200,0.23,false,false,,,,,,,,General
 equip_any_ancestral_piece,Equip any Ancestral piece,200,0.23,false,true,,,,,,,,Kourend
@@ -1087,7 +1090,7 @@ defeat_the_abyssal_sire,Defeat the Abyssal Sire,80,0.23,false,true,,,,,,,,Mistha
 set_up_a_magic_bird_house,Set up a Magic Bird House,80,0.23,false,true,,,,,,,,Misthalin
 subdue_the_moons_of_peril_50_times,Subdue the Moons of Peril 50 times,80,0.23,false,true,,,,,,,,Varlamore
 build_a_demonic_throne,Build a Demonic Throne,400,0.23,false,true,,,,,,,,General
-150_lizardmen_shaman_kills,150 Lizardmen Shaman Kills,30,0.23,true,true,combat_quantity,,,,,,,Kourend
+150_lizardmen_shaman_kills,150 Lizardmen Shaman Kills,30,0.23,true,true,kill_creature_quantity,,,lizardmen_shaman,150,,,Kourend
 equip_full_elder_chaos_robe,Equip full Elder chaos robe,200,0.23,false,true,,,,,,,,Wilderness
 equip_a_scythe_of_vitur,Equip a Scythe of Vitur,400,0.23,false,true,,,,,,,,Morytania
 fill_a_large_pouch,Fill a Large Pouch,30,0.23,false,true,,,,,,,,General
@@ -1101,7 +1104,7 @@ gain_10_unique_items_from_master_clues,Gain 10 Unique Items From Master Clues,80
 craft_100_blood_runes,Craft 100 Blood runes,80,0.22,false,true,,,,,,,,Kourend
 complete_the_medium_morytania_diary,Complete the Medium Morytania Diary,30,0.22,false,true,,,,,,,,Morytania
 fill_a_hard_stash_unit,Fill a Hard STASH Unit,80,0.22,false,true,,,,,,,,General
-150_araxxor_kills,150 Araxxor Kills,80,0.22,true,true,combat_quantity,,,,,,,Morytania
+150_araxxor_kills,150 Araxxor Kills,80,0.22,true,true,kill_creature_quantity,,,araxxor,150,,,Morytania
 obtain_a_cake_from_a_nest,Obtain a Cake from a Nest,30,0.22,false,true,,,,,,,,Varlamore
 make_an_extended_antifire_potion,Make an Extended Antifire Potion,200,0.22,false,true,,,,,,,,Wilderness
 complete_shadow_of_the_storm,Complete Shadow of the Storm,30,0.22,true,true,quest_completion,,,shadow_of_the_storm,,,,Desert
@@ -1131,7 +1134,7 @@ complete_the_hard_morytania_diary,Complete the Hard Morytania Diary,80,0.21,fals
 350_collection_log_slots,350 Collection log slots,200,0.21,false,true,,,,,,,,General
 equip_some_zenyte_jewelry,Equip Some Zenyte Jewelry,200,0.21,false,true,,,,,,,,Kandarin
 reach_level_99_farming,Reach Level 99 Farming,200,0.21,false,false,,,,,,,,General
-50_alchemical_hydra_kills,50 Alchemical Hydra Kills,80,0.20,true,true,combat_quantity,,,,,,,Kourend
+50_alchemical_hydra_kills,50 Alchemical Hydra Kills,80,0.20,true,true,kill_creature_quantity,,,alchemical_hydra,50,,,Kourend
 equip_boots_of_brimstone,Equip Boots of Brimstone,80,0.20,false,true,,,,,,,,Kourend
 equip_full_graahk_larupia_or_kyatt,Equip full Graahk Larupia or Kyatt,30,0.20,false,true,,,,,,,,General
 make_a_pie_for_romily,Make a pie for Romily,30,0.20,false,true,,,,,,,,Misthalin
@@ -1147,12 +1150,12 @@ open_the_dark_chest,Open the Dark Chest,30,0.20,false,true,,,,,,,,Misthalin
 complete_25_hunter_rumours,Complete 25 Hunter Rumours,30,0.20,false,true,,,,,,,,Varlamore
 obtain_a_skilling_pet,Obtain a Skilling Pet,200,0.20,false,true,,,,,,,,General
 have_the_taxidermist_stuff_something_for_you,Have the Taxidermist stuff something for you,30,0.20,false,true,,,,,,,,Morytania
-50_amoxliatl_kills,50 Amoxliatl Kills,80,0.20,true,true,combat_quantity,,,,,,,Varlamore
+50_amoxliatl_kills,50 Amoxliatl Kills,80,0.20,true,true,kill_creature_quantity,,,amoxliatl,50,,,Varlamore
 equip_tonalztics_of_ralos,Equip Tonalztics of Ralos,200,0.20,false,true,,,,,,,,Varlamore
 build_a_quetzal_landing_site,Build a Quetzal Landing Site,30,0.19,false,true,,,,,,,,Varlamore
 defeat_awakened_vardorvis,Defeat Awakened Vardorvis,200,0.19,false,true,,,,,,,,Varlamore
 equip_the_colossal_blade,Equip the Colossal Blade,30,0.19,false,true,,,,,,,,Desert
-kill_a_newtroost,Kill a Newtroost,30,0.19,true,true,combat_quantity,,,,,,,Kandarin
+kill_a_newtroost,Kill a Newtroost,30,0.19,true,true,kill_creature_quantity,,,newtroost,1,,,Kandarin
 check_a_grown_potato_cactus,Check a grown Potato Cactus,80,0.19,false,true,,,,,,,,Desert
 complete_the_elite_desert_diary,Complete the Elite Desert Diary,200,0.19,false,true,,,,,,,,Desert
 smith_shayzien_(5),Smith Shayzien (5),200,0.19,false,true,,,,,,,,Kourend
@@ -1165,7 +1168,7 @@ recolour_a_piece_of_the_ancestral_robes,Recolour a piece of the Ancestral Robes,
 defeat_cerberus_150_times,Defeat Cerberus 150 times,80,0.19,false,true,,,,,,,,Asgarnia
 obtain_50_million_strength_xp,Obtain 50 Million Strength XP,200,0.19,false,false,,,,,,,,General
 teleport_to_xeric's_honour,Teleport to Xeric's Honour,30,0.19,false,true,,,,,,,,Kourend
-1_mimic_kill,1 Mimic Kill,80,0.19,true,true,combat_quantity,,,,,,,Kourend
+1_mimic_kill,1 Mimic Kill,80,0.19,true,true,kill_creature_quantity,,,mimic,1,,,Kourend
 complete_the_hard_falador_diary,Complete the Hard Falador Diary,80,0.19,false,true,,,,,,,,Asgarnia
 equip_a_brimstone_ring,Equip a Brimstone Ring,80,0.19,false,true,,,,,,,,Kourend
 make_a_super_combat_potion,Make a Super Combat Potion,200,0.19,false,true,,,,,,,,General
@@ -1210,7 +1213,7 @@ hang_a_painting_of_a_watermill,Hang a Painting of a Watermill,30,0.17,false,true
 complete_path_of_glouphrie,Complete Path of Glouphrie,80,0.17,true,true,quest_completion,,,path_of_glouphrie,,,,Kandarin
 equip_full_torags_armour_set,Equip Full Torags Armour Set,80,0.17,false,true,,,,,,,,Morytania
 equip_an_infernal_cape,Equip an Infernal Cape,400,0.17,false,true,,,,,,,,Karamja
-kill_a_necromancer,Kill a Necromancer,10,0.17,true,true,combat_quantity,,,,,,,General
+kill_a_necromancer,Kill a Necromancer,10,0.17,true,true,kill_creature_quantity,,,necromancer,1,,,General
 obtain_the_plank_sack,Obtain the Plank Sack,30,0.17,false,true,,,,,,,,Asgarnia
 equip_a_tormented_weapon,Equip a Tormented Weapon,80,0.17,false,true,,,,,,,,Misthalin
 cook_100_pies,Cook 100 pies,80,0.17,false,true,,,,,,,,General
@@ -1231,7 +1234,7 @@ open_a_black_chest,Open a Black Chest,30,0.16,false,true,,,,,,,,Morytania
 complete_the_elite_morytania_diary,Complete the Elite Morytania Diary,200,0.16,false,true,,,,,,,,Morytania
 reach_level_99_fletching,Reach Level 99 Fletching,200,0.16,false,false,,,,,,,,General
 equip_a_dragon_hunter_crossbow,Equip a Dragon Hunter Crossbow,200,0.16,false,true,,,,,,,,Kourend
-25_tempoross_kills,25 Tempoross Kills,80,0.16,true,true,combat_quantity,,,,,,,Desert
+25_tempoross_kills,25 Tempoross Kills,80,0.16,false,true,,,,,,,,Desert
 25_chambers_of_xeric,25 Chambers of Xeric,80,0.16,false,true,,,,,,,,Kourend
 equip_a_piece_of_alchemists_outfit,Equip a piece of Alchemists outfit,30,0.16,false,true,,,,,,,,Varlamore
 equip_a_bonecrusher_necklace,Equip a Bonecrusher necklace,200,0.16,false,true,,,,,,,,Kourend
@@ -1261,7 +1264,7 @@ defeat_zalcano_50_times,Defeat Zalcano 50 Times,80,0.15,false,true,,,,,,,,Tirann
 reach_level_99_smithing,Reach Level 99 Smithing,200,0.15,false,false,,,,,,,,General
 complete_tzhaar-ket-rak's_fifth_challenge,Complete Tzhaar-Ket-Rak's fifth challenge,200,0.15,false,true,,,,,,,,Karamja
 check_a_grown_papaya_tree_in_the_gnome_stronghold,Check a grown Papaya Tree in the Gnome Stronghold,80,0.14,false,true,,,,,,,,Kandarin
-300_lizardmen_shaman_kills,300 Lizardmen Shaman Kills,80,0.14,true,true,combat_quantity,,,,,,,Kourend
+300_lizardmen_shaman_kills,300 Lizardmen Shaman Kills,80,0.14,true,true,kill_creature_quantity,,,lizardmen_shaman,300,,,Kourend
 burn_20_pyre_logs,Burn 20 Pyre Logs,30,0.14,false,true,,,,,,,,Morytania
 fill_a_giant_pouch,Fill a Giant Pouch,80,0.14,false,true,,,,,,,,General
 check_the_health_of_mahogany_tree_in_marcellus's_patch,Check the health of Mahogany Tree in Marcellus's Patch,80,0.14,false,true,,,,,,,,Varlamore
@@ -1294,10 +1297,10 @@ obtain_50_million_attack_xp,Obtain 50 Million Attack XP,200,0.13,false,false,,,,
 complete_the_hard_varrock_diary,Complete the Hard Varrock Diary,80,0.13,false,true,,,,,,,,Misthalin
 equip_full_alchemists_outfit,Equip full Alchemists outfit,80,0.13,false,true,,,,,,,,Varlamore
 reach_level_99_firemaking,Reach Level 99 Firemaking,200,0.13,false,false,,,,,,,,General
-kill_a_frogeel,Kill a Frogeel,80,0.13,true,true,combat_quantity,,,,,,,Kandarin
+kill_a_frogeel,Kill a Frogeel,80,0.13,true,true,kill_creature_quantity,,,frogeel,1,,,Kandarin
 complete_50_hunter_rumours,Complete 50 Hunter Rumours,80,0.12,false,true,,,,,,,,Varlamore
 complete_the_elite_varrock_diary,Complete the Elite Varrock Diary,200,0.12,false,true,,,,,,,,Misthalin
-50_wintertodt_kills,50 Wintertodt Kills,80,0.12,true,true,combat_quantity,,,,,,,Kourend
+50_wintertodt_kills,50 Wintertodt Kills,80,0.12,false,true,,,,,,,,Kourend
 open_a_gold_chest,Open a Gold Chest,80,0.12,false,true,,,,,,,,Morytania
 obtain_a_magic_seed_from_a_birds_nest,Obtain a Magic seed from a birds nest,80,0.12,false,true,,,,,,,,General
 obtain_25_million_slayer_xp,Obtain 25 Million Slayer XP,200,0.12,false,false,,,,,,,,General
@@ -1320,7 +1323,7 @@ purchase_the_chugging_barrel,Purchase the Chugging Barrel,200,0.11,false,true,,,
 reach_total_level_2200,Reach Total Level 2200,200,0.11,false,false,,,,,,,,General
 equip_a_full_set_of_the_carpenters_outfit,Equip a full set of the Carpenters Outfit,200,0.11,false,true,,,,,,,,Asgarnia
 abyssal_sire_combat_achievements,Abyssal Sire Combat Achievements,200,0.11,false,true,,,,,,,,Misthalin
-10_skotizo_kills,10 Skotizo Kills,80,0.11,true,true,combat_quantity,,,,,,,Kourend
+10_skotizo_kills,10 Skotizo Kills,80,0.11,true,true,kill_creature_quantity,,,skotizo,10,,,Kourend
 equip_a_piece_of_virtus,Equip a piece of Virtus,200,0.11,false,true,,,,,,,,General
 complete_tzhaar-ket-rak's_sixth_challenge,Complete Tzhaar-Ket-Rak's sixth challenge,200,0.11,false,true,,,,,,,,Karamja
 turn_in_100_mole_claws_to_wyson_the_gardener,Turn in 100 Mole Claws to Wyson the Gardener,30,0.11,false,true,,,,,,,,Asgarnia
@@ -1337,14 +1340,14 @@ obtain_35_million_construction_xp,Obtain 35 Million Construction XP,200,0.10,fal
 equip_a_dragon_platebody_or_dragon_kiteshield,Equip a Dragon Platebody or Dragon Kiteshield,200,0.10,false,true,,,,,,,,Fremennik
 equip_the_tumeken's_shadow,Equip the Tumeken's Shadow,400,0.10,false,true,,,,,,,,Desert
 equip_burning_claws,Equip Burning claws,80,0.10,false,true,,,,,,,,Misthalin
-50_hueycoatl_kills,50 Hueycoatl Kills,80,0.10,true,true,combat_quantity,,,,,,,Varlamore
+50_hueycoatl_kills,50 Hueycoatl Kills,80,0.10,true,true,kill_creature_quantity,,,hueycoatl,10,,,Varlamore
 reach_level_99_herblore,Reach Level 99 Herblore,200,0.10,false,false,,,,,,,,General
 reach_level_99_runecraft,Reach Level 99 Runecraft,200,0.10,false,false,,,,,,,,General
 equip_a_kodai_wand,Equip a Kodai Wand,200,0.10,false,true,,,,,,,,Kourend
 equip_an_elder_maul,Equip an Elder Maul,200,0.10,false,true,,,,,,,,Kourend
 araxxor_combat_achievements,Araxxor Combat Achievements,200,0.10,false,true,,,,,,,,Morytania
 75_medium_clue_scrolls,75 Medium Clue Scrolls,30,0.10,false,true,,,,,,,,General
-150_alchemical_hydra_kills,150 Alchemical Hydra Kills,80,0.10,true,true,combat_quantity,,,,,,,Kourend
+150_alchemical_hydra_kills,150 Alchemical Hydra Kills,80,0.10,true,true,kill_creature_quantity,,,alchemical_hydra,150,,,Kourend
 equip_a_granite_shield,Equip a Granite Shield,30,0.10,false,true,,,,,,,,General
 fill_25_elite_clue_collection_log_slots,Fill 25 Elite Clue Collection Log Slots,80,0.10,false,true,,,,,,,,General
 complete_the_hard_ardougne_diary,Complete the Hard Ardougne Diary,80,0.10,false,true,,,,,,,,Kandarin
@@ -1370,7 +1373,7 @@ obtain_50_million_construction_xp,Obtain 50 Million Construction XP,200,0.10,fal
 alchemical_hydra_combat_achievements,Alchemical Hydra Combat Achievements,200,0.09,false,true,,,,,,,,Kourend
 create_the_saturated_heart,Create the Saturated Heart,400,0.09,false,true,,,,,,,,Fremennik
 room_8_of_pyramid_plunder_25_times,Room 8 of Pyramid Plunder 25 Times,80,0.09,false,true,,,,,,,,Desert
-150_sarachnis_kills,150 Sarachnis Kills,80,0.09,true,true,combat_quantity,,,,,,,Kourend
+150_sarachnis_kills,150 Sarachnis Kills,80,0.09,true,true,kill_creature_quantity,,,sarachnis,150,,,Kourend
 open_10_muddy_chests,Open 10 Muddy Chests,80,0.09,false,true,,,,,,,,Wilderness
 75_hard_clue_scrolls,75 Hard Clue Scrolls,80,0.09,false,true,,,,,,,,General
 equip_a_warped_sceptre,Equip a Warped Sceptre,80,0.09,false,true,,,,,,,,Kandarin
@@ -1382,7 +1385,7 @@ equip_a_full_spined_armour_set,Equip a Full Spined Armour Set,80,0.09,false,true
 mine_a_runite_ore_fragment,Mine a Runite Ore Fragment,200,0.09,false,true,,,,,,,,Misthalin
 complete_50_mahogany_homes_contracts,Complete 50 Mahogany homes contracts,80,0.09,false,true,,,,,,,,General
 defeat_the_corporeal_beast_50_times,Defeat the Corporeal Beast 50 Times,80,0.09,false,true,,,,,,,,Wilderness
-300_araxxor_kills,300 Araxxor Kills,200,0.09,true,true,combat_quantity,,,,,,,Morytania
+300_araxxor_kills,300 Araxxor Kills,200,0.09,true,true,kill_creature_quantity,,,araxxor,300,,,Morytania
 floor_5_of_the_hallowed_sepulchre,Floor 5 of the Hallowed Sepulchre,200,0.09,false,true,,,,,,,,Morytania
 reach_base_level_90,Reach Base Level 90,200,0.09,false,false,,,,,,,,General
 equip_the_magus_ring,Equip the Magus Ring,200,0.09,false,true,,,,,,,,Fremennik
@@ -1443,17 +1446,17 @@ equip_every_godsword,Equip Every Godsword,400,0.05,false,true,,,,,,,,Asgarnia
 defeat_phantom_muspah_150_times,Defeat Phantom Muspah 150 times,80,0.05,false,true,,,,,,,,Fremennik
 defeat_the_penance_queen,Defeat the Penance Queen,80,0.05,false,true,,,,,,,,Kandarin
 equip_a_crystal_tool,Equip a Crystal Tool,400,0.05,false,true,,,,,,,,Tirannwn
-150_amoxliatl_kills,150 Amoxliatl Kills,80,0.05,true,true,combat_quantity,,,,,,,Varlamore
+150_amoxliatl_kills,150 Amoxliatl Kills,80,0.05,true,true,kill_creature_quantity,,,amoxliatl,150,,,Varlamore
 equip_a_full_set_of_ancestral,Equip a full set of Ancestral,400,0.05,false,true,,,,,,,,Kourend
 equip_a_spectral_or_arcane_spirit_shield,Equip a Spectral or Arcane Spirit Shield,400,0.05,false,true,,,,,,,,Wilderness
 smith_a_dragonfire_shield,Smith a Dragonfire Shield,200,0.05,false,true,,,,,,,,General
 feed_longramble,Feed Longramble,80,0.05,false,true,,,,,,,,Kandarin
-300_sarachnis_kills,300 Sarachnis Kills,80,0.05,true,true,combat_quantity,,,,,,,Kourend
+300_sarachnis_kills,300 Sarachnis Kills,80,0.05,true,true,kill_creature_quantity,,,sarachnis,300,,,Kourend
 equip_a_nightmare_staff,Equip a Nightmare Staff,80,0.05,false,true,,,,,,,,Morytania
 hit_150_with_the_keris_partisan,Hit 150 with the Keris Partisan,200,0.05,false,true,,,,,,,,Desert
 equip_a_heavy_ballista,Equip a Heavy Ballista,200,0.05,false,true,,,,,,,,Kandarin
 reach_level_5_in_any_barbarian_assault_role,Reach Level 5 in Any Barbarian Assault Role,200,0.05,false,false,,,,,,,,Kandarin
-kill_a_jubster,Kill a Jubster,80,0.05,true,true,combat_quantity,,,,,,,Kandarin
+kill_a_jubster,Kill a Jubster,80,0.05,true,true,kill_creature_quantity,,,jubster,1,,,Kandarin
 equip_a_dragonfire_ward,Equip a Dragonfire Ward,200,0.05,false,true,,,,,,,,Fremennik
 equip_an_infernal_tool,Equip an Infernal Tool,200,0.05,false,true,,,,,,,,General
 complete_tombs_of_amascut_50_times,Complete Tombs of Amascut 50 times,200,0.05,false,true,,,,,,,,Desert
@@ -1494,10 +1497,10 @@ create_a_black_d'hide_shield,Create a black d'hide shield,80,0.03,false,true,,,,
 complete_the_hard_kandarin_diary,Complete the Hard Kandarin Diary,80,0.03,false,true,,,,,,,,Kandarin
 obtain_25_million_crafting_xp,Obtain 25 Million Crafting XP,200,0.03,false,false,,,,,,,,General
 defeat_500_demonic_gorillas,Defeat 500 Demonic Gorillas,200,0.03,false,true,,,,,,,,Kandarin
-300_alchemical_hydra_kills,300 Alchemical Hydra Kills,200,0.03,true,true,combat_quantity,,,,,,,Kourend
+300_alchemical_hydra_kills,300 Alchemical Hydra Kills,200,0.03,true,true,kill_creature_quantity,,,300_alchemical_hydra_kills,300,,,Kourend
 the_nightmare_combat_achievements,The Nightmare Combat Achievements,200,0.03,false,true,,,,,,,,Morytania
 25_master_clue_scrolls,25 Master Clue Scrolls,80,0.03,false,true,,,,,,,,General
-5_mimic_kills,5 Mimic Kills,80,0.03,true,true,combat_quantity,,,,,,,Kourend
+5_mimic_kills,5 Mimic Kills,80,0.03,true,true,kill_creature_quantity,,,mimic,5,,,Kourend
 giants'_foundry_50_handins,Giants' Foundry 50 handins,80,0.03,false,true,,,,,,,,Desert
 defeat_each_dagannoth_king_300_times,Defeat Each Dagannoth King 300 Times,200,0.03,false,true,,,,,,,,Fremennik
 equip_the_soulreaper_axe,Equip the Soulreaper Axe,200,0.03,false,true,,,,,,,,General
@@ -1510,7 +1513,7 @@ defeat_nex_300_times,Defeat Nex 300 Times,200,0.03,false,true,,,,,,,,Asgarnia
 catch_a_lucky_impling_bare_handed,Catch a Lucky Impling Bare Handed,200,0.03,false,true,,,,,,,,General
 fill_25_master_clue_collection_log_slots,Fill 25 Master Clue Collection Log Slots,200,0.03,false,true,,,,,,,,General
 complete_the_hallowed_sepulchre_in_6:30,Complete the Hallowed Sepulchre in 6:30,200,0.03,false,true,,,,,,,,Morytania
-150_hueycoatl_kills,150 Hueycoatl Kills,80,0.02,true,true,combat_quantity,,,,,,,Varlamore
+150_hueycoatl_kills,150 Hueycoatl Kills,80,0.02,true,true,kill_creature_quantity,,,hueycoatl,150,,,Varlamore
 obtain_35_million_crafting_xp,Obtain 35 Million Crafting XP,200,0.02,false,false,,,,,,,,General
 defeat_the_corporeal_beast_250_times,Defeat the Corporeal Beast 250 Times,200,0.02,false,true,,,,,,,,Wilderness
 equip_a_nightmare_staff_with_an_orb,Equip a Nightmare Staff With an Orb,400,0.02,false,true,,,,,,,,Morytania

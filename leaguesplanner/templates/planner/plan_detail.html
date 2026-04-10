@@ -398,7 +398,7 @@
                   <p class="text-left text-xs text-gray-500" x-text="level.cumulativeExperience.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></p>
                 </div>
                 <div class="flex">
-                  <template x-if="relicSelection.includes('abundance') && !['attack','strength','defence','ranged','magic','hitpoints'].includes(skill)">
+                  <template x-if="relicSelection.includes('abundance') && !['attack','strength','defence','ranged','magic','hitpoints','prayer'].includes(skill)">
                     <p class="text-right font-medium text-green-600" x-text="`${level.level+10}/`"></p>
                   </template>
                   <p class="text-right font-medium" x-text="`${level.level}`"></p>
@@ -420,7 +420,7 @@
             Tasks: <span class="pl-2" id="hdr-actions" x-text="totalTasks"></span>
           </p>
           <p class="items-center rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-700">
-            Est. GP: <span class="pl-2" id="hdr-actions" x-text="totalGold().toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></span>
+            Est. GP: <span class="pl-2" id="hdr-actions" x-text="Math.floor(totalGold()).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></span>
           </p>
           <p class="items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
             Multiplier: <span class="pl-2" x-text="`${currentExpModifier()||5}x`"></span>

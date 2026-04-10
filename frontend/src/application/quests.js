@@ -4,6 +4,27 @@
  * xpRewards:   [{ skill, amount }] — XP given on completion (boosted by league multiplier)
  * itemRewards: [{ item, quantity }] — items added to the repository on completion
  */
+export const PRECOMPLETED_QUESTS = [
+    "dragon_slayer_i",
+    "learning_the_ropes",
+    "the_restless_ghost",
+    "rune_mysteries",
+    "children_of_the_sun",
+    "desert_treasure_ii_the_fallen_empire",
+    "druidic_ritual",
+    "eagles_peak",
+    "elemental_workshop_i",
+    "fairytale_i_growing_pains",
+    "fairytale_ii_cure_a_queen",
+    "lost_city",
+    "nature_spirit",
+    "perilous_moons",
+    "priest_in_peril",
+    "twilight_s_promise",
+    "shilo_village",
+    "jungle_potion"
+];
+
 export const QUESTS = {
     "cooks_assistant": {
         "name": "Cook's Assistant",

@@ -150,8 +150,42 @@ export const ITEMS = {
     bronze_sword: { name: "Bronze sword" },
     wooden_shield: { name: "Wooden shield" },
     shortbow: { name: "Shortbow" },
-    bronze_arrow: { name: "Bronze arrow" }
+    bronze_arrow: { name: "Bronze arrow" },
+
+    grimy_guam_leaf: { name: "Grimy guam leaf", level: 3 },
+    grimy_marrentill: { name: "Grimy marrentill", level: 5 },
+    grimy_tarromin: { name: "Grimy tarromin", level: 11 },
+    grimy_harralander: { name: "Grimy harralander", level: 20 },
+    grimy_ranarr_weed: { name: "Grimy ranarr weed", level: 25 },
+    grimy_toadflax: { name: "Grimy toadflax", level: 30 },
+    grimy_irit_leaf: { name: "Grimy irit leaf", level: 40 },
+    grimy_avantoe: { name: "Grimy avantoe", level: 48 },
+    grimy_kwuarm: { name: "Grimy kwuarm", level: 54 },
+    grimy_huasca: { name: "Grimy huasca", level: 58 },
+    grimy_snapdragon: { name: "Grimy snapdragon", level: 59 },
+    grimy_cadantine: { name: "Grimy cadantine", level: 65 },
+    grimy_lantadyme: { name: "Grimy lantadyme", level: 67 },
+    grimy_dwarf_weed: { name: "Grimy dwarf weed", level: 70 },
+    grimy_torstol: { name: "Grimy torstol", level: 75 },
 };
+
+export const GRIMY_HERBS = [
+    "grimy_guam_leaf",
+    "grimy_marrentill",
+    "grimy_tarromin",
+    "grimy_harralander",
+    "grimy_ranarr_weed",
+    "grimy_toadflax",
+    "grimy_irit_leaf",
+    "grimy_avantoe",
+    "grimy_kwuarm",
+    "grimy_huasca",
+    "grimy_snapdragon",
+    "grimy_cadantine",
+    "grimy_lantadyme",
+    "grimy_dwarf_weed",
+    "grimy_torstol"
+];
 
 
 export const STARTER_ITEMS = {

@@ -52,6 +52,11 @@ let connectionPolylines = []; // polylines connecting sequential action markers
 window._pendingActionLatlng = null; // set when a context-menu action places a marker
 let activeMarkerKey = null; // key of the currently selected/active action marker
 
+// Line waypoints: intermediate nodes added by the user to shape segment paths
+const lineWaypoints = {}; // "prevKey---currKey" → [L.LatLng, ...]
+let nodeMarkersList = []; // draggable node markers currently on the map
+const segmentPolyMap = {}; // segKey → L.Polyline (for live drag updates)
+
 const TILE_X_OFFSET = 100;
 const TILE_Y_OFFSET = 100;
 
@@ -389,34 +394,185 @@ window.refreshMapPolylines = function(actions) {
   // Clear old connection lines
   connectionPolylines.forEach(p => osrsMap && osrsMap.removeLayer(p));
   connectionPolylines = [];
+  // Clear old node markers
+  nodeMarkersList.forEach(m => osrsMap && osrsMap.removeLayer(m));
+  nodeMarkersList = [];
+  // Clear segment polyline map
+  Object.keys(segmentPolyMap).forEach(k => delete segmentPolyMap[k]);
 
   if (!osrsMap) return;
 
   let prevLatlng = null;
   let prevKey = null;
+  let prevAction = null;
 
-  for (const action of actions) {
+  for (let i = 0; i < actions.length; i++) {
+    const action = actions[i];
     const latlng = actionLatLngs[action.key];
     if (latlng) {
-      if (prevLatlng) {
-        if (action.type === 'teleport') {
-          // Show a dotted line to the teleport only when the previous action is selected
-          if (prevKey === activeMarkerKey) {
-            const poly = L.polyline([prevLatlng, latlng], {
-              color: 'orange', weight: 2, dashArray: '6 8', opacity: 0.7,
-            });
-            poly.addTo(osrsMap);
-            connectionPolylines.push(poly);
-          }
-        } else {
-          const poly = L.polyline([prevLatlng, latlng], { color: 'orange', weight: 2 });
-          poly.addTo(osrsMap);
-          connectionPolylines.push(poly);
-        }
+      if (prevLatlng && prevAction) {
+        const segKey = `${prevKey}---${action.key}`;
+        const nextPositioned = _findNextPositionedAction(actions, i + 1);
+
+        // A segment is teleport-adjacent if the action before it, at either
+        // endpoint, or immediately after it is a teleport.
+        const isTeleportAdjacent =
+          prevAction.type === 'teleport' ||
+          action.type === 'teleport' ||
+          (nextPositioned && nextPositioned.type === 'teleport');
+
+        const waypoints = lineWaypoints[segKey] || [];
+        const allPoints = [prevLatlng, ...waypoints, latlng];
+
+        const style = isTeleportAdjacent
+          ? { color: 'orange', weight: 2, dashArray: '6 8', opacity: 0.8 }
+          : { color: 'orange', weight: 2 };
+
+        const poly = L.polyline(allPoints, style);
+        poly.addTo(osrsMap);
+        connectionPolylines.push(poly);
+        segmentPolyMap[segKey] = poly;
+
+        // Allow clicking the line to insert a new shaping node
+        (function(sk, pLatlng, cLatlng) {
+          poly.on('mouseover', () => { osrsMap.getContainer().style.cursor = 'crosshair'; });
+          poly.on('mouseout',  () => { osrsMap.getContainer().style.cursor = ''; });
+          poly.on('click', function(e) {
+            L.DomEvent.stopPropagation(e);
+            const pts = [pLatlng, ...(lineWaypoints[sk] || []), cLatlng];
+            const insertIdx = _closestSegmentInsertIndex(pts, e.latlng);
+            if (!lineWaypoints[sk]) lineWaypoints[sk] = [];
+            // insertIdx is the position in allPoints; offset by 1 to get waypoints idx
+            lineWaypoints[sk].splice(insertIdx - 1, 0, e.latlng);
+            const alpineEl = document.querySelector('[x-data]');
+            if (alpineEl && window.Alpine) {
+              const ad = window.Alpine.$data(alpineEl);
+              if (ad && ad.actions) window.refreshMapPolylines(ad.actions);
+            }
+          });
+        })(segKey, prevLatlng, latlng);
+
+        // Create draggable node markers for each existing waypoint
+        waypoints.forEach((wpt, idx) => {
+          const nm = _createNodeMarker(segKey, idx, wpt, prevLatlng, latlng);
+          nodeMarkersList.push(nm);
+        });
       }
       prevLatlng = latlng;
       prevKey = action.key;
+      prevAction = action;
     }
+  }
+};
+
+/** Returns the next action in `actions` starting at `startIdx` that has a map position. */
+function _findNextPositionedAction(actions, startIdx) {
+  for (let i = startIdx; i < actions.length; i++) {
+    if (actionLatLngs[actions[i].key]) return actions[i];
+  }
+  return null;
+}
+
+/** Returns the index in `points` after which a new point at `latlng` should be inserted. */
+function _closestSegmentInsertIndex(points, latlng) {
+  let minDist = Infinity;
+  let insertIdx = points.length - 1;
+  for (let i = 0; i < points.length - 1; i++) {
+    const d = _distToSegmentSq(latlng, points[i], points[i + 1]);
+    if (d < minDist) {
+      minDist = d;
+      insertIdx = i + 1;
+    }
+  }
+  return insertIdx;
+}
+
+/** Squared distance from point `p` to segment `a`→`b` in lat/lng space. */
+function _distToSegmentSq(p, a, b) {
+  const dx = b.lng - a.lng, dy = b.lat - a.lat;
+  if (dx === 0 && dy === 0) {
+    return Math.pow(p.lng - a.lng, 2) + Math.pow(p.lat - a.lat, 2);
+  }
+  const t = Math.max(0, Math.min(1,
+    ((p.lng - a.lng) * dx + (p.lat - a.lat) * dy) / (dx * dx + dy * dy)));
+  return Math.pow(p.lng - a.lng - t * dx, 2) + Math.pow(p.lat - a.lat - t * dy, 2);
+}
+
+/** Small hollow circle icon used for line shaping nodes. */
+function _nodeMarkerIcon() {
+  return L.divIcon({
+    className: '',
+    html: `<div title="Drag to reshape · right-click to remove" style="
+      width:8px;height:8px;border-radius:50%;
+      background:#fff;border:2px solid #555;
+      cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.4)
+    "></div>`,
+    iconSize: [8, 8],
+    iconAnchor: [4, 4],
+  });
+}
+
+/**
+ * Creates a draggable node marker for the given waypoint.
+ * Dragging updates the polyline live; right-click removes the node.
+ */
+function _createNodeMarker(segKey, idx, latlng, prevLatlng, currLatlng) {
+  const marker = L.marker(latlng, {
+    icon: _nodeMarkerIcon(),
+    draggable: true,
+    zIndexOffset: -100, // keep below action markers
+  });
+
+  marker.on('drag', function() {
+    if (!lineWaypoints[segKey]) return;
+    lineWaypoints[segKey][idx] = marker.getLatLng();
+    // Update just this segment's polyline live, without a full rebuild
+    const poly = segmentPolyMap[segKey];
+    if (poly) {
+      poly.setLatLngs([prevLatlng, ...lineWaypoints[segKey], currLatlng]);
+    }
+  });
+
+  marker.on('dragend', function() {
+    if (lineWaypoints[segKey]) {
+      lineWaypoints[segKey][idx] = marker.getLatLng();
+    }
+    const alpineEl = document.querySelector('[x-data]');
+    if (alpineEl && window.Alpine) {
+      const ad = window.Alpine.$data(alpineEl);
+      if (ad && ad.actions) window.refreshMapPolylines(ad.actions);
+    }
+  });
+
+  marker.on('contextmenu', function(e) {
+    L.DomEvent.stopPropagation(e);
+    if (lineWaypoints[segKey]) {
+      lineWaypoints[segKey].splice(idx, 1);
+      if (lineWaypoints[segKey].length === 0) delete lineWaypoints[segKey];
+    }
+    const alpineEl = document.querySelector('[x-data]');
+    if (alpineEl && window.Alpine) {
+      const ad = window.Alpine.$data(alpineEl);
+      if (ad && ad.actions) window.refreshMapPolylines(ad.actions);
+    }
+  });
+
+  marker.addTo(osrsMap);
+  return marker;
+}
+
+window.getLineWaypoints = function() {
+  const result = {};
+  for (const [k, pts] of Object.entries(lineWaypoints)) {
+    if (pts.length > 0) result[k] = pts.map(p => ({ lat: p.lat, lng: p.lng }));
+  }
+  return result;
+};
+
+window.restoreLineWaypoints = function(saved) {
+  Object.keys(lineWaypoints).forEach(k => delete lineWaypoints[k]);
+  for (const [k, pts] of Object.entries(saved || {})) {
+    lineWaypoints[k] = pts.map(p => L.latLng(p.lat, p.lng));
   }
 };
 

@@ -1392,6 +1392,7 @@ export function taskManager() {
                     actions: this.actions,
                     relicSelection: this.relicSelection,
                     actionLatLngs: window.getActionLatLngs ? window.getActionLatLngs() : {},
+                    lineWaypoints: window.getLineWaypoints ? window.getLineWaypoints() : {},
                     currentRouteName: this.currentRouteName,
                 };
                 localStorage.setItem(STORAGE_KEY_CURRENT, JSON.stringify(state));
@@ -1417,10 +1418,12 @@ export function taskManager() {
             this.relicSelection = state.relicSelection || [];
             this.currentRouteName = state.currentRouteName || state.name || '';
             const savedLatLngs = state.actionLatLngs || {};
+            const savedLineWaypoints = state.lineWaypoints || {};
             const actions = this.actions;
             const doRestore = () => {
                 if (window.restoreActionLatLngs) {
                     window.restoreActionLatLngs(savedLatLngs, actions);
+                    if (window.restoreLineWaypoints) window.restoreLineWaypoints(savedLineWaypoints);
                     this.recalculateActionState();
                 } else {
                     setTimeout(doRestore, 50);
@@ -1447,6 +1450,7 @@ export function taskManager() {
             this.relicSelection = [];
             this.currentRouteName = routeName;
             if (window.restoreActionLatLngs) window.restoreActionLatLngs({}, []);
+            if (window.restoreLineWaypoints) window.restoreLineWaypoints({});
             this.newRouteName = '';
             this.itemRepository = { ...STARTER_ITEMS };
             this.recalculateActionState();
@@ -1469,6 +1473,7 @@ export function taskManager() {
                     actions: this.actions,
                     relicSelection: this.relicSelection,
                     actionLatLngs: window.getActionLatLngs ? window.getActionLatLngs() : {},
+                    lineWaypoints: window.getLineWaypoints ? window.getLineWaypoints() : {},
                     currentRouteName: name,
                 };
                 localStorage.setItem(STORAGE_KEY_ROUTES, JSON.stringify(routes));
@@ -1509,6 +1514,7 @@ export function taskManager() {
             this.relicSelection = [];
             this.currentRouteName = '';
             if (window.restoreActionLatLngs) window.restoreActionLatLngs({}, []);
+            if (window.restoreLineWaypoints) window.restoreLineWaypoints({});
             this.itemRepository = { ...STARTER_ITEMS };
             this.recalculateActionState();
         },

@@ -412,19 +412,26 @@ window.refreshMapPolylines = function(actions) {
     if (latlng) {
       if (prevLatlng && prevAction) {
         const segKey = `${prevKey}---${action.key}`;
-        const nextPositioned = _findNextPositionedAction(actions, i + 1);
 
-        // A segment is teleport-adjacent if the action before it, at either
-        // endpoint, or immediately after it is a teleport.
-        const isTeleportAdjacent =
-          prevAction.type === 'teleport' ||
-          action.type === 'teleport' ||
-          (nextPositioned && nextPositioned.type === 'teleport');
+        // Teleport segments are dotted when selected, hidden otherwise.
+        // A segment is a "teleport segment" only when its destination is a teleport.
+        // It is considered selected when either endpoint is the active marker.
+        const isTeleportSeg = action.type === 'teleport';
+        const isSelected =
+          activeMarkerKey === action.key || activeMarkerKey === prevKey;
+
+        // Skip hidden teleport segments entirely
+        if (isTeleportSeg && !isSelected) {
+          prevLatlng = latlng;
+          prevKey = action.key;
+          prevAction = action;
+          continue;
+        }
 
         const waypoints = lineWaypoints[segKey] || [];
         const allPoints = [prevLatlng, ...waypoints, latlng];
 
-        const style = isTeleportAdjacent
+        const style = isTeleportSeg
           ? { color: 'orange', weight: 2, dashArray: '6 8', opacity: 0.8 }
           : { color: 'orange', weight: 2 };
 
@@ -464,14 +471,6 @@ window.refreshMapPolylines = function(actions) {
     }
   }
 };
-
-/** Returns the next action in `actions` starting at `startIdx` that has a map position. */
-function _findNextPositionedAction(actions, startIdx) {
-  for (let i = startIdx; i < actions.length; i++) {
-    if (actionLatLngs[actions[i].key]) return actions[i];
-  }
-  return null;
-}
 
 /** Returns the index in `points` after which a new point at `latlng` should be inserted. */
 function _closestSegmentInsertIndex(points, latlng) {

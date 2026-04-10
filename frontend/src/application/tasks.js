@@ -111,12 +111,14 @@ export function taskManager() {
         changingRelicTier: null,
         addingGroup: false,
         newGroupName: '',
+        teleportDescription: '',
 
         init() {
             window.addEventListener("add-task", () => this.openModal());
             window.addEventListener("add-skill", () => this.openModal("skill-list-template"));
             window.addEventListener("add-combat", () => this.openModal("combat-template"));
             window.addEventListener("add-destination", () => this.openModal("destination-template"));
+            window.addEventListener("add-teleport", () => { this.teleportDescription = ""; this.openModal("teleport-template"); });
             window.addEventListener("buy-items", () => { this.shopSelection = ""; this.shopCart = {}; this.openModal("shop-template"); });
             window.addEventListener("complete-quest", () => { this.questSearch = ""; this.openModal("quest-list-template"); });
             fetch("http://127.0.0.1:8002/planner/task-list/")
@@ -152,16 +154,19 @@ export function taskManager() {
             window._pendingActionLatlng = null;
         },
 
-        // Insert action after the currently-selected action, or append to end
+        // Insert action after the currently-selected action, or append to end,
+        // then auto-select the newly inserted action.
         _insertAction(action) {
             if (this.selectedTask) {
                 const idx = this.actions.findIndex(a => a.key === this.selectedTask.key);
                 if (idx !== -1) {
                     this.actions.splice(idx + 1, 0, action);
+                    this.selectTask(action.key);
                     return;
                 }
             }
             this.actions.push(action);
+            this.selectTask(action.key);
         },
 
         currentExpModifier() {
@@ -1181,6 +1186,25 @@ export function taskManager() {
             this.closeModal();
         },
 
+        addTeleport(description) {
+            if (!description) {
+                this.closeModal();
+                return;
+            }
+            const action = {
+                key: `teleport_${Date.now()}`,
+                type: "teleport",
+                description,
+            };
+            this._insertAction(action);
+            if (window._pendingActionLatlng && window.registerActionLatLng) {
+                window.registerActionLatLng(action.key, window._pendingActionLatlng, "teleport");
+                window._pendingActionLatlng = null;
+            }
+            this.recalculateActionState();
+            this.closeModal();
+        },
+
         showStats(skillKey) {
             this.viewStats = this.actions.find(action => action.key === skillKey);
             if (!this.viewStats) return;
@@ -1284,7 +1308,7 @@ export function taskManager() {
                 action.bonusExp = this.getBonusExp(this.editFormData.skill, parsedQuantity, experience);
                 action.totalGold = ((selectedMethod.gold || 0) * parsedQuantity) + this.getGold(experience, parsedQuantity);
             }
-            if (action.type === "destination") {
+            if (action.type === "destination" || action.type === "teleport") {
                 action.description = this.editFormData.description;
             }
 

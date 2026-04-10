@@ -310,6 +310,68 @@
                   </li>
                 </template>
 
+                <!-- TELEPORT type -->
+                <template x-if="action.type==='teleport'">
+                  <li @click="editingAction !== action.key && selectTask(action.key)" :class="action.selected ? 'border-indigo-600' : 'border-orange-300'" class="relative rounded-lg border bg-orange-100 px-4 py-2 shadow-sm focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-indigo-600 hover:border-gray-400 cursor-hover">
+
+                    <!-- Normal view -->
+                    <div x-show="editingAction !== action.key">
+                      <div class="flex items-center space-x-3">
+                        <span class="drag-handle cursor-grab select-none text-gray-300 hover:text-gray-400" @click.stop title="Drag to reorder">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="display:block" class="text-black text-opacity-20">
+                            <circle cx="5" cy="4" r="1.4"/><circle cx="11" cy="4" r="1.4"/>
+                            <circle cx="5" cy="8" r="1.4"/><circle cx="11" cy="8" r="1.4"/>
+                            <circle cx="5" cy="12" r="1.4"/><circle cx="11" cy="12" r="1.4"/>
+                          </svg>
+                        </span>
+                        <!-- Teleport icon (lightning bolt) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 text-orange-500">
+                          <path fill-rule="evenodd" d="M14.615 1.595a.75.75 0 0 1 .359.852L12.982 9.75h7.268a.75.75 0 0 1 .548 1.262l-10.5 11.25a.75.75 0 0 1-1.272-.71l1.992-7.302H3.818a.75.75 0 0 1-.548-1.262l10.5-11.25a.75.75 0 0 1 .845-.143Z" clip-rule="evenodd" />
+                        </svg>
+
+                        <div class="min-w-0 flex-1">
+                          <p x-text="action.description" class="text-sm font-medium text-orange-900"></p>
+                        </div>
+
+                        <!-- Edit button -->
+                        <button @click.stop="startEdit(action.key)" title="Edit" class="text-gray-400 hover:text-orange-600 mr-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                          </svg>
+                        </button>
+
+                        <button @click.stop="removeTask(action.key)" class="remove-task-btn">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-400 hover:text-gray-500">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <div x-show="action.selected" class="flex gap-x-4 mt-2">
+                        <div>
+                          <p class="text-xs font-medium text-gray-700/40">Total Points</p>
+                          <p x-text="action.cumulativePoints"></p>
+                        </div>
+                        <div>
+                          <button @click="showStats(action.key)" type="button" class="text-xs font-medium text-gray-700/60">Show Stats</button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Edit form for teleport actions -->
+                    <div x-show="editingAction === action.key" @click.stop>
+                      <p class="text-xs font-semibold text-orange-800 mb-2">Edit Teleport</p>
+                      <div class="flex flex-col gap-2">
+                        <input type="text" x-model="editFormData.description" class="text-sm border rounded px-2 py-1 bg-white" placeholder="Description">
+                        <div class="flex gap-2 justify-end">
+                          <button @click="cancelEdit()" class="text-xs px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">Cancel</button>
+                          <button @click="saveEdit()" class="text-xs px-3 py-1 rounded bg-orange-500 text-white hover:bg-orange-600">Save</button>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                </template>
+
                 <!-- DESTINATION type -->
                 <template x-if="action.type==='destination'">
                   <li @click="editingAction !== action.key && selectTask(action.key)" :class="action.selected ? 'border-indigo-600' : 'border-gray-300'" class="relative rounded-lg border bg-pink-100 px-4 py-2 shadow-sm focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-indigo-600 hover:border-gray-400 cursor-hover">
@@ -505,6 +567,7 @@
   {% include 'planner/combat.html' %}
 
   {% include 'planner/destination.html' %}
+  {% include 'planner/teleport.html' %}
 
   {% include 'planner/route-manager.html' %}
 

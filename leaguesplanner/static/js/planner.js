@@ -393,15 +393,28 @@ window.refreshMapPolylines = function(actions) {
   if (!osrsMap) return;
 
   let prevLatlng = null;
+  let prevKey = null;
   for (const action of actions) {
     const latlng = actionLatLngs[action.key];
     if (latlng) {
-      if (prevLatlng && action.type !== 'teleport') {
-        const poly = L.polyline([prevLatlng, latlng], { color: 'orange', weight: 2 });
-        poly.addTo(osrsMap);
-        connectionPolylines.push(poly);
+      if (prevLatlng) {
+        if (action.type === 'teleport') {
+          // Show a dotted line to the teleport only when the previous action is selected
+          if (prevKey === activeMarkerKey) {
+            const poly = L.polyline([prevLatlng, latlng], {
+              color: 'orange', weight: 2, dashArray: '6 8', opacity: 0.7,
+            });
+            poly.addTo(osrsMap);
+            connectionPolylines.push(poly);
+          }
+        } else {
+          const poly = L.polyline([prevLatlng, latlng], { color: 'orange', weight: 2 });
+          poly.addTo(osrsMap);
+          connectionPolylines.push(poly);
+        }
       }
       prevLatlng = latlng;
+      prevKey = action.key;
     }
   }
 };

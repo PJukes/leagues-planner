@@ -254,11 +254,13 @@ export function taskManager() {
                 this.selectedTask.selected = false;
                 this.selectedTask = null;
                 if (window.updateActiveMarker) window.updateActiveMarker(null);
+                if (window.refreshMapPolylines) window.refreshMapPolylines(this.actions);
                 return;
             }
             this.selectedTask = this.actions.find(task => task.key === taskKey);
             this.selectedTask.selected = true;
             if (window.updateActiveMarker) window.updateActiveMarker(taskKey);
+            if (window.refreshMapPolylines) window.refreshMapPolylines(this.actions);
         },
 
         removeTask(taskKey) {
